@@ -3,6 +3,7 @@ package com.martin.minimallauncher.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
@@ -13,11 +14,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.data.AppInfo
+import com.martin.minimallauncher.ui.widgets.LocalWidgetController
+import com.martin.minimallauncher.ui.widgets.WidgetScreen
 import kotlinx.coroutines.launch
 
 private enum class Overlay { None, ScreenTime, Settings }
@@ -26,12 +30,24 @@ private enum class Overlay { None, ScreenTime, Settings }
 fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val state by vm.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    val pager = rememberPagerState(pageCount = { 2 })
+    // Lado de la pantalla de widgets respecto al Inicio.
+    val widgetsOnLeft = state.settings.widgetsOnLeft
+    val homePage = if (widgetsOnLeft) 1 else 0
+    val widgetsPage = if (widgetsOnLeft) 0 else 1
+    // Eje vertical: Inicio (0) ↕ Cajón de apps (1)
+    val verticalPager = rememberPagerState(pageCount = { 2 })
+    // Eje horizontal: Widgets ↔ Inicio/Cajón. Arranca en Inicio.
+    val horizontalPager = rememberPagerState(initialPage = homePage, pageCount = { 2 })
+    val currentHomePage by rememberUpdatedState(homePage)
+    val widgetController = LocalWidgetController.current
 
     var overlay by remember { mutableStateOf(Overlay.None) }
     var optionsApp by remember { mutableStateOf<AppInfo?>(null) }
     var renameApp by remember { mutableStateOf<AppInfo?>(null) }
     var frictionApp by remember { mutableStateOf<AppInfo?>(null) }
+
+    // Al cambiar el lado de los widgets, reubicar el pager en el Inicio.
+    LaunchedEffect(widgetsOnLeft) { horizontalPager.scrollToPage(homePage) }
 
     // Volver al inicio al presionar HOME
     LaunchedEffect(Unit) {
@@ -40,7 +56,8 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             optionsApp = null
             renameApp = null
             frictionApp = null
-            scope.launch { pager.scrollToPage(0) }
+            scope.launch { horizontalPager.scrollToPage(currentHomePage) }
+            scope.launch { verticalPager.scrollToPage(0) }
         }
     }
 
@@ -62,22 +79,34 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         when (overlay) {
             Overlay.ScreenTime -> ScreenTimeScreen(state = state, onBack = { overlay = Overlay.None })
             Overlay.Settings -> SettingsScreen(state = state, vm = vm, onBack = { overlay = Overlay.None })
-            Overlay.None -> VerticalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
-                when (page) {
-                    0 -> HomeScreen(
-                        state = state,
-                        onAppClick = onAppClick,
-                        onAppLongClick = onAppLongClick,
-                        onOpenScreenTime = { overlay = Overlay.ScreenTime },
-                        onOpenSettings = { overlay = Overlay.Settings },
-                        onOpenDrawer = { scope.launch { pager.animateScrollToPage(1) } },
-                        onOpenClock = { vm.openAlarms() },
+            Overlay.None -> HorizontalPager(state = horizontalPager, modifier = Modifier.fillMaxSize()) { hPage ->
+                when (hPage) {
+                    widgetsPage -> WidgetScreen(
+                        placements = state.widgets,
+                        onRemoveWidget = { id ->
+                            widgetController?.removeWidget(id)
+                            vm.removeWidget(id)
+                        },
+                        onResizeWidget = { id, heightDp -> vm.setWidgetHeight(id, heightDp) },
+                        onMoveWidget = { id, up -> vm.moveWidget(id, up) },
                     )
-                    else -> AppDrawer(
-                        state = state,
-                        onAppClick = onAppClick,
-                        onAppLongClick = onAppLongClick,
-                    )
+                    else -> VerticalPager(state = verticalPager, modifier = Modifier.fillMaxSize()) { page ->
+                        when (page) {
+                            0 -> HomeScreen(
+                                state = state,
+                                onAppClick = onAppClick,
+                                onAppLongClick = onAppLongClick,
+                                onOpenScreenTime = { overlay = Overlay.ScreenTime },
+                                onOpenSettings = { overlay = Overlay.Settings },
+                                onOpenClock = { vm.openAlarms() },
+                            )
+                            else -> AppDrawer(
+                                state = state,
+                                onAppClick = onAppClick,
+                                onAppLongClick = onAppLongClick,
+                            )
+                        }
+                    }
                 }
             }
         }

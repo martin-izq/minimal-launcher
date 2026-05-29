@@ -37,6 +37,7 @@ data class LauncherSettings(
     val homeAlign: Int = 0,           // 0 = izquierda, 1 = centro, 2 = derecha
     val verticalPos: Int = 0,         // 0 = arriba, 1 = centro, 2 = abajo
     val clockOpensAlarms: Boolean = true,
+    val widgetsOnLeft: Boolean = true, // lado de la pantalla de widgets respecto al inicio
 )
 
 class SettingsRepository(private val context: Context) {
@@ -59,6 +60,7 @@ class SettingsRepository(private val context: Context) {
         val HOME_ALIGN = intPreferencesKey("home_align")
         val VERTICAL_POS = intPreferencesKey("vertical_pos")
         val CLOCK_OPENS_ALARMS = booleanPreferencesKey("clock_opens_alarms")
+        val WIDGETS_ON_LEFT = booleanPreferencesKey("widgets_on_left")
     }
 
     val settings: Flow<LauncherSettings> = context.dataStore.data.map { p ->
@@ -80,6 +82,7 @@ class SettingsRepository(private val context: Context) {
             homeAlign = p[Keys.HOME_ALIGN] ?: 0,
             verticalPos = p[Keys.VERTICAL_POS] ?: 0,
             clockOpensAlarms = p[Keys.CLOCK_OPENS_ALARMS] ?: true,
+            widgetsOnLeft = p[Keys.WIDGETS_ON_LEFT] ?: true,
         )
     }
 
@@ -132,6 +135,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHomeAlign(v: Int) = context.dataStore.edit { it[Keys.HOME_ALIGN] = v }
     suspend fun setVerticalPos(v: Int) = context.dataStore.edit { it[Keys.VERTICAL_POS] = v }
     suspend fun setClockOpensAlarms(v: Boolean) = putBool(Keys.CLOCK_OPENS_ALARMS, v)
+    suspend fun setWidgetsOnLeft(v: Boolean) = putBool(Keys.WIDGETS_ON_LEFT, v)
 
     private suspend fun putBool(key: Preferences.Key<Boolean>, v: Boolean) =
         context.dataStore.edit { it[key] = v }

@@ -9,6 +9,8 @@ import com.martin.minimallauncher.data.LauncherSettings
 import com.martin.minimallauncher.data.SettingsRepository
 import com.martin.minimallauncher.data.UsageSnapshot
 import com.martin.minimallauncher.data.UsageStatsRepository
+import com.martin.minimallauncher.data.WidgetPlacement
+import com.martin.minimallauncher.data.WidgetsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +28,7 @@ data class LauncherUiState(
     val visibleApps: List<AppInfo> = emptyList(),
     val favoriteApps: List<AppInfo> = emptyList(),
     val usage: UsageSnapshot = UsageSnapshot(),
+    val widgets: List<WidgetPlacement> = emptyList(),
 )
 
 class LauncherViewModel(app: Application) : AndroidViewModel(app) {
@@ -33,6 +36,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private val appRepo = AppRepository(app)
     private val settingsRepo = SettingsRepository(app)
     private val usageRepo = UsageStatsRepository(app)
+    private val widgetsRepo = WidgetsRepository(app)
 
     private val allAppsFlow = MutableStateFlow<List<AppInfo>>(emptyList())
     private val usageFlow = MutableStateFlow(UsageSnapshot())
@@ -42,14 +46,19 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     val goHome = _goHome.asSharedFlow()
 
     val uiState: StateFlow<LauncherUiState> =
-        combine(allAppsFlow, settingsRepo.settings, usageFlow) { apps, settings, usage ->
+        combine(
+            allAppsFlow,
+            settingsRepo.settings,
+            usageFlow,
+            widgetsRepo.widgets,
+        ) { apps, settings, usage, widgets ->
             val visible = apps
                 .filter { it.packageName !in settings.hidden }
                 .sortedBy { it.displayLabel(settings.renames).lowercase() }
             val favs = settings.favorites.mapNotNull { pkg ->
                 apps.firstOrNull { it.packageName == pkg }
             }
-            LauncherUiState(settings, apps, visible, favs, usage)
+            LauncherUiState(settings, apps, visible, favs, usage, widgets)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LauncherUiState())
 
     init {
@@ -97,4 +106,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setHomeAlign(v: Int) { viewModelScope.launch { settingsRepo.setHomeAlign(v) } }
     fun setVerticalPos(v: Int) { viewModelScope.launch { settingsRepo.setVerticalPos(v) } }
     fun setClockOpensAlarms(v: Boolean) { viewModelScope.launch { settingsRepo.setClockOpensAlarms(v) } }
+    fun setWidgetsOnLeft(v: Boolean) { viewModelScope.launch { settingsRepo.setWidgetsOnLeft(v) } }
+
+    // --- Widgets ---
+    fun addWidget(placement: WidgetPlacement) { viewModelScope.launch { widgetsRepo.add(placement) } }
+    fun removeWidget(appWidgetId: Int) { viewModelScope.launch { widgetsRepo.remove(appWidgetId) } }
+    fun setWidgetHeight(appWidgetId: Int, heightDp: Int) { viewModelScope.launch { widgetsRepo.setHeight(appWidgetId, heightDp) } }
+    fun moveWidget(appWidgetId: Int, up: Boolean) { viewModelScope.launch { widgetsRepo.move(appWidgetId, up) } }
 }
