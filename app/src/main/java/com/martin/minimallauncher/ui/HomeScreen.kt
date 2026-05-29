@@ -4,10 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,12 +20,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.martin.minimallauncher.util.openNotificationShade
+import kotlin.math.abs
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.util.formatDuration
@@ -46,7 +51,6 @@ fun HomeScreen(
     onAppLongClick: (AppInfo) -> Unit,
     onOpenScreenTime: () -> Unit,
     onOpenSettings: () -> Unit,
-    onOpenDrawer: () -> Unit,
     onOpenClock: () -> Unit,
 ) {
     val s = state.settings
@@ -78,7 +82,53 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding(),
+            .statusBarsPadding()
+            .pointerInput(Unit) {
+                val thresholdPx = 60.dp.toPx()
+                val slop = viewConfiguration.touchSlop
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    var totalDx = 0f
+                    var totalDy = 0f
+                    var decided = false
+                    var capture = false
+                    var fired = false
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (!change.pressed) break
+                        val pc = change.positionChange()
+                        totalDx += pc.x
+                        totalDy += pc.y
+                        if (!decided) {
+                            if (abs(totalDy) > slop || abs(totalDx) > slop) {
+                                decided = true
+                                // Solo capturamos el arrastre hacia abajo; arriba (cajón)
+                                // y horizontal (widgets) los manejan los pagers.
+                                capture = totalDy > 0 && abs(totalDy) > abs(totalDx)
+                                if (!capture) break
+                            }
+                        }
+                        if (capture) {
+                            change.consume()
+                            if (!fired && totalDy >= thresholdPx) {
+                                fired = true
+                                if (!openNotificationShade(context)) {
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "Activá el gesto en Ajustes › Notificaciones al deslizar",
+                                        android.widget.Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .pointerInput(Unit) {
+                // Mantener presionado en una zona vacía del home abre Ajustes.
+                detectTapGestures(onLongPress = { onOpenSettings() })
+            },
         horizontalAlignment = horizontalAlign,
     ) {
         // Espaciador superior: empuja el contenido si la posición es centro o abajo
@@ -174,33 +224,6 @@ fun HomeScreen(
         if (s.verticalPos == 1) Spacer(Modifier.weight(1f))
 
         Spacer(Modifier.height(24.dp))
-
-        // Acciones inferiores
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 28.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            Text(
-                "Apps",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickableText(onOpenDrawer),
-            )
-            Text(
-                "Screen Time",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickableText(onOpenScreenTime),
-            )
-            Text(
-                "Ajustes",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickableText(onOpenSettings),
-            )
-        }
 
         Box(
             Modifier.fillMaxWidth().padding(vertical = 8.dp),

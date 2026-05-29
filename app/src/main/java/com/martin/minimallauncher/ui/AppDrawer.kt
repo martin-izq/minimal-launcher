@@ -18,6 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
@@ -32,12 +34,23 @@ fun AppDrawer(
     var query by remember { mutableStateOf("") }
     val renames = state.settings.renames
     val favorites = state.settings.favorites.toSet()
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
 
     val filtered = remember(query, state.visibleApps, renames) {
         if (query.isBlank()) state.visibleApps
         else state.visibleApps.filter {
             it.displayLabel(renames).contains(query.trim(), ignoreCase = true)
         }
+    }
+
+    // Al abrir una app limpiamos el buscador y cerramos el teclado, así al volver
+    // al launcher la pantalla queda en blanco y sin foco.
+    val launchApp: (AppInfo) -> Unit = { app ->
+        query = ""
+        keyboard?.hide()
+        focusManager.clearFocus()
+        onAppClick(app)
     }
 
     Column(
@@ -52,7 +65,7 @@ fun AppDrawer(
             label = { Text("Buscar app") },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
             keyboardActions = KeyboardActions(onGo = {
-                filtered.firstOrNull()?.let(onAppClick)
+                filtered.firstOrNull()?.let(launchApp)
             }),
             modifier = Modifier
                 .fillMaxWidth()
@@ -73,7 +86,7 @@ fun AppDrawer(
                 AppRow(
                     label = app.displayLabel(renames),
                     isFavorite = app.packageName in favorites,
-                    onClick = { onAppClick(app) },
+                    onClick = { launchApp(app) },
                     onLongClick = { onAppLongClick(app) },
                 )
             }
