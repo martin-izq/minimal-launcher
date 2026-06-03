@@ -42,6 +42,9 @@ data class LauncherSettings(
     val appDrawerSize: Int = 18,       // tamaño de la letra de las apps en sp
     val appDrawerAlign: Int = 0,       // 0 = izquierda, 1 = centro, 2 = derecha
     val alphabetIndex: Boolean = true, // guía alfabética a la derecha
+    val searchBarBottom: Boolean = false, // false = buscador arriba, true = abajo
+    // App de acceso rápido (deslizar al lado opuesto de widgets)
+    val quickLaunchPackage: String? = null,
 )
 
 class SettingsRepository(private val context: Context) {
@@ -68,6 +71,8 @@ class SettingsRepository(private val context: Context) {
         val APP_DRAWER_SIZE = intPreferencesKey("app_drawer_size")
         val APP_DRAWER_ALIGN = intPreferencesKey("app_drawer_align")
         val ALPHABET_INDEX = booleanPreferencesKey("alphabet_index")
+        val SEARCH_BAR_BOTTOM = booleanPreferencesKey("search_bar_bottom")
+        val QUICK_LAUNCH_PKG = stringPreferencesKey("quick_launch_pkg")
     }
 
     val settings: Flow<LauncherSettings> = context.dataStore.data.map { p ->
@@ -93,6 +98,8 @@ class SettingsRepository(private val context: Context) {
             appDrawerSize = p[Keys.APP_DRAWER_SIZE] ?: 18,
             appDrawerAlign = p[Keys.APP_DRAWER_ALIGN] ?: 0,
             alphabetIndex = p[Keys.ALPHABET_INDEX] ?: true,
+            searchBarBottom = p[Keys.SEARCH_BAR_BOTTOM] ?: false,
+            quickLaunchPackage = p[Keys.QUICK_LAUNCH_PKG],
         )
     }
 
@@ -149,6 +156,10 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAppDrawerSize(v: Int) = context.dataStore.edit { it[Keys.APP_DRAWER_SIZE] = v }
     suspend fun setAppDrawerAlign(v: Int) = context.dataStore.edit { it[Keys.APP_DRAWER_ALIGN] = v }
     suspend fun setAlphabetIndex(v: Boolean) = putBool(Keys.ALPHABET_INDEX, v)
+    suspend fun setSearchBarBottom(v: Boolean) = putBool(Keys.SEARCH_BAR_BOTTOM, v)
+    suspend fun setQuickLaunchPackage(pkg: String?) = context.dataStore.edit { p ->
+        if (pkg == null) p.remove(Keys.QUICK_LAUNCH_PKG) else p[Keys.QUICK_LAUNCH_PKG] = pkg
+    }
 
     private suspend fun putBool(key: Preferences.Key<Boolean>, v: Boolean) =
         context.dataStore.edit { it[key] = v }

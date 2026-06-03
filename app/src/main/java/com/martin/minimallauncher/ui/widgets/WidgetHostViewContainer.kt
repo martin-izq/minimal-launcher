@@ -5,12 +5,9 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.SizeF
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.AdapterViewFlipper
 import android.widget.FrameLayout
@@ -19,7 +16,6 @@ import android.widget.HorizontalScrollView
 import android.widget.ListView
 import android.widget.ScrollView
 import android.widget.StackView
-import kotlin.math.abs
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -33,56 +29,19 @@ import androidx.compose.ui.viewinterop.AndroidView
  * no intercepte el gesto, de modo que el widget pueda scrollear internamente. Cuando
  * [grabTouches] es false (modo edición) deja pasar el gesto al overlay de Compose.
  */
-private class WidgetFrame(
-    context: Context,
-    private val onLongPress: () -> Unit,
-) : FrameLayout(context) {
+private class WidgetFrame(context: Context) : FrameLayout(context) {
     var grabTouches: Boolean = true
-
-    // Detección propia de mantener-pulsado con un umbral más largo (más amigable
-    // que el ~500 ms del sistema), sin robarle los toques/scroll al widget.
-    private val handler = Handler(Looper.getMainLooper())
-    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
-    private var downX = 0f
-    private var downY = 0f
-    private val longPressRunnable = Runnable { if (grabTouches) onLongPress() }
-
-    private val longPressTimeoutMs = 2000L
 
     // Solo le cedemos el gesto al widget si su contenido scrollea; si no, dejamos
     // que la página de widgets scrollee normalmente.
     private var widgetScrollable = false
-
-    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        if (grabTouches) {
-            when (ev.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    downX = ev.x
-                    downY = ev.y
-                    handler.removeCallbacks(longPressRunnable)
-                    handler.postDelayed(longPressRunnable, longPressTimeoutMs)
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    if (abs(ev.x - downX) > touchSlop || abs(ev.y - downY) > touchSlop) {
-                        handler.removeCallbacks(longPressRunnable)
-                    }
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    handler.removeCallbacks(longPressRunnable)
-                }
-            }
-        } else {
-            handler.removeCallbacks(longPressRunnable)
-        }
-        return super.dispatchTouchEvent(ev)
-    }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
         if (grabTouches && ev?.actionMasked == MotionEvent.ACTION_DOWN) {
             widgetScrollable = getChildAt(0)?.let { hasScrollableContent(it) } ?: false
         }
         if (grabTouches && widgetScrollable) parent?.requestDisallowInterceptTouchEvent(true)
-        return false // no interceptamos: el widget hijo recibe el gesto
+        return false
     }
 }
 
@@ -113,7 +72,6 @@ fun WidgetHostViewItem(
     controller: WidgetController,
     heightDp: Int,
     scrollable: Boolean = true,
-    onLongPress: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
@@ -121,7 +79,7 @@ fun WidgetHostViewItem(
 
     AndroidView(
         factory = { ctx ->
-            val frame = WidgetFrame(ctx, onLongPress)
+            val frame = WidgetFrame(ctx)
             val host = controller.obtainHostView(appWidgetId) ?: AppWidgetHostView(ctx)
             // La vista cacheada puede seguir adjunta a un frame anterior: la despegamos.
             (host.parent as? ViewGroup)?.removeView(host)

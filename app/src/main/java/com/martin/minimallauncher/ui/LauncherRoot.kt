@@ -34,6 +34,13 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val scope = rememberCoroutineScope()
     // Lado de la pantalla de widgets respecto al Inicio.
     val widgetsOnLeft = state.settings.widgetsOnLeft
+    val quickLaunchPackage = state.settings.quickLaunchPackage
+    // El acceso rápido NO es una página del pager: es un gesto en el Home que dispara la app
+    // sin desplazar nada (igual que el swipe-abajo de notificaciones). Como vive del lado
+    // opuesto a los widgets, el gesto que lo dispara es deslizar el dedo hacia ese lado.
+    // widgets a la izquierda → quick a la derecha → swipe del dedo hacia la izquierda.
+    // widgets a la derecha → quick a la izquierda → swipe del dedo hacia la derecha.
+    val quickLaunchSwipeRight = !widgetsOnLeft
     val homePage = if (widgetsOnLeft) 1 else 0
     val widgetsPage = if (widgetsOnLeft) 0 else 1
     // Eje vertical: Inicio (0) ↕ Cajón de apps (1)
@@ -61,6 +68,10 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
 
     // Al cambiar el lado de los widgets, reubicar el pager en el Inicio.
     LaunchedEffect(widgetsOnLeft) { horizontalPager.scrollToPage(homePage) }
+
+    // Acción de acceso rápido: si hay app configurada, deslizar hacia el lado opuesto a los
+    // widgets la lanza directamente, sin mover el Home.
+    val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg -> { vm.launchByPackage(pkg) } }
 
     // Volver al inicio al presionar HOME
     LaunchedEffect(Unit) {
@@ -104,19 +115,26 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                         onMoveWidget = { id, up -> vm.moveWidget(id, up) },
                     )
                     else -> VerticalPager(state = verticalPager, modifier = Modifier.fillMaxSize()) { page ->
+                        val isHomeVisible = horizontalPager.currentPage == homePage &&
+                            verticalPager.currentPage == 0 &&
+                            overlay == Overlay.None
                         when (page) {
                             0 -> HomeScreen(
                                 state = state,
+                                isHomeVisible = isHomeVisible,
                                 onAppClick = onAppClick,
                                 onAppLongClick = onAppLongClick,
                                 onOpenScreenTime = { overlay = Overlay.ScreenTime },
                                 onOpenSettings = { overlay = Overlay.Settings },
                                 onOpenClock = { vm.openAlarms() },
+                                onQuickLaunch = onQuickLaunch,
+                                quickLaunchSwipeRight = quickLaunchSwipeRight,
                             )
                             else -> AppDrawer(
                                 state = state,
                                 onAppClick = onAppClick,
                                 onAppLongClick = onAppLongClick,
+                                onSwipeDownToHome = { scope.launch { verticalPager.animateScrollToPage(0) } },
                             )
                         }
                     }

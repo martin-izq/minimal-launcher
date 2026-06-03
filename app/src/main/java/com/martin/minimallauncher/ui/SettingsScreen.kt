@@ -13,15 +13,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +42,7 @@ import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.openAccessibilitySettings
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     state: LauncherUiState,
@@ -41,6 +51,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val s = state.settings
+    var showAppPicker by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -79,9 +90,35 @@ fun SettingsScreen(
             ToggleRow("Tocar la hora abre el reloj", s.clockOpensAlarms, vm::setClockOpensAlarms)
         }
 
+        Section("Acceso rápido") {
+            val quickApp = s.quickLaunchPackage?.let { pkg ->
+                state.allApps.firstOrNull { it.packageName == pkg }
+            }
+            ActionRow(
+                title = "App al deslizar ${if (s.widgetsOnLeft) "a la derecha" else "a la izquierda"}",
+                subtitle = quickApp?.originalLabel ?: "Sin configurar — tocá para elegir",
+                onClick = { showAppPicker = true },
+            )
+            if (s.quickLaunchPackage != null) {
+                Text(
+                    "Quitar acceso rápido",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier
+                        .clickableText { vm.setQuickLaunchPackage(null) }
+                        .padding(vertical = 8.dp),
+                )
+            }
+        }
+
         Section("Cajón de apps") {
             SizeSlider("Tamaño de la letra", s.appDrawerSize, 12, 36, vm::setAppDrawerSize)
             SegmentedSelector("Alineación", listOf("Izquierda", "Centro", "Derecha"), s.appDrawerAlign, vm::setAppDrawerAlign)
+            SegmentedSelector(
+                "Posición del buscador",
+                listOf("Arriba", "Abajo"),
+                if (s.searchBarBottom) 1 else 0,
+            ) { vm.setSearchBarBottom(it == 1) }
             ToggleRow("Guía alfabética", s.alphabetIndex, vm::setAlphabetIndex)
         }
 
@@ -93,12 +130,41 @@ fun SettingsScreen(
                 secs.map { "${it}s" },
                 secs.indexOf(s.frictionSeconds).coerceAtLeast(0),
             ) { vm.setFrictionSeconds(secs[it]) }
-            Text(
-                "Apps marcadas como distractoras: ${s.distracting.size}",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(vertical = 6.dp),
-            )
+            val distractingApps = state.allApps.filter { it.packageName in s.distracting }
+            if (distractingApps.isNotEmpty()) {
+                Text(
+                    "Apps distractoras (${distractingApps.size})",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                )
+                distractingApps.forEach { app ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            app.originalLabel,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            "Quitar",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickableText { vm.setDistracting(app, false) },
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    "Ninguna app marcada como distractora.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 6.dp),
+                )
+            }
         }
 
         Section("Apariencia") {
@@ -122,7 +188,7 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            app.displayLabel(s.renames),
+                            app.originalLabel,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onBackground,
                         )
@@ -148,6 +214,49 @@ fun SettingsScreen(
         ) { Text("Establecer como launcher por defecto") }
 
         Spacer(Modifier.height(40.dp))
+    }
+
+    if (showAppPicker) {
+        ModalBottomSheet(
+            onDismissRequest = { showAppPicker = false },
+            sheetState = rememberModalBottomSheetState(),
+        ) {
+            Text(
+                "Elegir app de acceso rápido",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            )
+            LazyColumn(Modifier.fillMaxWidth()) {
+                items(state.allApps.sortedBy { it.originalLabel.lowercase() }) { app ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickableText {
+                                vm.setQuickLaunchPackage(app.packageName)
+                                showAppPicker = false
+                            }
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            app.originalLabel,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        if (app.packageName == s.quickLaunchPackage) {
+                            Text(
+                                "✓",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+                item { Spacer(Modifier.height(32.dp)) }
+            }
+        }
     }
 }
 

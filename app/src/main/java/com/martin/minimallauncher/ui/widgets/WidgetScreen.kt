@@ -55,82 +55,74 @@ fun WidgetScreen(
     var editing by remember { mutableStateOf(false) }
     var removeTarget by remember { mutableStateOf<Int?>(null) }
 
-    Box(
+    Column(
         Modifier
             .fillMaxSize()
-            .statusBarsPadding(),
+            .statusBarsPadding()
+            .verticalScroll(rememberScrollState()),
     ) {
-        Column(
+        // Header con título y botón Editar/Listo
+        Row(
             Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+                .fillMaxWidth()
+                .padding(start = 28.dp, end = 28.dp, top = 48.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Spacer(Modifier.height(16.dp))
+            Text(
+                "Widgets",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+            if (controller != null && placements.isNotEmpty()) {
+                Text(
+                    if (editing) "Listo" else "Editar",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickableText { editing = !editing },
+                )
+            }
+        }
 
-            if (controller != null) {
-                if (placements.isEmpty()) {
-                    Text(
-                        "Todavía no agregaste widgets.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
-                    )
-                    Text(
-                        "+ Agregar widget",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .clickableText { showPicker = true }
-                            .padding(horizontal = 28.dp, vertical = 12.dp),
-                    )
-                } else {
-                    placements.forEachIndexed { index, placement ->
-                        key(placement.appWidgetId) {
-                            EditableWidgetItem(
-                                placement = placement,
-                                controller = controller,
-                                editing = editing,
-                                canMoveUp = index > 0,
-                                canMoveDown = index < placements.lastIndex,
-                                onEnterEdit = { editing = true },
-                                onResize = { h -> onResizeWidget(placement.appWidgetId, h) },
-                                onMoveUp = { onMoveWidget(placement.appWidgetId, true) },
-                                onMoveDown = { onMoveWidget(placement.appWidgetId, false) },
-                                onRemove = { removeTarget = placement.appWidgetId },
-                            )
-                        }
+        if (controller != null) {
+            if (placements.isEmpty()) {
+                Text(
+                    "Todavía no agregaste widgets.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+                )
+            } else {
+                placements.forEachIndexed { index, placement ->
+                    key(placement.appWidgetId) {
+                        EditableWidgetItem(
+                            placement = placement,
+                            controller = controller,
+                            editing = editing,
+                            canMoveUp = index > 0,
+                            canMoveDown = index < placements.lastIndex,
+                            onResize = { h -> onResizeWidget(placement.appWidgetId, h) },
+                            onMoveUp = { onMoveWidget(placement.appWidgetId, true) },
+                            onMoveDown = { onMoveWidget(placement.appWidgetId, false) },
+                            onRemove = { removeTarget = placement.appWidgetId },
+                        )
                     }
                 }
             }
-
-            // Espacio extra al final para que la barra de edición no tape el último widget.
-            Spacer(Modifier.height(if (editing) 72.dp else 24.dp))
         }
 
-        // Barra de edición flotante (solo en modo edición).
-        if (editing) {
-            Row(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(horizontal = 24.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    "+ Agregar widget",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clickableText { showPicker = true },
-                )
-                Text(
-                    "Listo",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.clickableText { editing = false },
-                )
-            }
-        }
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "+ Agregar widget",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickableText { showPicker = true }
+                .padding(vertical = 16.dp),
+        )
+        Spacer(Modifier.height(24.dp))
     }
 
     if (showPicker && controller != null) {
@@ -158,7 +150,6 @@ private fun EditableWidgetItem(
     editing: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
-    onEnterEdit: () -> Unit,
     onResize: (Int) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
@@ -191,7 +182,6 @@ private fun EditableWidgetItem(
             controller = controller,
             heightDp = heightDp.toInt(),
             scrollable = !editing,
-            onLongPress = onEnterEdit,
             modifier = if (editing) {
                 Modifier.border(
                     width = 1.dp,

@@ -52,9 +52,11 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             usageFlow,
             widgetsRepo.widgets,
         ) { apps, settings, usage, widgets ->
+            // El cajón muestra y ordena por el nombre original; los renombres
+            // solo aplican a favoritos.
             val visible = apps
                 .filter { it.packageName !in settings.hidden }
-                .sortedBy { it.displayLabel(settings.renames).lowercase() }
+                .sortedBy { it.originalLabel.lowercase() }
             val favs = settings.favorites.mapNotNull { pkg ->
                 apps.firstOrNull { it.packageName == pkg }
             }
@@ -110,6 +112,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setAppDrawerSize(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerSize(v) } }
     fun setAppDrawerAlign(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerAlign(v) } }
     fun setAlphabetIndex(v: Boolean) { viewModelScope.launch { settingsRepo.setAlphabetIndex(v) } }
+    fun setSearchBarBottom(v: Boolean) { viewModelScope.launch { settingsRepo.setSearchBarBottom(v) } }
+    fun setQuickLaunchPackage(pkg: String?) { viewModelScope.launch { settingsRepo.setQuickLaunchPackage(pkg) } }
+    fun launchByPackage(pkg: String) = appRepo.launch(pkg)
 
     // --- Widgets ---
     fun addWidget(placement: WidgetPlacement) { viewModelScope.launch { widgetsRepo.add(placement) } }

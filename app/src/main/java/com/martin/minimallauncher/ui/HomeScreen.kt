@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,12 +21,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
@@ -48,13 +52,31 @@ private val esAR = Locale("es", "AR")
 @Composable
 fun HomeScreen(
     state: LauncherUiState,
+    isHomeVisible: Boolean,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
     onOpenScreenTime: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenClock: () -> Unit,
+    onQuickLaunch: (() -> Unit)? = null,
+    quickLaunchSwipeRight: Boolean = false,
 ) {
     val s = state.settings
+    var hintVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(isHomeVisible) {
+        if (isHomeVisible) {
+            hintVisible = true
+            delay(3_000)
+            hintVisible = false
+        } else {
+            hintVisible = false
+        }
+    }
+    val hintAlpha by animateFloatAsState(
+        targetValue = if (hintVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = "hintAlpha",
+    )
     var now by remember { mutableStateOf(LocalDateTime.now()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -64,6 +86,8 @@ fun HomeScreen(
     }
 
     val context = LocalContext.current
+    val quickLaunch = rememberUpdatedState(onQuickLaunch)
+    val quickSwipeRight = rememberUpdatedState(quickLaunchSwipeRight)
     val battery = remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(s.showBattery) {
         if (s.showBattery) battery.value = readBatteryLevel(context)
@@ -92,7 +116,9 @@ fun HomeScreen(
                     var totalDx = 0f
                     var totalDy = 0f
                     var decided = false
-                    var capture = false
+                    // 0 = no capturar (lo manejan los pagers); 1 = swipe abajo (notificaciones);
+                    // 2 = swipe horizontal hacia el lado opuesto a widgets (acceso rápido).
+                    var mode = 0
                     var fired = false
                     while (true) {
                         val event = awaitPointerEvent()
@@ -104,22 +130,39 @@ fun HomeScreen(
                         if (!decided) {
                             if (abs(totalDy) > slop || abs(totalDx) > slop) {
                                 decided = true
-                                // Solo capturamos el arrastre hacia abajo; arriba (cajón)
-                                // y horizontal (widgets) los manejan los pagers.
-                                capture = totalDy > 0 && abs(totalDy) > abs(totalDx)
-                                if (!capture) break
+                                if (abs(totalDy) >= abs(totalDx)) {
+                                    // Vertical: solo capturamos hacia abajo (arriba = cajón).
+                                    mode = if (totalDy > 0) 1 else 0
+                                } else {
+                                    // Horizontal: capturamos solo si hay acceso rápido y el
+                                    // gesto va hacia el lado correcto (el opuesto a widgets).
+                                    // El otro sentido lo maneja el pager (va a widgets).
+                                    val goingRight = totalDx > 0
+                                    mode = if (quickLaunch.value != null &&
+                                        goingRight == quickSwipeRight.value
+                                    ) 2 else 0
+                                }
+                                if (mode == 0) break
                             }
                         }
-                        if (capture) {
+                        if (mode != 0) {
                             change.consume()
-                            if (!fired && totalDy >= thresholdPx) {
-                                fired = true
-                                if (!openNotificationShade(context)) {
-                                    android.widget.Toast.makeText(
-                                        context,
-                                        "Activá el gesto en Ajustes › Notificaciones al deslizar",
-                                        android.widget.Toast.LENGTH_SHORT,
-                                    ).show()
+                            if (!fired) {
+                                when (mode) {
+                                    1 -> if (totalDy >= thresholdPx) {
+                                        fired = true
+                                        if (!openNotificationShade(context)) {
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "Activá el gesto en Ajustes › Notificaciones al deslizar",
+                                                android.widget.Toast.LENGTH_SHORT,
+                                            ).show()
+                                        }
+                                    }
+                                    2 -> if (abs(totalDx) >= thresholdPx) {
+                                        fired = true
+                                        quickLaunch.value?.invoke()
+                                    }
                                 }
                             }
                         }
@@ -239,7 +282,7 @@ fun HomeScreen(
         Spacer(Modifier.height(24.dp))
 
         Box(
-            Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            Modifier.fillMaxWidth().padding(vertical = 8.dp).alpha(hintAlpha),
             contentAlignment = Alignment.Center,
         ) {
             Text(
