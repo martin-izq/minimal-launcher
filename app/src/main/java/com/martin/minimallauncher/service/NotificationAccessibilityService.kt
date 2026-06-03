@@ -1,6 +1,7 @@
 package com.martin.minimallauncher.service
 
 import android.accessibilityservice.AccessibilityService
+import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 
 /**
@@ -42,6 +43,16 @@ class NotificationAccessibilityService : AccessibilityService() {
         fun openNotifications(): Boolean {
             val service = instance ?: return false
             return service.performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
+        }
+
+        /** Bloquea la pantalla (API 28+). Devuelve true si pudo ejecutarse. */
+        fun lockScreen(): Boolean {
+            val service = instance ?: return false
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                service.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN)
+            } else {
+                false
+            }
         }
     }
 }

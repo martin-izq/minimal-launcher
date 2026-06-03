@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.openNotificationShade
 import kotlin.math.abs
 import com.martin.minimallauncher.LauncherUiState
@@ -126,8 +127,20 @@ fun HomeScreen(
                 }
             }
             .pointerInput(Unit) {
-                // Mantener presionado en una zona vacía del home abre Ajustes.
-                detectTapGestures(onLongPress = { onOpenSettings() })
+                detectTapGestures(
+                    // Doble tap en una zona vacía bloquea la pantalla.
+                    onDoubleTap = {
+                        if (!NotificationAccessibilityService.lockScreen()) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Activá el servicio de accesibilidad en Ajustes para bloquear",
+                                android.widget.Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    },
+                    // Mantener presionado abre Ajustes.
+                    onLongPress = { onOpenSettings() },
+                )
             },
         horizontalAlignment = horizontalAlign,
     ) {

@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Minimal</string>
-    <string name="accessibility_description">Permite abrir el panel de notificaciones al deslizar hacia abajo en la pantalla de inicio. No lee ni recopila contenido de la pantalla.</string>
+    <string name="accessibility_description">Permite abrir el panel de notificaciones (deslizando hacia abajo) y bloquear la pantalla (doble toque) desde el inicio. No lee ni recopila contenido de la pantalla.</string>
 </resources>
