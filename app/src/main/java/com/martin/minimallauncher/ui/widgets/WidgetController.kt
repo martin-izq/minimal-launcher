@@ -94,13 +94,21 @@ class WidgetController(
         pendingProvider = null
     }
 
-    /** Libera el id del widget al quitarlo. */
-    fun removeWidget(appWidgetId: Int) = host.deleteAppWidgetId(appWidgetId)
+    // Cacheamos las vistas por id: recrearlas al volver de otra página deja el
+    // widget en blanco hasta un update; reutilizarlas conserva lo ya renderizado.
+    private val viewCache = mutableMapOf<Int, AppWidgetHostView>()
 
-    /** Crea la vista nativa del widget, o null si el id ya no es válido. */
-    fun createHostView(appWidgetId: Int): AppWidgetHostView? {
+    /** Libera el id del widget al quitarlo. */
+    fun removeWidget(appWidgetId: Int) {
+        viewCache.remove(appWidgetId)
+        host.deleteAppWidgetId(appWidgetId)
+    }
+
+    /** Devuelve la vista (cacheada) del widget, o null si el id ya no es válido. */
+    fun obtainHostView(appWidgetId: Int): AppWidgetHostView? {
+        viewCache[appWidgetId]?.let { return it }
         val info = appWidgetManager.getAppWidgetInfo(appWidgetId) ?: return null
-        return host.createView(activity, appWidgetId, info)
+        return host.createView(activity, appWidgetId, info).also { viewCache[appWidgetId] = it }
     }
 
     companion object {

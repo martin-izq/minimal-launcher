@@ -17,6 +17,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.data.AppInfo
@@ -40,6 +42,17 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val horizontalPager = rememberPagerState(initialPage = homePage, pageCount = { 2 })
     val currentHomePage by rememberUpdatedState(homePage)
     val widgetController = LocalWidgetController.current
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+
+    // Cerrar el teclado / soltar el foco cuando dejamos de estar en el cajón de apps.
+    val inDrawer = horizontalPager.currentPage == homePage && verticalPager.currentPage == 1
+    LaunchedEffect(inDrawer) {
+        if (!inDrawer) {
+            keyboard?.hide()
+            focusManager.clearFocus()
+        }
+    }
 
     var overlay by remember { mutableStateOf(Overlay.None) }
     var optionsApp by remember { mutableStateOf<AppInfo?>(null) }

@@ -50,7 +50,9 @@ fun WidgetHostViewItem(
     AndroidView(
         factory = { ctx ->
             val frame = WidgetFrame(ctx)
-            val host = controller.createHostView(appWidgetId) ?: AppWidgetHostView(ctx)
+            val host = controller.obtainHostView(appWidgetId) ?: AppWidgetHostView(ctx)
+            // La vista cacheada puede seguir adjunta a un frame anterior: la despegamos.
+            (host.parent as? ViewGroup)?.removeView(host)
             frame.addView(
                 host,
                 FrameLayout.LayoutParams(
