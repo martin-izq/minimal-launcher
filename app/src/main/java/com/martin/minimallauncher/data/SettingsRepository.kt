@@ -38,6 +38,10 @@ data class LauncherSettings(
     val verticalPos: Int = 0,         // 0 = arriba, 1 = centro, 2 = abajo
     val clockOpensAlarms: Boolean = true,
     val widgetsOnLeft: Boolean = true, // lado de la pantalla de widgets respecto al inicio
+    // Cajón de apps
+    val appDrawerSize: Int = 18,       // tamaño de la letra de las apps en sp
+    val appDrawerAlign: Int = 0,       // 0 = izquierda, 1 = centro, 2 = derecha
+    val alphabetIndex: Boolean = true, // guía alfabética a la derecha
 )
 
 class SettingsRepository(private val context: Context) {
@@ -61,6 +65,9 @@ class SettingsRepository(private val context: Context) {
         val VERTICAL_POS = intPreferencesKey("vertical_pos")
         val CLOCK_OPENS_ALARMS = booleanPreferencesKey("clock_opens_alarms")
         val WIDGETS_ON_LEFT = booleanPreferencesKey("widgets_on_left")
+        val APP_DRAWER_SIZE = intPreferencesKey("app_drawer_size")
+        val APP_DRAWER_ALIGN = intPreferencesKey("app_drawer_align")
+        val ALPHABET_INDEX = booleanPreferencesKey("alphabet_index")
     }
 
     val settings: Flow<LauncherSettings> = context.dataStore.data.map { p ->
@@ -83,6 +90,9 @@ class SettingsRepository(private val context: Context) {
             verticalPos = p[Keys.VERTICAL_POS] ?: 0,
             clockOpensAlarms = p[Keys.CLOCK_OPENS_ALARMS] ?: true,
             widgetsOnLeft = p[Keys.WIDGETS_ON_LEFT] ?: true,
+            appDrawerSize = p[Keys.APP_DRAWER_SIZE] ?: 18,
+            appDrawerAlign = p[Keys.APP_DRAWER_ALIGN] ?: 0,
+            alphabetIndex = p[Keys.ALPHABET_INDEX] ?: true,
         )
     }
 
@@ -136,6 +146,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVerticalPos(v: Int) = context.dataStore.edit { it[Keys.VERTICAL_POS] = v }
     suspend fun setClockOpensAlarms(v: Boolean) = putBool(Keys.CLOCK_OPENS_ALARMS, v)
     suspend fun setWidgetsOnLeft(v: Boolean) = putBool(Keys.WIDGETS_ON_LEFT, v)
+    suspend fun setAppDrawerSize(v: Int) = context.dataStore.edit { it[Keys.APP_DRAWER_SIZE] = v }
+    suspend fun setAppDrawerAlign(v: Int) = context.dataStore.edit { it[Keys.APP_DRAWER_ALIGN] = v }
+    suspend fun setAlphabetIndex(v: Boolean) = putBool(Keys.ALPHABET_INDEX, v)
 
     private suspend fun putBool(key: Preferences.Key<Boolean>, v: Boolean) =
         context.dataStore.edit { it[key] = v }

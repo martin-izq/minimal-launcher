@@ -107,6 +107,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setVerticalPos(v: Int) { viewModelScope.launch { settingsRepo.setVerticalPos(v) } }
     fun setClockOpensAlarms(v: Boolean) { viewModelScope.launch { settingsRepo.setClockOpensAlarms(v) } }
     fun setWidgetsOnLeft(v: Boolean) { viewModelScope.launch { settingsRepo.setWidgetsOnLeft(v) } }
+    fun setAppDrawerSize(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerSize(v) } }
+    fun setAppDrawerAlign(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerAlign(v) } }
+    fun setAlphabetIndex(v: Boolean) { viewModelScope.launch { settingsRepo.setAlphabetIndex(v) } }
 
     // --- Widgets ---
     fun addWidget(placement: WidgetPlacement) { viewModelScope.launch { widgetsRepo.add(placement) } }

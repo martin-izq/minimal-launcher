@@ -79,6 +79,12 @@ fun SettingsScreen(
             ToggleRow("Tocar la hora abre el reloj", s.clockOpensAlarms, vm::setClockOpensAlarms)
         }
 
+        Section("Cajón de apps") {
+            SizeSlider("Tamaño de la letra", s.appDrawerSize, 12, 36, vm::setAppDrawerSize)
+            SegmentedSelector("Alineación", listOf("Izquierda", "Centro", "Derecha"), s.appDrawerAlign, vm::setAppDrawerAlign)
+            ToggleRow("Guía alfabética", s.alphabetIndex, vm::setAlphabetIndex)
+        }
+
         Section("Reducir distracciones") {
             ToggleRow("Pantalla de fricción", s.frictionEnabled, vm::setFrictionEnabled)
             val secs = listOf(3, 5, 10)
