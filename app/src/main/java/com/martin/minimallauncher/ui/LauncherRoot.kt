@@ -103,7 +103,14 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         when (overlay) {
             Overlay.ScreenTime -> ScreenTimeScreen(state = state, onBack = { overlay = Overlay.None })
             Overlay.Settings -> SettingsScreen(state = state, vm = vm, onBack = { overlay = Overlay.None })
-            Overlay.None -> HorizontalPager(state = horizontalPager, modifier = Modifier.fillMaxSize()) { hPage ->
+            // Keep the adjacent (widgets) page composed so its hosted AppWidgetHostViews are
+            // not detached/re-attached every time we return to it — re-attaching left them
+            // collapsed and invisible until a manual resize.
+            Overlay.None -> HorizontalPager(
+                state = horizontalPager,
+                beyondViewportPageCount = 1,
+                modifier = Modifier.fillMaxSize(),
+            ) { hPage ->
                 when (hPage) {
                     widgetsPage -> WidgetScreen(
                         placements = state.widgets,

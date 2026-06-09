@@ -96,6 +96,17 @@ fun WidgetHostViewItem(
             (frame as WidgetFrame).grabTouches = scrollable
             (frame.getChildAt(0) as? AppWidgetHostView)?.let { host ->
                 applyWidgetSize(host, appWidgetId, widthDp, heightDp)
+                // After the cached view is re-attached to a fresh frame, its children can
+                // stay collapsed (size 0) until something forces a new layout pass — the
+                // widget then looks invisible even though it occupies space. Forcing a
+                // layout/redraw here (and once more on the next frame, when it's attached to
+                // the window) reproduces what a manual resize did to recover it.
+                host.requestLayout()
+                host.invalidate()
+                host.post {
+                    host.requestLayout()
+                    host.invalidate()
+                }
             }
         },
         modifier = modifier
