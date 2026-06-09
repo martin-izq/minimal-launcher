@@ -27,10 +27,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,7 +51,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val s = state.settings
-    var showAppPicker by remember { mutableStateOf(false) }
+    val showAppPicker = remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -117,7 +115,7 @@ fun SettingsScreen(
                     if (s.widgetsOnLeft) R.string.settings_quick_app_right else R.string.settings_quick_app_left
                 ),
                 subtitle = quickApp?.originalLabel ?: stringResource(R.string.settings_quick_unset),
-                onClick = { showAppPicker = true },
+                onClick = { showAppPicker.value = true },
             )
             if (s.quickLaunchPackage != null) {
                 Text(
@@ -236,9 +234,9 @@ fun SettingsScreen(
         Spacer(Modifier.height(40.dp))
     }
 
-    if (showAppPicker) {
+    if (showAppPicker.value) {
         ModalBottomSheet(
-            onDismissRequest = { showAppPicker = false },
+            onDismissRequest = { showAppPicker.value = false },
             sheetState = rememberModalBottomSheetState(),
         ) {
             Text(
@@ -254,7 +252,7 @@ fun SettingsScreen(
                             .fillMaxWidth()
                             .clickableText {
                                 vm.setQuickLaunchPackage(app.packageName)
-                                showAppPicker = false
+                                showAppPicker.value = false
                             }
                             .padding(horizontal = 20.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
