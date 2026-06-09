@@ -25,15 +25,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
 /**
- * Contenedor que, al recibir un toque, le pide al padre (el scroll de Compose) que
- * no intercepte el gesto, de modo que el widget pueda scrollear internamente. Cuando
- * [grabTouches] es false (modo edición) deja pasar el gesto al overlay de Compose.
+ * Container that, on touch, asks its parent (Compose's scroll) not to intercept the
+ * gesture so the widget can scroll internally. When [grabTouches] is false (edit mode)
+ * it lets the gesture pass through to the Compose overlay.
  */
 private class WidgetFrame(context: Context) : FrameLayout(context) {
     var grabTouches: Boolean = true
 
-    // Solo le cedemos el gesto al widget si su contenido scrollea; si no, dejamos
-    // que la página de widgets scrollee normalmente.
+    // Only yield the gesture to the widget if its content scrolls; otherwise let the
+    // widgets page scroll normally.
     private var widgetScrollable = false
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -45,7 +45,7 @@ private class WidgetFrame(context: Context) : FrameLayout(context) {
     }
 }
 
-/** Detecta si la jerarquía del widget contiene una vista con scroll propio. */
+/** Detects whether the widget hierarchy contains a self-scrolling view. */
 private fun hasScrollableContent(view: View): Boolean {
     if (view is ListView || view is GridView || view is ScrollView ||
         view is HorizontalScrollView || view is StackView || view is AdapterViewFlipper
@@ -62,9 +62,9 @@ private fun hasScrollableContent(view: View): Boolean {
 }
 
 /**
- * Renderiza un widget alojado dentro de Compose, a la altura indicada (en dp).
- * El ancho ocupa todo el disponible. Cuando [scrollable] es true, el widget se
- * queda con los gestos verticales para poder scrollear su contenido.
+ * Renders a widget hosted inside Compose at the given height (in dp). The width fills
+ * the available space. When [scrollable] is true, the widget keeps vertical gestures so
+ * it can scroll its own content.
  */
 @Composable
 fun WidgetHostViewItem(
@@ -81,7 +81,7 @@ fun WidgetHostViewItem(
         factory = { ctx ->
             val frame = WidgetFrame(ctx)
             val host = controller.obtainHostView(appWidgetId) ?: AppWidgetHostView(ctx)
-            // La vista cacheada puede seguir adjunta a un frame anterior: la despegamos.
+            // The cached view may still be attached to a previous frame: detach it.
             (host.parent as? ViewGroup)?.removeView(host)
             frame.addView(
                 host,
@@ -105,9 +105,9 @@ fun WidgetHostViewItem(
 }
 
 /**
- * Informa al widget su tamaño real. En Android 12+ usa OPTION_APPWIDGET_SIZES, que es
- * lo que los widgets responsivos (calendario, Google Home, etc.) leen para elegir el
- * layout correcto; sin esto se quedan en su layout mínimo.
+ * Tells the widget its real size. On Android 12+ it uses OPTION_APPWIDGET_SIZES, which is
+ * what responsive widgets (calendar, Google Home, etc.) read to pick the right layout;
+ * without it they stay in their minimum layout.
  */
 private fun applyWidgetSize(host: AppWidgetHostView, appWidgetId: Int, widthDp: Int, heightDp: Int) {
     val mgr = AppWidgetManager.getInstance(host.context)

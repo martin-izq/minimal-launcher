@@ -32,27 +32,27 @@ private enum class Overlay { None, ScreenTime, Settings }
 fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val state by vm.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    // Lado de la pantalla de widgets respecto al Inicio.
+    // Side of the widgets screen relative to Home.
     val widgetsOnLeft = state.settings.widgetsOnLeft
     val quickLaunchPackage = state.settings.quickLaunchPackage
-    // El acceso rápido NO es una página del pager: es un gesto en el Home que dispara la app
-    // sin desplazar nada (igual que el swipe-abajo de notificaciones). Como vive del lado
-    // opuesto a los widgets, el gesto que lo dispara es deslizar el dedo hacia ese lado.
-    // widgets a la izquierda → quick a la derecha → swipe del dedo hacia la izquierda.
-    // widgets a la derecha → quick a la izquierda → swipe del dedo hacia la derecha.
+    // Quick-launch is NOT a pager page: it's a gesture on Home that launches the app without
+    // moving anything (like the swipe-down for notifications). Since it lives on the side
+    // opposite the widgets, the triggering gesture is swiping the finger toward that side.
+    // widgets on the left  → quick on the right → swipe finger left.
+    // widgets on the right → quick on the left  → swipe finger right.
     val quickLaunchSwipeRight = !widgetsOnLeft
     val homePage = if (widgetsOnLeft) 1 else 0
     val widgetsPage = if (widgetsOnLeft) 0 else 1
-    // Eje vertical: Inicio (0) ↕ Cajón de apps (1)
+    // Vertical axis: Home (0) ↕ App drawer (1)
     val verticalPager = rememberPagerState(pageCount = { 2 })
-    // Eje horizontal: Widgets ↔ Inicio/Cajón. Arranca en Inicio.
+    // Horizontal axis: Widgets ↔ Home/Drawer. Starts on Home.
     val horizontalPager = rememberPagerState(initialPage = homePage, pageCount = { 2 })
     val currentHomePage by rememberUpdatedState(homePage)
     val widgetController = LocalWidgetController.current
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
 
-    // Cerrar el teclado / soltar el foco cuando dejamos de estar en el cajón de apps.
+    // Hide the keyboard / drop focus when we leave the app drawer.
     val inDrawer = horizontalPager.currentPage == homePage && verticalPager.currentPage == 1
     LaunchedEffect(inDrawer) {
         if (!inDrawer) {
@@ -66,14 +66,14 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     var renameApp by remember { mutableStateOf<AppInfo?>(null) }
     var frictionApp by remember { mutableStateOf<AppInfo?>(null) }
 
-    // Al cambiar el lado de los widgets, reubicar el pager en el Inicio.
+    // When the widgets side changes, move the pager back to Home.
     LaunchedEffect(widgetsOnLeft) { horizontalPager.scrollToPage(homePage) }
 
-    // Acción de acceso rápido: si hay app configurada, deslizar hacia el lado opuesto a los
-    // widgets la lanza directamente, sin mover el Home.
+    // Quick-launch action: if an app is configured, swiping toward the side opposite the
+    // widgets launches it directly, without moving Home.
     val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg -> { vm.launchByPackage(pkg) } }
 
-    // Volver al inicio al presionar HOME
+    // Back to home when HOME is pressed
     LaunchedEffect(Unit) {
         vm.goHome.collect {
             overlay = Overlay.None
@@ -142,7 +142,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             }
         }
 
-        // Menú al mantener presionada una app
+        // Long-press app menu
         optionsApp?.let { app ->
             AppOptionsSheet(
                 app = app,
@@ -159,7 +159,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             )
         }
 
-        // Diálogo de renombrar
+        // Rename dialog
         renameApp?.let { app ->
             RenameDialog(
                 app = app,
@@ -169,7 +169,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             )
         }
 
-        // Pantalla de fricción
+        // Friction screen
         frictionApp?.let { app ->
             FrictionDialog(
                 appLabel = app.displayLabel(state.settings.renames),

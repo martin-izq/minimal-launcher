@@ -1,6 +1,5 @@
 package com.martin.minimallauncher.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -49,12 +48,10 @@ private val MinimalTypography = Typography(
 @Composable
 fun MinimalLauncherTheme(
     amoledDark: Boolean = true,
-    useSystem: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val dark = if (useSystem) isSystemInDarkTheme() else amoledDark
     MaterialTheme(
-        colorScheme = if (dark) DarkColors else LightColors,
+        colorScheme = if (amoledDark) DarkColors else LightColors,
         typography = MinimalTypography,
         content = content,
     )

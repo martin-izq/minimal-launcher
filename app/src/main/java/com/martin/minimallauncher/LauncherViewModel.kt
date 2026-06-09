@@ -41,7 +41,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private val allAppsFlow = MutableStateFlow<List<AppInfo>>(emptyList())
     private val usageFlow = MutableStateFlow(UsageSnapshot())
 
-    /** Evento para volver al inicio (al presionar HOME). */
+    /** Event to return home (when HOME is pressed). */
     private val _goHome = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val goHome = _goHome.asSharedFlow()
 
@@ -52,8 +52,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             usageFlow,
             widgetsRepo.widgets,
         ) { apps, settings, usage, widgets ->
-            // El cajón muestra y ordena por el nombre original; los renombres
-            // solo aplican a favoritos.
+            // The drawer shows and sorts by the original name; renames only apply
+            // to favorites.
             val visible = apps
                 .filter { it.packageName !in settings.hidden }
                 .sortedBy { it.originalLabel.lowercase() }
@@ -67,7 +67,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         refresh()
     }
 
-    /** Recarga lista de apps y estadísticas (llamar en onResume). */
+    /** Reloads the app list and usage stats (call from onResume). */
     fun refresh() {
         viewModelScope.launch {
             val apps = withContext(Dispatchers.IO) { appRepo.loadApps() }
@@ -83,7 +83,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
 
     fun hasUsagePermission(): Boolean = usageRepo.hasPermission()
 
-    // --- Acciones ---
+    // --- Actions ---
     fun launch(app: AppInfo) = appRepo.launch(app.packageName)
     fun openAlarms() = appRepo.openAlarms()
     fun openAppInfo(app: AppInfo) = appRepo.openAppInfo(app.packageName)

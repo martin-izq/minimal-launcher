@@ -38,10 +38,8 @@ import com.martin.minimallauncher.data.WidgetPlacement
 import com.martin.minimallauncher.ui.clickableText
 
 /**
- * Pantalla de widgets: los widgets se apilan verticalmente con scroll, sin barra
- * de título para aprovechar el espacio. Se entra en modo edición manteniendo
- * pulsado un widget; ahí aparece una barra inferior para agregar y salir, y cada
- * widget muestra controles para mover, quitar y redimensionar el alto.
+ * Widgets screen: widgets are stacked vertically with scroll. An "Edit" button toggles
+ * edit mode, where each widget shows controls to move, remove and resize its height.
  */
 @Composable
 fun WidgetScreen(
@@ -61,7 +59,7 @@ fun WidgetScreen(
             .statusBarsPadding()
             .verticalScroll(rememberScrollState()),
     ) {
-        // Header con título y botón Editar/Listo
+        // Header with title and Edit/Done button
         Row(
             Modifier
                 .fillMaxWidth()
@@ -194,8 +192,8 @@ private fun EditableWidgetItem(
         )
 
         if (editing) {
-            // Capa que captura el arrastre vertical (redimensionar) y bloquea la
-            // interacción del widget mientras se edita.
+            // Layer that captures the vertical drag (resize) and blocks the widget's
+            // interaction while editing.
             Box(
                 Modifier
                     .matchParentSize()

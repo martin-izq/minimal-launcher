@@ -3,75 +3,79 @@ package com.martin.minimallauncher.data
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.os.Build
 import android.provider.AlarmClock
 import android.provider.Settings
+import androidx.core.net.toUri
 
-/** Lee las apps instaladas lanzables y resuelve intents de lanzar / info / desinstalar. */
+/** Reads launchable installed apps and resolves launch / info / uninstall intents. */
 class AppRepository(private val context: Context) {
 
     private val pm: PackageManager get() = context.packageManager
 
     fun loadApps(): List<AppInfo> {
-        val intent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-        @Suppress("DEPRECATION", "QueryPermissionsNeeded")
-        val resolved = pm.queryIntentActivities(intent, 0)
-        return resolved
+        val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
+        return queryLauncherActivities(intent)
             .asSequence()
-            .map { ri ->
+            .map { info ->
                 AppInfo(
-                    packageName = ri.activityInfo.packageName,
-                    originalLabel = ri.loadLabel(pm).toString(),
+                    packageName = info.activityInfo.packageName,
+                    originalLabel = info.loadLabel(pm).toString(),
                 )
             }
-            .filter { it.packageName != context.packageName } // no mostrarnos a nosotros mismos
+            .filter { it.packageName != context.packageName } // don't list ourselves
             .distinctBy { it.packageName }
             .sortedBy { it.originalLabel.lowercase() }
             .toList()
     }
 
+    private fun queryLauncherActivities(intent: Intent) =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.queryIntentActivities(intent, 0)
+        }
+
     fun launch(packageName: String) {
         val launch = pm.getLaunchIntentForPackage(packageName) ?: return
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(launch)
+        context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
-    /** Abre la app de reloj/alarmas predeterminada del sistema. */
+    /** Opens the system's default clock/alarms app. */
     fun openAlarms() {
         val showAlarms = Intent(AlarmClock.ACTION_SHOW_ALARMS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (showAlarms.resolveActivity(pm) != null) {
-            try { context.startActivity(showAlarms); return } catch (_: Exception) {}
-        }
-        // Fallback: lanzar una app de reloj conocida
-        val clockPackages = listOf(
+        if (showAlarms.resolveActivity(pm) != null && startActivitySafely(showAlarms)) return
+        // Fallback: launch a known clock app.
+        KNOWN_CLOCK_PACKAGES
+            .firstNotNullOfOrNull { pm.getLaunchIntentForPackage(it) }
+            ?.let { startActivitySafely(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+
+    fun openAppInfo(packageName: String) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            .setData("package:$packageName".toUri())
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivitySafely(intent)
+    }
+
+    fun requestUninstall(packageName: String) {
+        val intent = Intent(Intent.ACTION_DELETE)
+            .setData("package:$packageName".toUri())
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivitySafely(intent)
+    }
+
+    private fun startActivitySafely(intent: Intent): Boolean =
+        runCatching { context.startActivity(intent) }.isSuccess
+
+    private companion object {
+        val KNOWN_CLOCK_PACKAGES = listOf(
             "com.google.android.deskclock",
             "com.android.deskclock",
             "com.sec.android.app.clockpackage",   // Samsung
             "com.coloros.alarmclock",             // Oppo/Realme
             "com.miui.clock",                     // Xiaomi
         )
-        for (p in clockPackages) {
-            val launch = pm.getLaunchIntentForPackage(p) ?: continue
-            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            try { context.startActivity(launch); return } catch (_: Exception) {}
-        }
-    }
-
-    fun openAppInfo(packageName: String) {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.parse("package:$packageName")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
-    }
-
-    fun requestUninstall(packageName: String) {
-        val intent = Intent(Intent.ACTION_DELETE).apply {
-            data = Uri.parse("package:$packageName")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
     }
 }

@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +21,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,23 +34,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.data.LauncherSettings
 import com.martin.minimallauncher.util.formatDuration
 import kotlinx.coroutines.delay
 
+/** A single text row for an app, with optional favorite star and long-press support. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppRow(
     label: String,
-    isFavorite: Boolean = false,
-    fontSizeSp: Int? = null,
-    textAlign: TextAlign? = null,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isFavorite: Boolean = false,
+    fontSizeSp: Int? = null,
+    textAlign: TextAlign? = null,
 ) {
     Row(
         modifier = modifier
@@ -78,6 +80,7 @@ fun AppRow(
     }
 }
 
+/** Bottom sheet with per-app actions (favorite, rename, hide, distracting, etc.). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppOptionsSheet(
@@ -93,7 +96,7 @@ fun AppOptionsSheet(
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
 ) {
-    val isFav = app.packageName in settings.favorites
+    val isFavorite = app.packageName in settings.favorites
     val isDistracting = app.packageName in settings.distracting
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -103,13 +106,17 @@ fun AppOptionsSheet(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
             )
-            SheetItem(if (isFav) "Quitar de favoritos" else "Agregar a favoritos") { onToggleFavorite(); onDismiss() }
-            if (isFav) {
+            SheetItem(if (isFavorite) "Quitar de favoritos" else "Agregar a favoritos") {
+                onToggleFavorite(); onDismiss()
+            }
+            if (isFavorite) {
                 SheetItem("Mover arriba ↑") { onMoveUp() }
                 SheetItem("Mover abajo ↓") { onMoveDown() }
             }
             SheetItem("Renombrar") { onRename() }
-            SheetItem(if (isDistracting) "Quitar marca de distractora" else "Marcar como distractora") { onToggleDistracting(); onDismiss() }
+            SheetItem(if (isDistracting) "Quitar marca de distractora" else "Marcar como distractora") {
+                onToggleDistracting(); onDismiss()
+            }
             SheetItem("Ocultar app") { onHide(); onDismiss() }
             SheetItem("Info de la app") { onInfo(); onDismiss() }
             SheetItem("Desinstalar") { onUninstall(); onDismiss() }
@@ -117,6 +124,7 @@ fun AppOptionsSheet(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SheetItem(text: String, onClick: () -> Unit) {
     Text(
@@ -125,15 +133,12 @@ private fun SheetItem(text: String, onClick: () -> Unit) {
         color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier
             .fillMaxWidth()
-            .combinedClickableSimple(onClick)
+            .combinedClickable(onClick = onClick)
             .padding(horizontal = 28.dp, vertical = 14.dp),
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-private fun Modifier.combinedClickableSimple(onClick: () -> Unit): Modifier =
-    this.combinedClickable(onClick = onClick)
-
+/** Dialog to give an app a custom visible name. */
 @Composable
 fun RenameDialog(
     app: AppInfo,
@@ -141,7 +146,7 @@ fun RenameDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var text by remember { mutableStateOf(currentName) }
+    var text by remember(app.packageName) { mutableStateOf(currentName) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Renombrar") },
@@ -159,8 +164,8 @@ fun RenameDialog(
 }
 
 /**
- * Pantalla de fricción: pausa intencional antes de abrir una app distractora.
- * Muestra el tiempo de uso de hoy y obliga a esperar unos segundos ("respirá").
+ * Friction screen: an intentional pause before opening a distracting app. Shows today's
+ * usage and forces a short wait ("take a breath") before the open button is enabled.
  */
 @Composable
 fun FrictionDialog(
@@ -170,7 +175,7 @@ fun FrictionDialog(
     onProceed: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var remaining by remember { mutableStateOf(seconds) }
+    var remaining by remember { mutableIntStateOf(seconds) }
     LaunchedEffect(Unit) {
         while (remaining > 0) {
             delay(1000)

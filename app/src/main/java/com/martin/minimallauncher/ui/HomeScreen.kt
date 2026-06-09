@@ -116,8 +116,8 @@ fun HomeScreen(
                     var totalDx = 0f
                     var totalDy = 0f
                     var decided = false
-                    // 0 = no capturar (lo manejan los pagers); 1 = swipe abajo (notificaciones);
-                    // 2 = swipe horizontal hacia el lado opuesto a widgets (acceso rápido).
+                    // 0 = don't capture (pagers handle it); 1 = swipe down (notifications);
+                    // 2 = horizontal swipe toward the side opposite the widgets (quick-launch).
                     var mode = 0
                     var fired = false
                     while (true) {
@@ -131,12 +131,12 @@ fun HomeScreen(
                             if (abs(totalDy) > slop || abs(totalDx) > slop) {
                                 decided = true
                                 if (abs(totalDy) >= abs(totalDx)) {
-                                    // Vertical: solo capturamos hacia abajo (arriba = cajón).
+                                    // Vertical: only capture downward (up = drawer).
                                     mode = if (totalDy > 0) 1 else 0
                                 } else {
-                                    // Horizontal: capturamos solo si hay acceso rápido y el
-                                    // gesto va hacia el lado correcto (el opuesto a widgets).
-                                    // El otro sentido lo maneja el pager (va a widgets).
+                                    // Horizontal: capture only if there's a quick-launch app and
+                                    // the gesture goes the right way (the side opposite the widgets).
+                                    // The other direction is handled by the pager (goes to widgets).
                                     val goingRight = totalDx > 0
                                     mode = if (quickLaunch.value != null &&
                                         goingRight == quickSwipeRight.value
@@ -171,7 +171,7 @@ fun HomeScreen(
             }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    // Doble tap en una zona vacía bloquea la pantalla.
+                    // Double tap on empty space locks the screen.
                     onDoubleTap = {
                         if (!NotificationAccessibilityService.lockScreen()) {
                             android.widget.Toast.makeText(
@@ -181,16 +181,16 @@ fun HomeScreen(
                             ).show()
                         }
                     },
-                    // Mantener presionado abre Ajustes.
+                    // Long press opens Settings.
                     onLongPress = { onOpenSettings() },
                 )
             },
         horizontalAlignment = horizontalAlign,
     ) {
-        // Espaciador superior: empuja el contenido si la posición es centro o abajo
+        // Top spacer: pushes content down when the position is center or bottom
         if (s.verticalPos != 0) Spacer(Modifier.weight(1f))
 
-        // Encabezado: reloj / fecha / batería
+        // Header: clock / date / battery
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -230,7 +230,7 @@ fun HomeScreen(
             }
         }
 
-        // Resumen de screen time
+        // Screen time summary
         if (s.showScreenTimeHome && state.usage.hasPermission) {
             Text(
                 text = "Hoy: ${formatDuration(state.usage.totalTodayMs)}  ·  ${state.usage.unlocksToday} desbloqueos",
@@ -255,7 +255,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Favoritos
+        // Favorites
         if (state.favoriteApps.isEmpty()) {
             Text(
                 text = "Sin favoritos todavía.\nDeslizá hacia arriba y mantené presionada una app para agregarla.",
@@ -276,7 +276,7 @@ fun HomeScreen(
             }
         }
 
-        // Espaciador inferior: centra el bloque cuando la posición es "centro"
+        // Bottom spacer: centers the block when the position is "center"
         if (s.verticalPos == 1) Spacer(Modifier.weight(1f))
 
         Spacer(Modifier.height(24.dp))

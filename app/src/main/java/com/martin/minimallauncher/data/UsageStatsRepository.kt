@@ -13,11 +13,11 @@ data class UsageSnapshot(
     val hasPermission: Boolean = false,
     val totalTodayMs: Long = 0L,
     val unlocksToday: Int = 0,
-    val perAppToday: Map<String, Long> = emptyMap(),  // packageName -> ms en primer plano
+    val perAppToday: Map<String, Long> = emptyMap(),  // packageName -> foreground ms
     val weekly: List<DayUsage> = emptyList(),
 )
 
-/** Lee UsageStatsManager. Requiere el permiso especial PACKAGE_USAGE_STATS (manual). */
+/** Reads UsageStatsManager. Requires the special PACKAGE_USAGE_STATS permission (granted manually). */
 class UsageStatsRepository(private val context: Context) {
 
     private val usm: UsageStatsManager

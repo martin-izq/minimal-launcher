@@ -26,7 +26,7 @@ fun WidgetPicker(
     val context = LocalContext.current
     val pm = context.packageManager
 
-    // (etiqueta del widget, app, provider) ordenado por app y luego por widget
+    // (widget label, app label, provider) sorted by app then by widget
     val items = remember {
         controller.installedProviders().map { p ->
             val label = p.loadLabel(pm)

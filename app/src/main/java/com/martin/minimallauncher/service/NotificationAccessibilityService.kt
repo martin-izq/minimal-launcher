@@ -1,15 +1,16 @@
 package com.martin.minimallauncher.service
 
 import android.accessibilityservice.AccessibilityService
+import android.content.Intent
 import android.os.Build
 import android.view.accessibility.AccessibilityEvent
 
 /**
- * Servicio de accesibilidad mínimo cuyo único fin es desplegar el panel de
- * notificaciones con [performGlobalAction], la forma oficial y confiable de
- * hacerlo (la reflexión sobre StatusBarManager está bloqueada en muchos equipos).
+ * Minimal accessibility service whose only purpose is to expand the notification
+ * shade via [performGlobalAction] — the official, reliable way to do it (reflection
+ * over StatusBarManager is blocked on many devices).
  *
- * El usuario debe activarlo manualmente en Ajustes → Accesibilidad.
+ * The user must enable it manually in Settings → Accessibility.
  */
 class NotificationAccessibilityService : AccessibilityService() {
 
@@ -18,7 +19,7 @@ class NotificationAccessibilityService : AccessibilityService() {
         instance = this
     }
 
-    override fun onUnbind(intent: android.content.Intent?): Boolean {
+    override fun onUnbind(intent: Intent?): Boolean {
         if (instance === this) instance = null
         return super.onUnbind(intent)
     }
@@ -28,24 +29,22 @@ class NotificationAccessibilityService : AccessibilityService() {
         super.onDestroy()
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* no se usa */ }
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* unused */ }
 
-    override fun onInterrupt() { /* no se usa */ }
+    override fun onInterrupt() { /* unused */ }
 
     companion object {
         @Volatile
         private var instance: NotificationAccessibilityService? = null
 
-        /** True si el servicio está activo. */
+        /** True if the service is currently connected. */
         fun isActive(): Boolean = instance != null
 
-        /** Despliega las notificaciones. Devuelve true si el servicio estaba activo. */
-        fun openNotifications(): Boolean {
-            val service = instance ?: return false
-            return service.performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
-        }
+        /** Expands the notification shade. Returns true if the service was active. */
+        fun openNotifications(): Boolean =
+            instance?.performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS) ?: false
 
-        /** Bloquea la pantalla (API 28+). Devuelve true si pudo ejecutarse. */
+        /** Locks the screen (API 28+). Returns true if it could run. */
         fun lockScreen(): Boolean {
             val service = instance ?: return false
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

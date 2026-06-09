@@ -260,7 +260,7 @@ fun SettingsScreen(
     }
 }
 
-/** Título de sección (gris) + tarjeta redondeada que agrupa los controles. */
+/** Section title (gray) + rounded card grouping the controls. */
 @Composable
 private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
     Text(
@@ -336,7 +336,7 @@ private fun SizeSlider(label: String, value: Int, min: Int, max: Int, onChange: 
     }
 }
 
-/** Selector de opciones tipo "pill": la opción elegida queda resaltada con fondo. */
+/** Pill-style option selector: the chosen option is highlighted with a filled background. */
 @Composable
 private fun SegmentedSelector(label: String, options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {

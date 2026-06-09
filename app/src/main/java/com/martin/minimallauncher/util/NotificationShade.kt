@@ -7,18 +7,18 @@ import android.provider.Settings
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 
 /**
- * Despliega el panel de notificaciones. Intenta primero el servicio de
- * accesibilidad (oficial y confiable) y, si no está activo, cae al método por
- * reflexión sobre StatusBarManager (bloqueado en algunos equipos, p. ej. MIUI).
+ * Expands the notification shade. Tries the accessibility service first (official and
+ * reliable) and, if it isn't active, falls back to reflection over StatusBarManager
+ * (blocked on some devices, e.g. MIUI).
  *
- * Devuelve true si alguna vía funcionó.
+ * Returns true if any path worked.
  */
 fun openNotificationShade(context: Context): Boolean {
     if (NotificationAccessibilityService.openNotifications()) return true
     return expandViaReflection(context)
 }
 
-/** Abre los ajustes de accesibilidad para que el usuario active el servicio. */
+/** Opens the accessibility settings so the user can enable the service. */
 fun openAccessibilitySettings(context: Context) {
     runCatching {
         context.startActivity(
@@ -32,9 +32,7 @@ private fun expandViaReflection(context: Context): Boolean {
     val service = context.getSystemService("statusbar") ?: return false
     val statusBarManager = runCatching { Class.forName("android.app.StatusBarManager") }
         .getOrNull() ?: return false
-    for (name in listOf("expandNotificationsPanel", "expand")) {
-        val ok = runCatching { statusBarManager.getMethod(name).invoke(service) }.isSuccess
-        if (ok) return true
+    return listOf("expandNotificationsPanel", "expand").any { method ->
+        runCatching { statusBarManager.getMethod(method).invoke(service) }.isSuccess
     }
-    return false
 }

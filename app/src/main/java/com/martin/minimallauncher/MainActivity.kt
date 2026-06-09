@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
             onBound = { placement -> vm.addWidget(placement) },
         )
 
-        // El botón atrás nunca sale del launcher: vuelve al inicio.
+        // The back button never leaves the launcher: it returns home.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 vm.emitGoHome()
@@ -58,14 +58,20 @@ class MainActivity : ComponentActivity() {
         widgetController.stopListening()
     }
 
-    @Deprecated("Necesario para el resultado de la pantalla de configuración del widget")
+    /**
+     * Receives the widget configuration result. This legacy callback is required because
+     * [android.appwidget.AppWidgetHost.startAppWidgetConfigureActivityForResult] dispatches
+     * through it; launching the configure intent manually via the ActivityResult API breaks
+     * configuration for many providers (missing host-granted flags).
+     */
+    @Deprecated("Required by AppWidgetHost.startAppWidgetConfigureActivityForResult")
+    @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
         widgetController.handleConfigureResult(requestCode, resultCode)
     }
 
-    /** Presionar HOME estando en una app vuelve a la pantalla de inicio. */
+    /** Pressing HOME while in another app returns to the home screen. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         vm.emitGoHome()
@@ -73,7 +79,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Recargar apps (instaladas/desinstaladas) y estadísticas de uso.
+        // Reload apps (installed/uninstalled) and usage stats.
         vm.refresh()
     }
 }

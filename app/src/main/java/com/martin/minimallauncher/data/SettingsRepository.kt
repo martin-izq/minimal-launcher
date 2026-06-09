@@ -17,9 +17,9 @@ import kotlinx.serialization.json.Json
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "launcher_settings")
 
-/** Estado completo de configuración del launcher. */
+/** Full launcher configuration state. */
 data class LauncherSettings(
-    val favorites: List<String> = emptyList(),     // orden importa
+    val favorites: List<String> = emptyList(),     // order matters
     val hidden: Set<String> = emptySet(),
     val distracting: Set<String> = emptySet(),
     val renames: Map<String, String> = emptyMap(),
@@ -30,27 +30,27 @@ data class LauncherSettings(
     val frictionEnabled: Boolean = true,
     val frictionSeconds: Int = 5,
     val amoledDark: Boolean = true,
-    // Personalización de la pantalla de inicio
-    val clockSize: Int = 64,          // tamaño del reloj en sp
-    val dateSize: Int = 16,           // tamaño de la fecha en sp
-    val favoritesSize: Int = 18,      // tamaño de los favoritos en sp
-    val homeAlign: Int = 0,           // 0 = izquierda, 1 = centro, 2 = derecha
-    val verticalPos: Int = 0,         // 0 = arriba, 1 = centro, 2 = abajo
+    // Home screen customization
+    val clockSize: Int = 64,          // clock size in sp
+    val dateSize: Int = 16,           // date size in sp
+    val favoritesSize: Int = 18,      // favorites size in sp
+    val homeAlign: Int = 0,           // 0 = left, 1 = center, 2 = right
+    val verticalPos: Int = 0,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
-    val widgetsOnLeft: Boolean = true, // lado de la pantalla de widgets respecto al inicio
-    // Cajón de apps
-    val appDrawerSize: Int = 18,       // tamaño de la letra de las apps en sp
-    val appDrawerAlign: Int = 0,       // 0 = izquierda, 1 = centro, 2 = derecha
-    val alphabetIndex: Boolean = true, // guía alfabética a la derecha
-    val searchBarBottom: Boolean = false, // false = buscador arriba, true = abajo
-    // App de acceso rápido (deslizar al lado opuesto de widgets)
+    val widgetsOnLeft: Boolean = true, // side of the widgets screen relative to home
+    // App drawer
+    val appDrawerSize: Int = 18,       // app label size in sp
+    val appDrawerAlign: Int = 0,       // 0 = left, 1 = center, 2 = right
+    val alphabetIndex: Boolean = true, // alphabet scrubber on the side
+    val searchBarBottom: Boolean = false, // false = search bar on top, true = bottom
+    // Quick-launch app (swipe to the side opposite the widgets)
     val quickLaunchPackage: String? = null,
 )
 
 class SettingsRepository(private val context: Context) {
 
     private object Keys {
-        val FAVORITES = stringPreferencesKey("favorites")            // pkgs unidos por \n (mantiene orden)
+        val FAVORITES = stringPreferencesKey("favorites")            // pkgs joined by \n (keeps order)
         val HIDDEN = stringSetPreferencesKey("hidden")
         val DISTRACTING = stringSetPreferencesKey("distracting")
         val RENAMES = stringPreferencesKey("renames")                // JSON Map<String,String>

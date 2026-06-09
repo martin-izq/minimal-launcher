@@ -1,11 +1,11 @@
 package com.martin.minimallauncher.data
 
-/** Una app lanzable. Sin íconos: el launcher es solo texto (minimalista). */
+/** A launchable app. Icon-free: the launcher is text-only (minimalist). */
 data class AppInfo(
     val packageName: String,
     val originalLabel: String,
 ) {
-    /** Etiqueta visible considerando renombres del usuario. */
+    /** Visible label, honoring user renames. */
     fun displayLabel(renames: Map<String, String>): String =
         renames[packageName]?.takeIf { it.isNotBlank() } ?: originalLabel
 }

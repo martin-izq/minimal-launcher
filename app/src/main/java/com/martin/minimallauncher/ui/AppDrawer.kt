@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,7 +64,7 @@ fun AppDrawer(
         else -> TextAlign.Start
     }
 
-    // El cajón muestra el nombre original de cada app (los renombres solo aplican a favoritos).
+    // The drawer shows each app's original name (renames only apply to favorites).
     val filtered = remember(query, state.visibleApps) {
         if (query.isBlank()) state.visibleApps
         else state.visibleApps.filter {
@@ -71,7 +72,7 @@ fun AppDrawer(
         }
     }
 
-    // Inicial → índice de la primera app, para la guía alfabética.
+    // First letter → index of the first matching app, for the alphabet scrubber.
     val letters = remember(filtered) {
         val map = LinkedHashMap<Char, Int>()
         filtered.forEachIndexed { i, app ->
@@ -81,14 +82,14 @@ fun AppDrawer(
         }
         map.entries.map { it.key to it.value }
     }
-    var lastScrubIndex by remember { mutableStateOf(-1) }
+    var lastScrubIndex by remember { mutableIntStateOf(-1) }
 
-    // Para no robarle el gesto a la guía alfabética: el swipe-down al home se ignora si el
-    // arrastre empieza sobre la franja lateral donde vive el scrubber.
+    // So we don't steal the scrubber's gesture: the swipe-down-to-home is ignored if the
+    // drag starts over the side band where the scrubber lives.
     val scrubberActive = rememberUpdatedState(s.alphabetIndex && letters.size > 1)
     val scrubberOnLeft = rememberUpdatedState(s.appDrawerAlign == 2)
 
-    // Al abrir una app limpiamos el buscador y cerramos el teclado.
+    // When opening an app, clear the search box and hide the keyboard.
     val launchApp: (AppInfo) -> Unit = { app ->
         query = ""
         keyboard?.hide()
@@ -101,10 +102,10 @@ fun AppDrawer(
             .fillMaxSize()
             .statusBarsPadding()
             .imePadding()
-            // Volver al home con poca resistencia: si la lista arranca en el tope y el usuario
-            // arrastra hacia abajo, volvemos al inicio pasado un umbral chico. Procesamos en la
-            // fase Initial (antes que el LazyColumn y su overscroll, que si no consumen el gesto
-            // y hacían que nunca se detectara) y medimos con positionChangeIgnoreConsumed.
+            // Back to home with little resistance: if the list starts at the top and the user
+            // drags down, we return home past a small threshold. We process in the Initial pass
+            // (before the LazyColumn and its overscroll, which would otherwise consume the gesture
+            // so it was never detected) and measure with positionChangeIgnoreConsumed.
             .pointerInput(Unit) {
                 val thresholdPx = 56.dp.toPx()
                 val slop = viewConfiguration.touchSlop
@@ -112,7 +113,7 @@ fun AppDrawer(
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                     val atTop = !listState.canScrollBackward
-                    // ¿El gesto arrancó sobre la franja lateral del scrubber?
+                    // Did the gesture start over the scrubber's side band?
                     val onScrubber = scrubberActive.value && run {
                         if (scrubberOnLeft.value) down.position.x < scrubberBandPx
                         else down.position.x > size.width - scrubberBandPx
@@ -175,7 +176,7 @@ fun AppDrawer(
             }
 
             if (s.alphabetIndex && letters.size > 1) {
-                // Si las apps están a la derecha, la guía va a la izquierda para no solaparse.
+                // If apps are right-aligned, the scrubber goes left to avoid overlap.
                 val scrubberAlignment =
                     if (s.appDrawerAlign == 2) Alignment.CenterStart else Alignment.CenterEnd
                 AlphabetScrubber(
@@ -197,7 +198,7 @@ fun AppDrawer(
     }
 }
 
-/** Campo de búsqueda de apps. */
+/** App search field. */
 @Composable
 private fun SearchField(
     query: String,
@@ -217,14 +218,14 @@ private fun SearchField(
     )
 }
 
-/** Guía A-Z a la derecha: tocar o arrastrar salta a la sección correspondiente. */
+/** A-Z scrubber on the side: tap or drag jumps to the matching section. */
 @Composable
 private fun AlphabetScrubber(
     entries: List<Pair<Char, Int>>,
     onPick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var heightPx by remember { mutableStateOf(0) }
+    var heightPx by remember { mutableIntStateOf(0) }
     Column(
         modifier = modifier
             .fillMaxHeight()

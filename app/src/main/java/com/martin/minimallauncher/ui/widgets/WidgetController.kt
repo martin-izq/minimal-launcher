@@ -12,11 +12,11 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import com.martin.minimallauncher.data.WidgetPlacement
 
 /**
- * Orquesta el alojamiento de widgets de terceros: ciclo de vida del [AppWidgetHost],
- * binding (con consentimiento del usuario) y pantalla de configuración del proveedor.
+ * Orchestrates hosting third-party widgets: [AppWidgetHost] lifecycle, binding (with the
+ * user's consent) and the provider's configuration screen.
  *
- * Debe construirse en [ComponentActivity.onCreate] (antes de onStart) porque registra
- * launchers de ActivityResult.
+ * Must be built in [ComponentActivity.onCreate] (before onStart) because it registers
+ * ActivityResult launchers.
  */
 class WidgetController(
     private val activity: ComponentActivity,
@@ -37,10 +37,10 @@ class WidgetController(
     fun startListening() = host.startListening()
     fun stopListening() = host.stopListening()
 
-    /** Lista de proveedores de widgets instalados. */
+    /** List of installed widget providers. */
     fun installedProviders(): List<AppWidgetProviderInfo> = appWidgetManager.installedProviders
 
-    /** Inicia el flujo: reservar id → bind → (config) → persistir. */
+    /** Starts the flow: allocate id → bind → (configure) → persist. */
     fun startAddWidgetFlow(provider: AppWidgetProviderInfo) {
         val id = host.allocateAppWidgetId()
         pendingId = id
@@ -63,7 +63,7 @@ class WidgetController(
             try {
                 host.startAppWidgetConfigureActivityForResult(activity, pendingId, 0, REQ_CONFIGURE, null)
             } catch (_: Exception) {
-                // El proveedor no permite abrir su config directamente: colocamos igual el widget.
+                // The provider doesn't allow opening its config directly: place the widget anyway.
                 finishPending()
             }
         } else {
@@ -71,7 +71,7 @@ class WidgetController(
         }
     }
 
-    /** Lo llama MainActivity desde onActivityResult para el paso de configuración. */
+    /** Called by MainActivity from onActivityResult for the configuration step. */
     fun handleConfigureResult(requestCode: Int, resultCode: Int) {
         if (requestCode != REQ_CONFIGURE) return
         if (resultCode == Activity.RESULT_OK) finishPending() else cancelPending()
@@ -94,17 +94,17 @@ class WidgetController(
         pendingProvider = null
     }
 
-    // Cacheamos las vistas por id: recrearlas al volver de otra página deja el
-    // widget en blanco hasta un update; reutilizarlas conserva lo ya renderizado.
+    // Cache views by id: recreating them when returning from another page leaves the
+    // widget blank until the next update; reusing them keeps what was already rendered.
     private val viewCache = mutableMapOf<Int, AppWidgetHostView>()
 
-    /** Libera el id del widget al quitarlo. */
+    /** Releases the widget's id when removed. */
     fun removeWidget(appWidgetId: Int) {
         viewCache.remove(appWidgetId)
         host.deleteAppWidgetId(appWidgetId)
     }
 
-    /** Devuelve la vista (cacheada) del widget, o null si el id ya no es válido. */
+    /** Returns the (cached) widget view, or null if the id is no longer valid. */
     fun obtainHostView(appWidgetId: Int): AppWidgetHostView? {
         viewCache[appWidgetId]?.let { return it }
         val info = appWidgetManager.getAppWidgetInfo(appWidgetId) ?: return null
@@ -117,5 +117,5 @@ class WidgetController(
     }
 }
 
-/** Disponible para los composables que necesitan alojar/agregar widgets. */
+/** Available to composables that need to host/add widgets. */
 val LocalWidgetController = staticCompositionLocalOf<WidgetController?> { null }
