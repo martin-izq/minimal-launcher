@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
@@ -182,28 +181,5 @@ private fun WeeklyChart(state: LauncherUiState) {
                 )
             }
         }
-    }
-}
-
-@Composable
-fun ScreenHeader(title: String, onBack: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(top = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            "‹",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .clickableText(onBack)
-                .padding(end = 16.dp),
-        )
-        Text(
-            title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Start,
-        )
     }
 }
