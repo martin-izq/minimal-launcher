@@ -36,9 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.LauncherViewModel
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.openAccessibilitySettings
 
@@ -61,47 +63,65 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState()),
     ) {
         Spacer(Modifier.height(8.dp))
-        ScreenHeader("Ajustes", onBack)
+        ScreenHeader(stringResource(R.string.settings_title), onBack)
 
-        Section("Pantalla de inicio") {
-            ToggleRow("Reloj", s.showClock, vm::setShowClock)
-            ToggleRow("Fecha", s.showDate, vm::setShowDate)
-            ToggleRow("Batería", s.showBattery, vm::setShowBattery)
-            ToggleRow("Resumen de Screen Time", s.showScreenTimeHome, vm::setShowScreenTimeHome)
+        Section(stringResource(R.string.settings_section_home)) {
+            ToggleRow(stringResource(R.string.settings_clock), s.showClock, vm::setShowClock)
+            ToggleRow(stringResource(R.string.settings_date), s.showDate, vm::setShowDate)
+            ToggleRow(stringResource(R.string.settings_battery), s.showBattery, vm::setShowBattery)
+            ToggleRow(stringResource(R.string.settings_screentime_summary), s.showScreenTimeHome, vm::setShowScreenTimeHome)
             val a11yActive = NotificationAccessibilityService.isActive()
             ActionRow(
-                title = "Notificaciones al deslizar hacia abajo",
-                subtitle = if (a11yActive) "Activado" else "Tocá para activar (accesibilidad)",
+                title = stringResource(R.string.settings_notif_gesture_title),
+                subtitle = stringResource(
+                    if (a11yActive) R.string.settings_notif_enabled else R.string.settings_notif_tap_enable
+                ),
                 onClick = { openAccessibilitySettings(context) },
             )
         }
 
-        Section("Personalización de inicio") {
-            SizeSlider("Tamaño del reloj", s.clockSize, 32, 120, vm::setClockSize)
-            SizeSlider("Tamaño de la fecha", s.dateSize, 10, 32, vm::setDateSize)
-            SizeSlider("Tamaño de favoritos", s.favoritesSize, 12, 36, vm::setFavoritesSize)
-            SegmentedSelector("Alineación", listOf("Izquierda", "Centro", "Derecha"), s.homeAlign, vm::setHomeAlign)
-            SegmentedSelector("Posición vertical", listOf("Arriba", "Centro", "Abajo"), s.verticalPos, vm::setVerticalPos)
+        val alignOptions = listOf(
+            stringResource(R.string.settings_align_left),
+            stringResource(R.string.settings_align_center),
+            stringResource(R.string.settings_align_right),
+        )
+        Section(stringResource(R.string.settings_section_home_custom)) {
+            SizeSlider(stringResource(R.string.settings_clock_size), s.clockSize, 32, 120, vm::setClockSize)
+            SizeSlider(stringResource(R.string.settings_date_size), s.dateSize, 10, 32, vm::setDateSize)
+            SizeSlider(stringResource(R.string.settings_favorites_size), s.favoritesSize, 12, 36, vm::setFavoritesSize)
+            SegmentedSelector(stringResource(R.string.settings_alignment), alignOptions, s.homeAlign, vm::setHomeAlign)
             SegmentedSelector(
-                "Pantalla de widgets",
-                listOf("Izquierda", "Derecha"),
+                stringResource(R.string.settings_vertical_position),
+                listOf(
+                    stringResource(R.string.settings_pos_top),
+                    stringResource(R.string.settings_align_center),
+                    stringResource(R.string.settings_pos_bottom),
+                ),
+                s.verticalPos,
+                vm::setVerticalPos,
+            )
+            SegmentedSelector(
+                stringResource(R.string.settings_widgets_screen),
+                listOf(stringResource(R.string.settings_align_left), stringResource(R.string.settings_align_right)),
                 if (s.widgetsOnLeft) 0 else 1,
             ) { vm.setWidgetsOnLeft(it == 0) }
-            ToggleRow("Tocar la hora abre el reloj", s.clockOpensAlarms, vm::setClockOpensAlarms)
+            ToggleRow(stringResource(R.string.settings_clock_opens_alarms), s.clockOpensAlarms, vm::setClockOpensAlarms)
         }
 
-        Section("Acceso rápido") {
+        Section(stringResource(R.string.settings_section_quick)) {
             val quickApp = s.quickLaunchPackage?.let { pkg ->
                 state.allApps.firstOrNull { it.packageName == pkg }
             }
             ActionRow(
-                title = "App al deslizar ${if (s.widgetsOnLeft) "a la derecha" else "a la izquierda"}",
-                subtitle = quickApp?.originalLabel ?: "Sin configurar — tocá para elegir",
+                title = stringResource(
+                    if (s.widgetsOnLeft) R.string.settings_quick_app_right else R.string.settings_quick_app_left
+                ),
+                subtitle = quickApp?.originalLabel ?: stringResource(R.string.settings_quick_unset),
                 onClick = { showAppPicker = true },
             )
             if (s.quickLaunchPackage != null) {
                 Text(
-                    "Quitar acceso rápido",
+                    stringResource(R.string.settings_quick_remove),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
@@ -111,29 +131,29 @@ fun SettingsScreen(
             }
         }
 
-        Section("Cajón de apps") {
-            SizeSlider("Tamaño de la letra", s.appDrawerSize, 12, 36, vm::setAppDrawerSize)
-            SegmentedSelector("Alineación", listOf("Izquierda", "Centro", "Derecha"), s.appDrawerAlign, vm::setAppDrawerAlign)
+        Section(stringResource(R.string.settings_section_drawer)) {
+            SizeSlider(stringResource(R.string.settings_letter_size), s.appDrawerSize, 12, 36, vm::setAppDrawerSize)
+            SegmentedSelector(stringResource(R.string.settings_alignment), alignOptions, s.appDrawerAlign, vm::setAppDrawerAlign)
             SegmentedSelector(
-                "Posición del buscador",
-                listOf("Arriba", "Abajo"),
+                stringResource(R.string.settings_search_position),
+                listOf(stringResource(R.string.settings_pos_top), stringResource(R.string.settings_pos_bottom)),
                 if (s.searchBarBottom) 1 else 0,
             ) { vm.setSearchBarBottom(it == 1) }
-            ToggleRow("Guía alfabética", s.alphabetIndex, vm::setAlphabetIndex)
+            ToggleRow(stringResource(R.string.settings_alphabet_index), s.alphabetIndex, vm::setAlphabetIndex)
         }
 
-        Section("Reducir distracciones") {
-            ToggleRow("Pantalla de fricción", s.frictionEnabled, vm::setFrictionEnabled)
+        Section(stringResource(R.string.settings_section_distractions)) {
+            ToggleRow(stringResource(R.string.settings_friction_screen), s.frictionEnabled, vm::setFrictionEnabled)
             val secs = listOf(3, 5, 10)
             SegmentedSelector(
-                "Pausa antes de abrir",
-                secs.map { "${it}s" },
+                stringResource(R.string.settings_friction_pause),
+                secs.map { stringResource(R.string.settings_seconds_value, it) },
                 secs.indexOf(s.frictionSeconds).coerceAtLeast(0),
             ) { vm.setFrictionSeconds(secs[it]) }
             val distractingApps = state.allApps.filter { it.packageName in s.distracting }
             if (distractingApps.isNotEmpty()) {
                 Text(
-                    "Apps distractoras (${distractingApps.size})",
+                    stringResource(R.string.settings_distracting_apps, distractingApps.size),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
@@ -150,7 +170,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            "Quitar",
+                            stringResource(R.string.common_remove),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.clickableText { vm.setDistracting(app, false) },
@@ -159,7 +179,7 @@ fun SettingsScreen(
                 }
             } else {
                 Text(
-                    "Ninguna app marcada como distractora.",
+                    stringResource(R.string.settings_no_distracting),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 6.dp),
@@ -167,15 +187,15 @@ fun SettingsScreen(
             }
         }
 
-        Section("Apariencia") {
-            ToggleRow("Tema oscuro AMOLED (negro puro)", s.amoledDark, vm::setAmoled)
+        Section(stringResource(R.string.settings_section_appearance)) {
+            ToggleRow(stringResource(R.string.settings_amoled), s.amoledDark, vm::setAmoled)
         }
 
         val hidden = state.allApps.filter { it.packageName in s.hidden }
-        Section("Apps ocultas (${hidden.size})") {
+        Section(stringResource(R.string.settings_hidden_apps, hidden.size)) {
             if (hidden.isEmpty()) {
                 Text(
-                    "Ninguna app oculta.",
+                    stringResource(R.string.settings_no_hidden),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -193,7 +213,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
-                            "Mostrar",
+                            stringResource(R.string.common_show),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.clickableText { vm.setHidden(app, false) },
@@ -211,7 +231,7 @@ fun SettingsScreen(
                 )
             },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Establecer como launcher por defecto") }
+        ) { Text(stringResource(R.string.settings_set_default_launcher)) }
 
         Spacer(Modifier.height(40.dp))
     }
@@ -222,7 +242,7 @@ fun SettingsScreen(
             sheetState = rememberModalBottomSheetState(),
         ) {
             Text(
-                "Elegir app de acceso rápido",
+                stringResource(R.string.settings_quick_choose),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
@@ -323,7 +343,7 @@ private fun SizeSlider(label: String, value: Int, min: Int, max: Int, onChange: 
         ) {
             Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
             Text(
-                "${value}sp",
+                stringResource(R.string.settings_size_value, value),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
             )

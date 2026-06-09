@@ -1,4 +1,111 @@
 <resources>
-    <string name="app_name">Minimal</string>
-    <string name="accessibility_description">Permite abrir el panel de notificaciones (deslizando hacia abajo) y bloquear la pantalla (doble toque) desde el inicio. No lee ni recopila contenido de la pantalla.</string>
+    <string name="app_name" translatable="false">Minimal</string>
+    <string name="accessibility_description">Allows opening the notification panel (swipe down) and locking the screen (double tap) from home. It does not read or collect screen content.</string>
+
+    <!-- Common -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_remove">Remove</string>
+    <string name="common_show">Show</string>
+    <string name="common_done">Done</string>
+    <string name="common_edit">Edit</string>
+
+    <!-- App options sheet -->
+    <string name="app_options_add_favorite">Add to favorites</string>
+    <string name="app_options_remove_favorite">Remove from favorites</string>
+    <string name="app_options_move_up">Move up ↑</string>
+    <string name="app_options_move_down">Move down ↓</string>
+    <string name="app_options_rename">Rename</string>
+    <string name="app_options_mark_distracting">Mark as distracting</string>
+    <string name="app_options_unmark_distracting">Remove distracting mark</string>
+    <string name="app_options_hide">Hide app</string>
+    <string name="app_options_info">App info</string>
+    <string name="app_options_uninstall">Uninstall</string>
+
+    <!-- Rename dialog -->
+    <string name="rename_title">Rename</string>
+    <string name="rename_label">Visible name</string>
+
+    <!-- Friction dialog -->
+    <string name="friction_title">Open %1$s for sure?</string>
+    <string name="friction_used_today">You\'ve spent %1$s in this app today.</string>
+    <string name="friction_breathe">Take a breath. Do you really need it right now?</string>
+    <string name="friction_open_countdown">Open (%1$d)</string>
+    <string name="friction_open_anyway">Open anyway</string>
+
+    <!-- Home -->
+    <string name="home_battery">Battery %1$d%%</string>
+    <string name="home_screentime_summary">Today: %1$s  ·  %2$d unlocks</string>
+    <string name="home_screentime_enable">Enable Screen Time →</string>
+    <string name="home_no_favorites">No favorites yet.\nSwipe up and long-press an app to add it.</string>
+    <string name="home_swipe_hint">⌃ swipe to see all</string>
+    <string name="home_notif_gesture_disabled">Enable the gesture in Settings › Notifications on swipe</string>
+    <string name="home_lock_disabled">Enable the accessibility service in Settings to lock</string>
+
+    <!-- App drawer -->
+    <string name="drawer_search_hint">Search app</string>
+    <string name="drawer_no_results">No results</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_home">Home screen</string>
+    <string name="settings_clock">Clock</string>
+    <string name="settings_date">Date</string>
+    <string name="settings_battery">Battery</string>
+    <string name="settings_screentime_summary">Screen Time summary</string>
+    <string name="settings_notif_gesture_title">Notifications on swipe down</string>
+    <string name="settings_notif_enabled">Enabled</string>
+    <string name="settings_notif_tap_enable">Tap to enable (accessibility)</string>
+    <string name="settings_section_home_custom">Home customization</string>
+    <string name="settings_clock_size">Clock size</string>
+    <string name="settings_date_size">Date size</string>
+    <string name="settings_favorites_size">Favorites size</string>
+    <string name="settings_alignment">Alignment</string>
+    <string name="settings_align_left">Left</string>
+    <string name="settings_align_center">Center</string>
+    <string name="settings_align_right">Right</string>
+    <string name="settings_vertical_position">Vertical position</string>
+    <string name="settings_pos_top">Top</string>
+    <string name="settings_pos_bottom">Bottom</string>
+    <string name="settings_widgets_screen">Widgets screen</string>
+    <string name="settings_clock_opens_alarms">Tapping the time opens the clock</string>
+    <string name="settings_section_quick">Quick launch</string>
+    <string name="settings_quick_app_right">App on swipe right</string>
+    <string name="settings_quick_app_left">App on swipe left</string>
+    <string name="settings_quick_unset">Not set — tap to choose</string>
+    <string name="settings_quick_remove">Remove quick launch</string>
+    <string name="settings_quick_choose">Choose quick-launch app</string>
+    <string name="settings_section_drawer">App drawer</string>
+    <string name="settings_letter_size">Letter size</string>
+    <string name="settings_search_position">Search bar position</string>
+    <string name="settings_alphabet_index">Alphabet scrubber</string>
+    <string name="settings_section_distractions">Reduce distractions</string>
+    <string name="settings_friction_screen">Friction screen</string>
+    <string name="settings_friction_pause">Pause before opening</string>
+    <string name="settings_distracting_apps">Distracting apps (%1$d)</string>
+    <string name="settings_no_distracting">No apps marked as distracting.</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_amoled">AMOLED dark theme (pure black)</string>
+    <string name="settings_hidden_apps">Hidden apps (%1$d)</string>
+    <string name="settings_no_hidden">No hidden apps.</string>
+    <string name="settings_set_default_launcher">Set as default launcher</string>
+    <string name="settings_size_value">%1$dsp</string>
+    <string name="settings_seconds_value">%1$ds</string>
+
+    <!-- Screen Time -->
+    <string name="screentime_title">Screen Time</string>
+    <string name="screentime_permission_rationale">To see your usage time you need to grant access to usage stats.</string>
+    <string name="screentime_grant">Grant access</string>
+    <string name="screentime_today_unlocks">today  ·  %1$d unlocks</string>
+    <string name="screentime_per_app">Per app (today)</string>
+    <string name="screentime_no_data">No usage data yet.</string>
+
+    <!-- Widgets -->
+    <string name="widgets_title">Widgets</string>
+    <string name="widgets_none">You haven\'t added any widgets yet.</string>
+    <string name="widgets_add">+ Add widget</string>
+    <string name="widgets_remove_title">Remove widget?</string>
+    <string name="widgets_resize_hint">⬍ drag to resize height</string>
+    <string name="widget_picker_title">Choose a widget</string>
+    <string name="widget_picker_empty">No widgets available.</string>
 </resources>

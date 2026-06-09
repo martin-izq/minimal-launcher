@@ -32,22 +32,21 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.martin.minimallauncher.service.NotificationAccessibilityService
-import com.martin.minimallauncher.util.openNotificationShade
-import kotlin.math.abs
 import com.martin.minimallauncher.LauncherUiState
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.AppInfo
+import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.formatDuration
+import com.martin.minimallauncher.util.openNotificationShade
 import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
 import java.util.Locale
-
-private val esAR = Locale("es", "AR")
+import kotlin.math.abs
 
 @Composable
 fun HomeScreen(
@@ -154,7 +153,7 @@ fun HomeScreen(
                                         if (!openNotificationShade(context)) {
                                             android.widget.Toast.makeText(
                                                 context,
-                                                "Activá el gesto en Ajustes › Notificaciones al deslizar",
+                                                context.getString(R.string.home_notif_gesture_disabled),
                                                 android.widget.Toast.LENGTH_SHORT,
                                             ).show()
                                         }
@@ -176,7 +175,7 @@ fun HomeScreen(
                         if (!NotificationAccessibilityService.lockScreen()) {
                             android.widget.Toast.makeText(
                                 context,
-                                "Activá el servicio de accesibilidad en Ajustes para bloquear",
+                                context.getString(R.string.home_lock_disabled),
                                 android.widget.Toast.LENGTH_SHORT,
                             ).show()
                         }
@@ -207,11 +206,11 @@ fun HomeScreen(
                 )
             }
             if (s.showDate) {
-                val dow = now.dayOfWeek.getDisplayName(TextStyle.FULL, esAR)
-                    .replaceFirstChar { it.titlecase(esAR) }
-                val month = now.month.getDisplayName(TextStyle.FULL, esAR)
+                val locale = Locale.getDefault()
+                val dateText = now.format(DateTimeFormatter.ofPattern("EEEE d MMMM", locale))
+                    .replaceFirstChar { it.titlecase(locale) }
                 Text(
-                    text = "$dow ${now.dayOfMonth} de $month",
+                    text = dateText,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = s.dateSize.sp),
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = textAlign,
@@ -220,7 +219,7 @@ fun HomeScreen(
             if (s.showBattery) {
                 battery.value?.let { lvl ->
                     Text(
-                        text = "Batería $lvl%",
+                        text = stringResource(R.string.home_battery, lvl),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.secondary,
                         textAlign = textAlign,
@@ -233,7 +232,11 @@ fun HomeScreen(
         // Screen time summary
         if (s.showScreenTimeHome && state.usage.hasPermission) {
             Text(
-                text = "Hoy: ${formatDuration(state.usage.totalTodayMs)}  ·  ${state.usage.unlocksToday} desbloqueos",
+                text = stringResource(
+                    R.string.home_screentime_summary,
+                    formatDuration(state.usage.totalTodayMs),
+                    state.usage.unlocksToday,
+                ),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
@@ -243,7 +246,7 @@ fun HomeScreen(
             )
         } else if (s.showScreenTimeHome) {
             Text(
-                text = "Activá Screen Time →",
+                text = stringResource(R.string.home_screentime_enable),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier
@@ -258,7 +261,7 @@ fun HomeScreen(
         // Favorites
         if (state.favoriteApps.isEmpty()) {
             Text(
-                text = "Sin favoritos todavía.\nDeslizá hacia arriba y mantené presionada una app para agregarla.",
+                text = stringResource(R.string.home_no_favorites),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Start,
@@ -286,7 +289,7 @@ fun HomeScreen(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                "⌃ deslizá para ver todas",
+                stringResource(R.string.home_swipe_hint),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.outline,
             )

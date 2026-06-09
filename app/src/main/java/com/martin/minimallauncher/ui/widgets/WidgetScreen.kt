@@ -33,7 +33,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.WidgetPlacement
 import com.martin.minimallauncher.ui.clickableText
 
@@ -68,13 +70,13 @@ fun WidgetScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Widgets",
+                stringResource(R.string.widgets_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
             )
             if (controller != null && placements.isNotEmpty()) {
                 Text(
-                    if (editing) "Listo" else "Editar",
+                    stringResource(if (editing) R.string.common_done else R.string.common_edit),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickableText { editing = !editing },
@@ -85,7 +87,7 @@ fun WidgetScreen(
         if (controller != null) {
             if (placements.isEmpty()) {
                 Text(
-                    "Todavía no agregaste widgets.",
+                    stringResource(R.string.widgets_none),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
@@ -111,7 +113,7 @@ fun WidgetScreen(
 
         Spacer(Modifier.height(16.dp))
         Text(
-            "+ Agregar widget",
+            stringResource(R.string.widgets_add),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.primary,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -130,12 +132,14 @@ fun WidgetScreen(
     removeTarget?.let { id ->
         AlertDialog(
             onDismissRequest = { removeTarget = null },
-            title = { Text("¿Quitar widget?") },
+            title = { Text(stringResource(R.string.widgets_remove_title)) },
             confirmButton = {
-                TextButton(onClick = { onRemoveWidget(id); removeTarget = null }) { Text("Quitar") }
+                TextButton(onClick = { onRemoveWidget(id); removeTarget = null }) {
+                    Text(stringResource(R.string.common_remove))
+                }
             },
             dismissButton = {
-                TextButton(onClick = { removeTarget = null }) { Text("Cancelar") }
+                TextButton(onClick = { removeTarget = null }) { Text(stringResource(R.string.common_cancel)) }
             },
         )
     }
@@ -224,7 +228,7 @@ private fun EditableWidgetItem(
                     .padding(horizontal = 16.dp, vertical = 3.dp),
             ) {
                 Text(
-                    "⬍ arrastrá para el alto",
+                    stringResource(R.string.widgets_resize_hint),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onPrimary,
                 )

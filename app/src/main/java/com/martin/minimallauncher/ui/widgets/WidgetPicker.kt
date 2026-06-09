@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.ui.clickableText
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +43,7 @@ fun WidgetPicker(
         LazyColumn(Modifier.navigationBarsPadding()) {
             item {
                 Text(
-                    "Elegí un widget",
+                    stringResource(R.string.widget_picker_title),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
                 )
@@ -49,7 +51,7 @@ fun WidgetPicker(
             if (items.isEmpty()) {
                 item {
                     Text(
-                        "No hay widgets disponibles.",
+                        stringResource(R.string.widget_picker_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),

@@ -25,10 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.util.formatDuration
 import com.martin.minimallauncher.util.formatDurationShort
 
@@ -46,12 +48,12 @@ fun ScreenTimeScreen(
             .statusBarsPadding()
             .padding(horizontal = 24.dp),
     ) {
-        ScreenHeader("Screen Time", onBack)
+        ScreenHeader(stringResource(R.string.screentime_title), onBack)
 
         if (!usage.hasPermission) {
             Spacer(Modifier.height(24.dp))
             Text(
-                "Para ver tu tiempo de uso necesitás darle acceso a las estadísticas de uso.",
+                stringResource(R.string.screentime_permission_rationale),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -61,7 +63,7 @@ fun ScreenTimeScreen(
                     Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
-            }) { Text("Conceder acceso") }
+            }) { Text(stringResource(R.string.screentime_grant)) }
             return@Column
         }
 
@@ -82,7 +84,7 @@ fun ScreenTimeScreen(
                     color = MaterialTheme.colorScheme.onBackground,
                 )
                 Text(
-                    "hoy  ·  ${usage.unlocksToday} desbloqueos",
+                    stringResource(R.string.screentime_today_unlocks, usage.unlocksToday),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                 )
@@ -92,7 +94,7 @@ fun ScreenTimeScreen(
 
                 Spacer(Modifier.height(24.dp))
                 Text(
-                    "Por aplicación (hoy)",
+                    stringResource(R.string.screentime_per_app),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -102,7 +104,7 @@ fun ScreenTimeScreen(
             if (ranking.isEmpty()) {
                 item {
                     Text(
-                        "Sin datos de uso todavía.",
+                        stringResource(R.string.screentime_no_data),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 10.dp),

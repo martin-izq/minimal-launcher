@@ -30,10 +30,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.data.LauncherSettings
 import com.martin.minimallauncher.util.formatDuration
@@ -106,20 +108,24 @@ fun AppOptionsSheet(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
             )
-            SheetItem(if (isFavorite) "Quitar de favoritos" else "Agregar a favoritos") {
-                onToggleFavorite(); onDismiss()
-            }
+            SheetItem(
+                stringResource(
+                    if (isFavorite) R.string.app_options_remove_favorite else R.string.app_options_add_favorite
+                )
+            ) { onToggleFavorite(); onDismiss() }
             if (isFavorite) {
-                SheetItem("Mover arriba ↑") { onMoveUp() }
-                SheetItem("Mover abajo ↓") { onMoveDown() }
+                SheetItem(stringResource(R.string.app_options_move_up)) { onMoveUp() }
+                SheetItem(stringResource(R.string.app_options_move_down)) { onMoveDown() }
             }
-            SheetItem("Renombrar") { onRename() }
-            SheetItem(if (isDistracting) "Quitar marca de distractora" else "Marcar como distractora") {
-                onToggleDistracting(); onDismiss()
-            }
-            SheetItem("Ocultar app") { onHide(); onDismiss() }
-            SheetItem("Info de la app") { onInfo(); onDismiss() }
-            SheetItem("Desinstalar") { onUninstall(); onDismiss() }
+            SheetItem(stringResource(R.string.app_options_rename)) { onRename() }
+            SheetItem(
+                stringResource(
+                    if (isDistracting) R.string.app_options_unmark_distracting else R.string.app_options_mark_distracting
+                )
+            ) { onToggleDistracting(); onDismiss() }
+            SheetItem(stringResource(R.string.app_options_hide)) { onHide(); onDismiss() }
+            SheetItem(stringResource(R.string.app_options_info)) { onInfo(); onDismiss() }
+            SheetItem(stringResource(R.string.app_options_uninstall)) { onUninstall(); onDismiss() }
         }
     }
 }
@@ -149,17 +155,17 @@ fun RenameDialog(
     var text by remember(app.packageName) { mutableStateOf(currentName) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Renombrar") },
+        title = { Text(stringResource(R.string.rename_title)) },
         text = {
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 singleLine = true,
-                label = { Text("Nombre visible") },
+                label = { Text(stringResource(R.string.rename_label)) },
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text); onDismiss() }) { Text("Guardar") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = { TextButton(onClick = { onConfirm(text); onDismiss() }) { Text(stringResource(R.string.common_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
 }
 
@@ -184,16 +190,16 @@ fun FrictionDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("¿Seguro que querés abrir $appLabel?") },
+        title = { Text(stringResource(R.string.friction_title, appLabel)) },
         text = {
             Column {
                 Text(
-                    "Llevás ${formatDuration(usedTodayMs)} en esta app hoy.",
+                    stringResource(R.string.friction_used_today, formatDuration(usedTodayMs)),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Respirá un segundo. ¿Realmente lo necesitás ahora?",
+                    stringResource(R.string.friction_breathe),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -202,10 +208,13 @@ fun FrictionDialog(
         confirmButton = {
             Row(horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = onProceed, enabled = remaining <= 0) {
-                    Text(if (remaining > 0) "Abrir (${remaining})" else "Abrir igual")
+                    Text(
+                        if (remaining > 0) stringResource(R.string.friction_open_countdown, remaining)
+                        else stringResource(R.string.friction_open_anyway)
+                    )
                 }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) } },
     )
 }

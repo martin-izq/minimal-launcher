@@ -1,0 +1,110 @@
+<resources>
+    <string name="accessibility_description">Permite abrir el panel de notificaciones (deslizando hacia abajo) y bloquear la pantalla (doble toque) desde el inicio. No lee ni recopila contenido de la pantalla.</string>
+
+    <!-- Común -->
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_save">Guardar</string>
+    <string name="common_remove">Quitar</string>
+    <string name="common_show">Mostrar</string>
+    <string name="common_done">Listo</string>
+    <string name="common_edit">Editar</string>
+
+    <!-- Menú de opciones de app -->
+    <string name="app_options_add_favorite">Agregar a favoritos</string>
+    <string name="app_options_remove_favorite">Quitar de favoritos</string>
+    <string name="app_options_move_up">Mover arriba ↑</string>
+    <string name="app_options_move_down">Mover abajo ↓</string>
+    <string name="app_options_rename">Renombrar</string>
+    <string name="app_options_mark_distracting">Marcar como distractora</string>
+    <string name="app_options_unmark_distracting">Quitar marca de distractora</string>
+    <string name="app_options_hide">Ocultar app</string>
+    <string name="app_options_info">Info de la app</string>
+    <string name="app_options_uninstall">Desinstalar</string>
+
+    <!-- Diálogo de renombrar -->
+    <string name="rename_title">Renombrar</string>
+    <string name="rename_label">Nombre visible</string>
+
+    <!-- Diálogo de fricción -->
+    <string name="friction_title">¿Seguro que querés abrir %1$s?</string>
+    <string name="friction_used_today">Llevás %1$s en esta app hoy.</string>
+    <string name="friction_breathe">Respirá un segundo. ¿Realmente lo necesitás ahora?</string>
+    <string name="friction_open_countdown">Abrir (%1$d)</string>
+    <string name="friction_open_anyway">Abrir igual</string>
+
+    <!-- Inicio -->
+    <string name="home_battery">Batería %1$d%%</string>
+    <string name="home_screentime_summary">Hoy: %1$s  ·  %2$d desbloqueos</string>
+    <string name="home_screentime_enable">Activá Screen Time →</string>
+    <string name="home_no_favorites">Sin favoritos todavía.\nDeslizá hacia arriba y mantené presionada una app para agregarla.</string>
+    <string name="home_swipe_hint">⌃ deslizá para ver todas</string>
+    <string name="home_notif_gesture_disabled">Activá el gesto en Ajustes › Notificaciones al deslizar</string>
+    <string name="home_lock_disabled">Activá el servicio de accesibilidad en Ajustes para bloquear</string>
+
+    <!-- Cajón de apps -->
+    <string name="drawer_search_hint">Buscar app</string>
+    <string name="drawer_no_results">Sin resultados</string>
+
+    <!-- Ajustes -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_section_home">Pantalla de inicio</string>
+    <string name="settings_clock">Reloj</string>
+    <string name="settings_date">Fecha</string>
+    <string name="settings_battery">Batería</string>
+    <string name="settings_screentime_summary">Resumen de Screen Time</string>
+    <string name="settings_notif_gesture_title">Notificaciones al deslizar hacia abajo</string>
+    <string name="settings_notif_enabled">Activado</string>
+    <string name="settings_notif_tap_enable">Tocá para activar (accesibilidad)</string>
+    <string name="settings_section_home_custom">Personalización de inicio</string>
+    <string name="settings_clock_size">Tamaño del reloj</string>
+    <string name="settings_date_size">Tamaño de la fecha</string>
+    <string name="settings_favorites_size">Tamaño de favoritos</string>
+    <string name="settings_alignment">Alineación</string>
+    <string name="settings_align_left">Izquierda</string>
+    <string name="settings_align_center">Centro</string>
+    <string name="settings_align_right">Derecha</string>
+    <string name="settings_vertical_position">Posición vertical</string>
+    <string name="settings_pos_top">Arriba</string>
+    <string name="settings_pos_bottom">Abajo</string>
+    <string name="settings_widgets_screen">Pantalla de widgets</string>
+    <string name="settings_clock_opens_alarms">Tocar la hora abre el reloj</string>
+    <string name="settings_section_quick">Acceso rápido</string>
+    <string name="settings_quick_app_right">App al deslizar a la derecha</string>
+    <string name="settings_quick_app_left">App al deslizar a la izquierda</string>
+    <string name="settings_quick_unset">Sin configurar — tocá para elegir</string>
+    <string name="settings_quick_remove">Quitar acceso rápido</string>
+    <string name="settings_quick_choose">Elegir app de acceso rápido</string>
+    <string name="settings_section_drawer">Cajón de apps</string>
+    <string name="settings_letter_size">Tamaño de la letra</string>
+    <string name="settings_search_position">Posición del buscador</string>
+    <string name="settings_alphabet_index">Guía alfabética</string>
+    <string name="settings_section_distractions">Reducir distracciones</string>
+    <string name="settings_friction_screen">Pantalla de fricción</string>
+    <string name="settings_friction_pause">Pausa antes de abrir</string>
+    <string name="settings_distracting_apps">Apps distractoras (%1$d)</string>
+    <string name="settings_no_distracting">Ninguna app marcada como distractora.</string>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_amoled">Tema oscuro AMOLED (negro puro)</string>
+    <string name="settings_hidden_apps">Apps ocultas (%1$d)</string>
+    <string name="settings_no_hidden">Ninguna app oculta.</string>
+    <string name="settings_set_default_launcher">Establecer como launcher por defecto</string>
+    <string name="settings_size_value">%1$dsp</string>
+    <string name="settings_seconds_value">%1$ds</string>
+
+    <!-- Screen Time -->
+    <string name="screentime_title">Screen Time</string>
+    <string name="screentime_permission_rationale">Para ver tu tiempo de uso necesitás darle acceso a las estadísticas de uso.</string>
+    <string name="screentime_grant">Conceder acceso</string>
+    <string name="screentime_today_unlocks">hoy  ·  %1$d desbloqueos</string>
+    <string name="screentime_per_app">Por aplicación (hoy)</string>
+    <string name="screentime_no_data">Sin datos de uso todavía.</string>
+
+    <!-- Widgets -->
+    <string name="widgets_title">Widgets</string>
+    <string name="widgets_none">Todavía no agregaste widgets.</string>
+    <string name="widgets_add">+ Agregar widget</string>
+    <string name="widgets_remove_title">¿Quitar widget?</string>
+    <string name="widgets_resize_hint">⬍ arrastrá para el alto</string>
+    <string name="widget_picker_title">Elegí un widget</string>
+    <string name="widget_picker_empty">No hay widgets disponibles.</string>
+</resources>

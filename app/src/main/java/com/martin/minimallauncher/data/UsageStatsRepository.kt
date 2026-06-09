@@ -6,6 +6,7 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.os.Process
 import java.util.Calendar
+import java.util.Locale
 
 data class DayUsage(val label: String, val totalMs: Long)
 
@@ -66,7 +67,7 @@ class UsageStatsRepository(private val context: Context) {
     }
 
     private fun weekly(now: Long): List<DayUsage> {
-        val days = arrayOf("Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb")
+        val locale = Locale.getDefault()
         val out = ArrayList<DayUsage>(7)
         for (offset in 6 downTo 0) {
             val cal = Calendar.getInstance().apply {
@@ -77,7 +78,8 @@ class UsageStatsRepository(private val context: Context) {
             val dayEnd = (dayStart + 24L * 60 * 60 * 1000).coerceAtMost(now)
             val total = usm.queryAndAggregateUsageStats(dayStart, dayEnd)
                 .values.sumOf { it.totalTimeInForeground }
-            val label = days[cal.get(Calendar.DAY_OF_WEEK) - 1]
+            // Localized short weekday name (e.g. "Mon" / "lun").
+            val label = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale).orEmpty()
             out.add(DayUsage(label, total))
         }
         return out

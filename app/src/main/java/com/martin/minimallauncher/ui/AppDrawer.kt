@@ -35,10 +35,12 @@ import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
+import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.AppInfo
 import kotlin.math.abs
 import kotlinx.coroutines.launch
@@ -154,7 +156,7 @@ fun AppDrawer(
 
         if (filtered.isEmpty()) {
             Text(
-                "Sin resultados",
+                stringResource(R.string.drawer_no_results),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
@@ -209,7 +211,7 @@ private fun SearchField(
         value = query,
         onValueChange = onQueryChange,
         singleLine = true,
-        label = { Text("Buscar app") },
+        label = { Text(stringResource(R.string.drawer_search_hint)) },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
         keyboardActions = KeyboardActions(onGo = { onGo() }),
         modifier = Modifier
