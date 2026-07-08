@@ -54,6 +54,8 @@ data class LauncherSettings(
     val drawerShowUsage: Boolean = false,
     // Quick-launch app (swipe toward quickLaunchDir)
     val quickLaunchPackage: String? = null,
+    // First-run onboarding completed?
+    val onboarded: Boolean = false,
 ) {
     companion object {
         const val DIR_LEFT = 0
@@ -96,6 +98,7 @@ class SettingsRepository(private val context: Context) {
         val DRAWER_TITLE = stringPreferencesKey("drawer_title")
         val DRAWER_SHOW_USAGE = booleanPreferencesKey("drawer_show_usage")
         val QUICK_LAUNCH_PKG = stringPreferencesKey("quick_launch_pkg")
+        val ONBOARDED = booleanPreferencesKey("onboarded")
     }
 
     /**
@@ -155,6 +158,7 @@ class SettingsRepository(private val context: Context) {
             drawerTitle = p[Keys.DRAWER_TITLE] ?: "",
             drawerShowUsage = p[Keys.DRAWER_SHOW_USAGE] ?: false,
             quickLaunchPackage = p[Keys.QUICK_LAUNCH_PKG],
+            onboarded = p[Keys.ONBOARDED] ?: false,
         )
     }
 
@@ -236,6 +240,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setDrawerShowTitle(v: Boolean) = putBool(Keys.DRAWER_SHOW_TITLE, v)
     suspend fun setDrawerTitle(v: String) = context.dataStore.edit { it[Keys.DRAWER_TITLE] = v.trim() }
     suspend fun setDrawerShowUsage(v: Boolean) = putBool(Keys.DRAWER_SHOW_USAGE, v)
+    suspend fun setOnboarded(v: Boolean) = putBool(Keys.ONBOARDED, v)
     suspend fun setQuickLaunchPackage(pkg: String?) = context.dataStore.edit { p ->
         if (pkg == null) p.remove(Keys.QUICK_LAUNCH_PKG) else p[Keys.QUICK_LAUNCH_PKG] = pkg
     }

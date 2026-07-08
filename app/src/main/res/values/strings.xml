@@ -47,6 +47,26 @@
     <string name="drawer_no_results">No results</string>
     <string name="drawer_default_title">Apps</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to Foco</string>
+    <string name="onboarding_welcome_body">A launcher to use your phone with intention. No noise, no distractions.</string>
+    <string name="onboarding_default_title">Make it your launcher</string>
+    <string name="onboarding_default_body">For Foco to be your home screen, set it as the default launcher.</string>
+    <string name="onboarding_perms_title">Optional permissions</string>
+    <string name="onboarding_perms_body">Foco works without these. Enable them only if you want these features.</string>
+    <string name="onboarding_perm_usage">Screen Time</string>
+    <string name="onboarding_perm_usage_body">See your usage time and set limits.</string>
+    <string name="onboarding_perm_a11y">Notifications &amp; lock gesture</string>
+    <string name="onboarding_perm_a11y_body">Pull down notifications and lock the screen from home.</string>
+    <string name="onboarding_enable">Enable</string>
+    <string name="onboarding_tips_title">How to use Foco</string>
+    <string name="onboarding_tip_drawer">Swipe toward the drawer to see all your apps.</string>
+    <string name="onboarding_tip_longpress_app">Long-press an app for favorites, rename or hide.</string>
+    <string name="onboarding_tip_settings">Long-press the home screen to open Settings.</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_skip">Skip</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_home">Home screen</string>

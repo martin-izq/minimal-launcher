@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,6 +63,15 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             }
             LauncherUiState(settings, apps, visible, favs, usage, widgets)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LauncherUiState())
+
+    /**
+     * False until the first settings value is read from DataStore. Lets the UI avoid flashing the
+     * onboarding screen (whose default `onboarded` is false) before real settings load.
+     */
+    val settingsLoaded: StateFlow<Boolean> =
+        settingsRepo.settings
+            .map { true }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     init {
         refresh()
@@ -119,6 +129,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setDrawerTitle(v: String) { viewModelScope.launch { settingsRepo.setDrawerTitle(v) } }
     fun setDrawerShowUsage(v: Boolean) { viewModelScope.launch { settingsRepo.setDrawerShowUsage(v) } }
     fun setQuickLaunchPackage(pkg: String?) { viewModelScope.launch { settingsRepo.setQuickLaunchPackage(pkg) } }
+    fun setOnboarded(v: Boolean) { viewModelScope.launch { settingsRepo.setOnboarded(v) } }
     fun launchByPackage(pkg: String) = appRepo.launch(pkg)
 
     // --- Widgets ---

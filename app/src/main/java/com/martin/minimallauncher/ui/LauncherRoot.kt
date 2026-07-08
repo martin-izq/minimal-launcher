@@ -38,6 +38,7 @@ private enum class SideScreen { Widgets, Drawer }
 @Composable
 fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val state by vm.uiState.collectAsState()
+    val settingsLoaded by vm.settingsLoaded.collectAsState()
     val scope = rememberCoroutineScope()
 
     // Gesture layout: widgets, quick-launch and the drawer each own one of {left, right, up}
@@ -165,6 +166,9 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        if (settingsLoaded && !state.settings.onboarded) {
+            OnboardingScreen(vm = vm, onFinish = { vm.setOnboarded(true) })
+        } else {
         when (overlay) {
             Overlay.ScreenTime -> ScreenTimeScreen(state = state, onBack = { overlay = Overlay.None })
             Overlay.Settings -> SettingsScreen(state = state, vm = vm, onBack = { overlay = Overlay.None })
@@ -249,6 +253,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                 onProceed = { vm.launch(app); frictionApp = null },
                 onDismiss = { frictionApp = null },
             )
+        }
         }
     }
 }

@@ -46,6 +46,26 @@
     <string name="drawer_no_results">Sin resultados</string>
     <string name="drawer_default_title">Apps</string>
 
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Bienvenido a Foco</string>
+    <string name="onboarding_welcome_body">Un launcher para usar el teléfono con intención. Sin ruido, sin distracciones.</string>
+    <string name="onboarding_default_title">Ponelo como tu launcher</string>
+    <string name="onboarding_default_body">Para que Foco sea tu inicio, elegilo como launcher por defecto.</string>
+    <string name="onboarding_perms_title">Permisos opcionales</string>
+    <string name="onboarding_perms_body">Foco funciona sin estos permisos. Activalos solo si querés estas funciones.</string>
+    <string name="onboarding_perm_usage">Screen Time</string>
+    <string name="onboarding_perm_usage_body">Ver tu tiempo de uso y poner límites.</string>
+    <string name="onboarding_perm_a11y">Gesto de notificaciones y bloqueo</string>
+    <string name="onboarding_perm_a11y_body">Bajar notificaciones y bloquear la pantalla desde el inicio.</string>
+    <string name="onboarding_enable">Activar</string>
+    <string name="onboarding_tips_title">Cómo usar Foco</string>
+    <string name="onboarding_tip_drawer">Deslizá hacia el cajón para ver todas tus apps.</string>
+    <string name="onboarding_tip_longpress_app">Mantené presionada una app para favoritos, renombrar u ocultar.</string>
+    <string name="onboarding_tip_settings">Mantené presionado el inicio para abrir Ajustes.</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_back">Atrás</string>
+    <string name="onboarding_skip">Saltar</string>
+
     <!-- Ajustes -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_section_home">Pantalla de inicio</string>

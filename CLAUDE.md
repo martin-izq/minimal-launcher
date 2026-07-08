@@ -50,6 +50,8 @@ Sobre el pager se superponen 2 overlays controlados por flags locales en `Launch
 - `ScreenTimeScreen`: estadísticas de uso (requiere permiso especial)
 - `SettingsScreen`: preferencias + gestión de apps ocultas
 
+En el primer arranque, `LauncherRoot` muestra `OnboardingScreen` en vez del pager mientras `settings.onboarded` sea false (wizard: bienvenida → poner como launcher por defecto → permisos opcionales → tips). Se gatea con `vm.settingsLoaded` (StateFlow que pasa a true tras la primera lectura de DataStore) para no mostrar un flash del onboarding antes de que carguen los settings reales.
+
 ### Internacionalización (i18n)
 
 Todos los textos visibles están en recursos: `res/values/strings.xml` (inglés, idioma por defecto) y `res/values-es/strings.xml` (español). Android elige el idioma según el locale del SO. **No agregar literales de UI en el código**: usar `stringResource(R.string.…)` (o `context.getString` fuera de composables) y añadir la clave en ambos `strings.xml`. La fecha del inicio y los días del gráfico de Screen Time usan `Locale.getDefault()`.
