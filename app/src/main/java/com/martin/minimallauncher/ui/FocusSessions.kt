@@ -52,6 +52,50 @@ fun FocusBlockDialog(
     )
 }
 
+/** Quick control to start manual focus (with a duration) or exit the current focus. */
+@Composable
+fun FocusControlDialog(
+    active: Boolean,
+    onStart: (minutes: Int?) -> Unit,
+    onStop: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(if (active) R.string.focus_control_active else R.string.focus_control_start))
+        },
+        text = {
+            if (active) {
+                Text(stringResource(R.string.focus_control_exit_q), style = MaterialTheme.typography.bodyMedium)
+            } else {
+                Column {
+                    FocusStartRow(stringResource(R.string.focus_dur_25)) { onStart(25) }
+                    FocusStartRow(stringResource(R.string.focus_dur_50)) { onStart(50) }
+                    FocusStartRow(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
+                }
+            }
+        },
+        confirmButton = {
+            if (active) TextButton(onClick = onStop) { Text(stringResource(R.string.focus_control_exit)) }
+            else TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        },
+        dismissButton = {
+            if (active) TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        },
+    )
+}
+
+@Composable
+private fun FocusStartRow(label: String, onClick: () -> Unit) {
+    Text(
+        label,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.fillMaxWidth().clickableText(onClick).padding(vertical = 12.dp),
+    )
+}
+
 /** Editor for a focus session: start/end times (15-min steppers) and active weekdays. */
 @Composable
 fun FocusSessionEditorDialog(

@@ -111,6 +111,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setAppLimit(app: AppInfo, minutes: Int?) { viewModelScope.launch { settingsRepo.setAppLimit(app.packageName, minutes) } }
     fun upsertFocusSession(session: FocusSession) { viewModelScope.launch { settingsRepo.upsertFocusSession(session) } }
     fun removeFocusSession(id: String) { viewModelScope.launch { settingsRepo.removeFocusSession(id) } }
+    fun setManualFocusUntil(v: Long) { viewModelScope.launch { settingsRepo.setManualFocusUntil(v) } }
+    fun setFocusSkipUntil(v: Long) { viewModelScope.launch { settingsRepo.setFocusSkipUntil(v) } }
+    fun setShowFocusOnHome(v: Boolean) { viewModelScope.launch { settingsRepo.setShowFocusOnHome(v) } }
 
     /** Serializes all current settings to JSON (for backup export). */
     fun exportSettingsJson(): String = Json.encodeToString(uiState.value.settings)

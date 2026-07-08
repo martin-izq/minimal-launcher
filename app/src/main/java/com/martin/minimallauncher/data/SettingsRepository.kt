@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -27,38 +28,41 @@ data class LauncherSettings(
     val renames: Map<String, String> = emptyMap(),
     val appLimits: Map<String, Int> = emptyMap(), // package -> daily limit in minutes
     val focusSessions: List<FocusSession> = emptyList(),
+    val manualFocusUntil: Long = 0L,   // epoch ms; focus forced ON while now < this (MAX = indefinite)
+    val focusSkipUntil: Long = 0L,      // epoch ms; scheduled sessions suppressed while now < this
+    val showFocusOnHome: Boolean = true, // quick focus chip on the home screen
     val showClock: Boolean = true,
     val showDate: Boolean = true,
-    val showBattery: Boolean = false,
+    val showBattery: Boolean = true,
     val showScreenTimeHome: Boolean = true,
     val frictionEnabled: Boolean = true,
-    val frictionSeconds: Int = 5,
+    val frictionSeconds: Int = 10,
     val amoledDark: Boolean = true,
     val accentColor: Int = 0, // index into AccentColors; 0 = monochrome
     // Home screen customization
-    val clockSize: Int = 64,          // clock size in sp
-    val dateSize: Int = 16,           // date size in sp
-    val favoritesSize: Int = 18,      // favorites size in sp
+    val clockSize: Int = 120,         // clock size in sp
+    val dateSize: Int = 22,           // date size in sp
+    val favoritesSize: Int = 36,      // favorites size in sp
     val homeAlign: Int = 0,           // 0 = left, 1 = center, 2 = right
-    val verticalPos: Int = 0,         // 0 = top, 1 = center, 2 = bottom
+    val verticalPos: Int = 1,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
-    val hideStatusBar: Boolean = false,
-    val showNotificationBadges: Boolean = false,
+    val hideStatusBar: Boolean = true,
+    val showNotificationBadges: Boolean = true,
     // Gesture directions (0 = left, 1 = right, 2 = up). Always a permutation of {0,1,2};
     // the remaining free direction "down" is reserved for the notification shade.
     val widgetsDir: Int = DIR_LEFT,
     val quickLaunchDir: Int = DIR_RIGHT,
     val drawerDir: Int = DIR_UP,
     // App drawer
-    val appDrawerSize: Int = 18,       // app label size in sp
+    val appDrawerSize: Int = 23,       // app label size in sp
     val appDrawerAlign: Int = 0,       // 0 = left, 1 = center, 2 = right
     val alphabetIndex: Boolean = true, // alphabet scrubber on the side
-    val scrubberWidth: Int = 40,       // touch band width of the scrubber, in dp
+    val scrubberWidth: Int = 49,       // touch band width of the scrubber, in dp
     val searchBarBottom: Boolean = false, // false = search bar on top, true = bottom
-    val drawerTopSpace: Int = 24,      // extra space above the drawer content, in dp
+    val drawerTopSpace: Int = 148,     // extra space above the drawer content, in dp
     val drawerShowTitle: Boolean = true,
-    val drawerTitle: String = "",      // blank → localized default in the UI
-    val drawerShowUsage: Boolean = false,
+    val drawerTitle: String = "",      // blank → localized default "Apps"
+    val drawerShowUsage: Boolean = true,
     // Quick-launch app (swipe toward quickLaunchDir)
     val quickLaunchPackage: String? = null,
     // First-run onboarding completed?
@@ -80,6 +84,9 @@ class SettingsRepository(private val context: Context) {
         val RENAMES = stringPreferencesKey("renames")                // JSON Map<String,String>
         val APP_LIMITS = stringPreferencesKey("app_limits")          // JSON Map<String,Int> (minutes/day)
         val FOCUS_SESSIONS = stringPreferencesKey("focus_sessions")  // JSON List<FocusSession>
+        val MANUAL_FOCUS_UNTIL = longPreferencesKey("manual_focus_until")
+        val FOCUS_SKIP_UNTIL = longPreferencesKey("focus_skip_until")
+        val SHOW_FOCUS_HOME = booleanPreferencesKey("show_focus_home")
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -146,6 +153,9 @@ class SettingsRepository(private val context: Context) {
             renames = p[Keys.RENAMES]?.let { decodeRenames(it) } ?: emptyMap(),
             appLimits = p[Keys.APP_LIMITS]?.let { decodeLimits(it) } ?: emptyMap(),
             focusSessions = p[Keys.FOCUS_SESSIONS]?.let { decodeSessions(it) } ?: emptyList(),
+            manualFocusUntil = p[Keys.MANUAL_FOCUS_UNTIL] ?: 0L,
+            focusSkipUntil = p[Keys.FOCUS_SKIP_UNTIL] ?: 0L,
+            showFocusOnHome = p[Keys.SHOW_FOCUS_HOME] ?: true,
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
             showBattery = p[Keys.SHOW_BATTERY] ?: false,
@@ -235,6 +245,10 @@ class SettingsRepository(private val context: Context) {
         p[Keys.FOCUS_SESSIONS] = Json.encodeToString(list)
     }
 
+    suspend fun setManualFocusUntil(v: Long) = context.dataStore.edit { it[Keys.MANUAL_FOCUS_UNTIL] = v }
+    suspend fun setFocusSkipUntil(v: Long) = context.dataStore.edit { it[Keys.FOCUS_SKIP_UNTIL] = v }
+    suspend fun setShowFocusOnHome(v: Boolean) = putBool(Keys.SHOW_FOCUS_HOME, v)
+
     /** Overwrites all preferences from an imported [LauncherSettings] (backup restore). */
     suspend fun importSettings(s: LauncherSettings) = context.dataStore.edit { p ->
         p[Keys.FAVORITES] = s.favorites.joinToString("\n")
@@ -243,6 +257,9 @@ class SettingsRepository(private val context: Context) {
         p[Keys.RENAMES] = Json.encodeToString(s.renames)
         p[Keys.APP_LIMITS] = Json.encodeToString(s.appLimits)
         p[Keys.FOCUS_SESSIONS] = Json.encodeToString(s.focusSessions)
+        p[Keys.SHOW_FOCUS_HOME] = s.showFocusOnHome
+        p[Keys.MANUAL_FOCUS_UNTIL] = 0L   // don't restore transient focus state
+        p[Keys.FOCUS_SKIP_UNTIL] = 0L
         p[Keys.SHOW_CLOCK] = s.showClock
         p[Keys.SHOW_DATE] = s.showDate
         p[Keys.SHOW_BATTERY] = s.showBattery

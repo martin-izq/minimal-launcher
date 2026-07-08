@@ -239,6 +239,7 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 6.dp),
             )
+            ToggleRow(stringResource(R.string.settings_focus_show_home), s.showFocusOnHome, vm::setShowFocusOnHome)
 
             // Scheduled sessions — hard block distracting apps during these windows.
             SubHead(stringResource(R.string.settings_focus_sessions))

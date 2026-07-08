@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,7 +74,10 @@ fun HomeScreen(
     drawerDir: Int = DIR_UP,
     blockedPackages: Set<String> = emptySet(),
     badgeCounts: Map<String, Int> = emptyMap(),
+    focusActive: Boolean = false,
     focusUntil: String? = null,
+    showFocusChip: Boolean = false,
+    onFocusTap: () -> Unit = {},
 ) {
     val s = state.settings
     var hintVisible by remember { mutableStateOf(false) }
@@ -237,15 +241,26 @@ fun HomeScreen(
                 .padding(start = 28.dp, end = 28.dp, top = 48.dp, bottom = 8.dp),
             horizontalAlignment = horizontalAlign,
         ) {
-            // Focus mode indicator, so it's clear a session is active.
-            if (focusUntil != null) {
+            // Focus chip: tap to start manual focus, or (when active) to exit. Shows the state.
+            if (showFocusChip || focusActive) {
+                val chipText = when {
+                    focusActive && focusUntil != null -> stringResource(R.string.home_focus_indicator, focusUntil)
+                    focusActive -> stringResource(R.string.home_focus_active)
+                    else -> stringResource(R.string.home_focus_off)
+                }
+                val chipShape = RoundedCornerShape(50)
+                val chipBg = if (focusActive) {
+                    Modifier.clip(chipShape).background(MaterialTheme.colorScheme.primary)
+                } else {
+                    Modifier.clip(chipShape).border(1.dp, MaterialTheme.colorScheme.outline, chipShape)
+                }
                 Text(
-                    text = stringResource(R.string.home_focus_indicator, focusUntil),
+                    text = chipText,
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.primary)
+                    color = if (focusActive) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.secondary,
+                    modifier = chipBg
+                        .clickableText(onFocusTap)
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 )
                 Spacer(Modifier.height(10.dp))

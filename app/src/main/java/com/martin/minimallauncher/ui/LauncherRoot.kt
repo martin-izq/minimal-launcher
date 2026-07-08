@@ -136,12 +136,25 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             delay(60_000)
         }
     }
-    val activeFocusSession = state.settings.focusSessions.firstOrNull {
+    val nowMs = System.currentTimeMillis()
+    val sessionNow = state.settings.focusSessions.firstOrNull {
         it.isActiveAt(nowTick.dayOfWeek.value, nowTick.hour * 60 + nowTick.minute)
     }
-    val focusActiveNow = activeFocusSession != null
+    // Scheduled focus counts unless the user "skipped" the current window; manual focus forces it on.
+    val scheduledActive = sessionNow != null && nowMs >= state.settings.focusSkipUntil
+    val manualActive = nowMs < state.settings.manualFocusUntil
+    val focusActiveNow = scheduledActive || manualActive
     val blockedPackages = if (focusActiveNow) state.settings.distracting else emptySet()
-    val focusUntil = activeFocusSession?.let { minuteOfDayLabel(it.end) }
+    val focusUntil: String? = when {
+        manualActive && state.settings.manualFocusUntil != Long.MAX_VALUE ->
+            java.time.Instant.ofEpochMilli(state.settings.manualFocusUntil)
+                .atZone(java.time.ZoneId.systemDefault()).toLocalTime()
+                .let { "%02d:%02d".format(it.hour, it.minute) }
+        manualActive -> null // indefinite
+        scheduledActive && sessionNow != null -> minuteOfDayLabel(sessionNow.end)
+        else -> null
+    }
+    var showFocusControl by remember { mutableStateOf(false) }
 
     // Unread notification badges (needs notification access granted).
     val notifCounts by NotificationService.counts.collectAsState()
@@ -157,6 +170,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             limitApp = null
             overLimitApp = null
             focusBlockApp = null
+            showFocusControl = false
             scope.launch { horizontalPagerRef.value.scrollToPage(homeIndexState.value) }
             scope.launch { verticalPagerRef.value.scrollToPage(0) }
         }
@@ -166,10 +180,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         val limitMin = state.settings.appLimits[app.packageName]
         val usedMs = state.usage.perAppToday[app.packageName] ?: 0L
         val distracting = app.packageName in state.settings.distracting
-        val now = java.time.LocalDateTime.now()
-        val inFocus = distracting && state.settings.focusSessions.any {
-            it.isActiveAt(now.dayOfWeek.value, now.hour * 60 + now.minute)
-        }
+        val inFocus = distracting && focusActiveNow
         when {
             // Focus session → firm block (takes priority; it's the hard block).
             inFocus -> focusBlockApp = app
@@ -262,7 +273,10 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                                 drawerDir = drawerDir,
                                 blockedPackages = blockedPackages,
                                 badgeCounts = badgeCounts,
+                                focusActive = focusActiveNow,
                                 focusUntil = focusUntil,
+                                showFocusChip = state.settings.showFocusOnHome,
+                                onFocusTap = { showFocusControl = true },
                             )
                         }
                         if (upScreen != null) {
@@ -347,6 +361,30 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             FocusBlockDialog(
                 appLabel = app.displayLabel(state.settings.renames),
                 onDismiss = { focusBlockApp = null },
+            )
+        }
+
+        // Quick focus control (start manual focus / exit current focus)
+        if (showFocusControl) {
+            FocusControlDialog(
+                active = focusActiveNow,
+                onStart = { mins ->
+                    val until = if (mins == null) Long.MAX_VALUE
+                    else System.currentTimeMillis() + mins * 60_000L
+                    vm.setManualFocusUntil(until)
+                    showFocusControl = false
+                },
+                onStop = {
+                    vm.setManualFocusUntil(0L)
+                    if (scheduledActive && sessionNow != null) {
+                        val end = sessionNow.end
+                        val endEpoch = java.time.LocalDate.now().atTime(end / 60, end % 60)
+                            .atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+                        vm.setFocusSkipUntil(endEpoch)
+                    }
+                    showFocusControl = false
+                },
+                onDismiss = { showFocusControl = false },
             )
         }
         }
