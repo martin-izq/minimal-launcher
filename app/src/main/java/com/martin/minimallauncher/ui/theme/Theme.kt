@@ -45,13 +45,27 @@ private val MinimalTypography = Typography(
     labelLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 13.sp, letterSpacing = 0.5.sp),
 )
 
+/** Optional accent colors; index 0 = default (monochrome). Tints primary (badges, highlights…). */
+val AccentColors: List<Color?> = listOf(
+    null,               // default: monochrome primary
+    Color(0xFF3B82F6),  // blue
+    Color(0xFF10B981),  // green
+    Color(0xFFF59E0B),  // amber
+    Color(0xFF8B5CF6),  // violet
+    Color(0xFFEF4444),  // red
+)
+
 @Composable
 fun MinimalLauncherTheme(
     amoledDark: Boolean = true,
+    accent: Int = 0,
     content: @Composable () -> Unit,
 ) {
+    val base = if (amoledDark) DarkColors else LightColors
+    val accentColor = AccentColors.getOrNull(accent)
+    val scheme = if (accentColor != null) base.copy(primary = accentColor, onPrimary = Color.White) else base
     MaterialTheme(
-        colorScheme = if (amoledDark) DarkColors else LightColors,
+        colorScheme = scheme,
         typography = MinimalTypography,
         content = content,
     )

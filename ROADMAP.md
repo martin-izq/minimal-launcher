@@ -41,7 +41,8 @@ funcional. Sin ads, sin suscripción agresiva.
 
 ## Fase 6 — Pulido / extra
 - [x] **Backup/restore** de settings (export/import JSON vía SAF).
-- [ ] Temas y acentos, gestos configurables extra.
+- [x] **Colores de acento** (paleta que tiñe primary: badges, resaltados…).
+- [ ] Gestos configurables extra.
 
 ## Transversal — Reducir riesgo en Play
 Minimizar la dependencia del **servicio de accesibilidad** (mayor riesgo de

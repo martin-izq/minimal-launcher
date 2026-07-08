@@ -35,6 +35,7 @@ data class LauncherSettings(
     val frictionEnabled: Boolean = true,
     val frictionSeconds: Int = 5,
     val amoledDark: Boolean = true,
+    val accentColor: Int = 0, // index into AccentColors; 0 = monochrome
     // Home screen customization
     val clockSize: Int = 64,          // clock size in sp
     val dateSize: Int = 16,           // date size in sp
@@ -88,6 +89,7 @@ class SettingsRepository(private val context: Context) {
         val FRICTION = booleanPreferencesKey("friction_enabled")
         val FRICTION_SECONDS = intPreferencesKey("friction_seconds")
         val AMOLED = booleanPreferencesKey("amoled_dark")
+        val ACCENT = intPreferencesKey("accent_color")
         val CLOCK_SIZE = intPreferencesKey("clock_size")
         val DATE_SIZE = intPreferencesKey("date_size")
         val FAVORITES_SIZE = intPreferencesKey("favorites_size")
@@ -154,6 +156,7 @@ class SettingsRepository(private val context: Context) {
             frictionEnabled = p[Keys.FRICTION] ?: true,
             frictionSeconds = p[Keys.FRICTION_SECONDS] ?: 5,
             amoledDark = p[Keys.AMOLED] ?: true,
+            accentColor = p[Keys.ACCENT] ?: 0,
             clockSize = p[Keys.CLOCK_SIZE] ?: 64,
             dateSize = p[Keys.DATE_SIZE] ?: 16,
             favoritesSize = p[Keys.FAVORITES_SIZE] ?: 18,
@@ -253,6 +256,7 @@ class SettingsRepository(private val context: Context) {
         p[Keys.FRICTION] = s.frictionEnabled
         p[Keys.FRICTION_SECONDS] = s.frictionSeconds
         p[Keys.AMOLED] = s.amoledDark
+        p[Keys.ACCENT] = s.accentColor
         p[Keys.CLOCK_SIZE] = s.clockSize
         p[Keys.DATE_SIZE] = s.dateSize
         p[Keys.FAVORITES_SIZE] = s.favoritesSize
@@ -284,6 +288,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setShowScreenTimeHome(v: Boolean) = putBool(Keys.SHOW_ST_HOME, v)
     suspend fun setFrictionEnabled(v: Boolean) = putBool(Keys.FRICTION, v)
     suspend fun setAmoled(v: Boolean) = putBool(Keys.AMOLED, v)
+    suspend fun setAccentColor(v: Int) = context.dataStore.edit { it[Keys.ACCENT] = v }
     suspend fun setFrictionSeconds(v: Int) = context.dataStore.edit { it[Keys.FRICTION_SECONDS] = v }
     suspend fun setClockSize(v: Int) = context.dataStore.edit { it[Keys.CLOCK_SIZE] = v }
     suspend fun setDateSize(v: Int) = context.dataStore.edit { it[Keys.DATE_SIZE] = v }

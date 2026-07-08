@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val state by vm.uiState.collectAsState()
-            MinimalLauncherTheme(amoledDark = state.settings.amoledDark) {
+            MinimalLauncherTheme(amoledDark = state.settings.amoledDark, accent = state.settings.accentColor) {
                 CompositionLocalProvider(LocalWidgetController provides widgetController) {
                     LauncherRoot(vm = vm)
                 }

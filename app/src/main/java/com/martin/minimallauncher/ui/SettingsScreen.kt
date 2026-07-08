@@ -7,10 +7,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,12 +50,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.CircleShape
 import androidx.core.app.NotificationManagerCompat
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.service.NotificationAccessibilityService
+import com.martin.minimallauncher.ui.theme.AccentColors
 import com.martin.minimallauncher.util.canControlGrayscale
 import com.martin.minimallauncher.util.openAccessibilitySettings
 import com.martin.minimallauncher.util.setSystemGrayscale
@@ -345,6 +350,33 @@ fun SettingsScreen(
 
         Section(stringResource(R.string.settings_section_appearance)) {
             ToggleRow(stringResource(R.string.settings_amoled), s.amoledDark, vm::setAmoled)
+            Text(
+                stringResource(R.string.settings_accent),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Row(
+                Modifier.padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                AccentColors.forEachIndexed { i, c ->
+                    val swatch = c ?: MaterialTheme.colorScheme.onBackground
+                    val selected = s.accentColor == i
+                    Box(
+                        Modifier
+                            .size(34.dp)
+                            .then(
+                                if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.secondary, CircleShape)
+                                else Modifier
+                            )
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                            .background(swatch)
+                            .clickableText { vm.setAccentColor(i) },
+                    )
+                }
+            }
         }
 
         val hidden = state.allApps.filter { it.packageName in s.hidden }

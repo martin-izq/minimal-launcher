@@ -130,6 +130,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setFrictionEnabled(v: Boolean) { viewModelScope.launch { settingsRepo.setFrictionEnabled(v) } }
     fun setFrictionSeconds(v: Int) { viewModelScope.launch { settingsRepo.setFrictionSeconds(v) } }
     fun setAmoled(v: Boolean) { viewModelScope.launch { settingsRepo.setAmoled(v) } }
+    fun setAccentColor(v: Int) { viewModelScope.launch { settingsRepo.setAccentColor(v) } }
     fun setClockSize(v: Int) { viewModelScope.launch { settingsRepo.setClockSize(v) } }
     fun setDateSize(v: Int) { viewModelScope.launch { settingsRepo.setDateSize(v) } }
     fun setFavoritesSize(v: Int) { viewModelScope.launch { settingsRepo.setFavoritesSize(v) } }

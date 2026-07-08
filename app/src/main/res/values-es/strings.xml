@@ -149,6 +149,7 @@
     <string name="settings_no_distracting">Ninguna app marcada como distractora.</string>
     <string name="settings_section_appearance">Apariencia</string>
     <string name="settings_amoled">Tema oscuro AMOLED (negro puro)</string>
+    <string name="settings_accent">Color de acento</string>
     <string name="settings_hidden_apps">Apps ocultas (%1$d)</string>
     <string name="settings_no_hidden">Ninguna app oculta.</string>
     <string name="settings_section_backup">Copia de seguridad</string>

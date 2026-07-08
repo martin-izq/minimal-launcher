@@ -150,6 +150,7 @@
     <string name="settings_no_distracting">No apps marked as distracting.</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_amoled">AMOLED dark theme (pure black)</string>
+    <string name="settings_accent">Accent color</string>
     <string name="settings_hidden_apps">Hidden apps (%1$d)</string>
     <string name="settings_no_hidden">No hidden apps.</string>
     <string name="settings_section_backup">Backup</string>
