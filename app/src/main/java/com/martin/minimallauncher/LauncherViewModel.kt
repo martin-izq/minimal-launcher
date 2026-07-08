@@ -108,11 +108,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setHomeAlign(v: Int) { viewModelScope.launch { settingsRepo.setHomeAlign(v) } }
     fun setVerticalPos(v: Int) { viewModelScope.launch { settingsRepo.setVerticalPos(v) } }
     fun setClockOpensAlarms(v: Boolean) { viewModelScope.launch { settingsRepo.setClockOpensAlarms(v) } }
-    fun setWidgetsOnLeft(v: Boolean) { viewModelScope.launch { settingsRepo.setWidgetsOnLeft(v) } }
+    fun setGestureDir(item: Int, dir: Int) { viewModelScope.launch { settingsRepo.setGestureDir(item, dir) } }
     fun setAppDrawerSize(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerSize(v) } }
     fun setAppDrawerAlign(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerAlign(v) } }
     fun setAlphabetIndex(v: Boolean) { viewModelScope.launch { settingsRepo.setAlphabetIndex(v) } }
+    fun setScrubberWidth(v: Int) { viewModelScope.launch { settingsRepo.setScrubberWidth(v) } }
     fun setSearchBarBottom(v: Boolean) { viewModelScope.launch { settingsRepo.setSearchBarBottom(v) } }
+    fun setDrawerTopSpace(v: Int) { viewModelScope.launch { settingsRepo.setDrawerTopSpace(v) } }
+    fun setDrawerShowTitle(v: Boolean) { viewModelScope.launch { settingsRepo.setDrawerShowTitle(v) } }
+    fun setDrawerTitle(v: String) { viewModelScope.launch { settingsRepo.setDrawerTitle(v) } }
+    fun setDrawerShowUsage(v: Boolean) { viewModelScope.launch { settingsRepo.setDrawerShowUsage(v) } }
     fun setQuickLaunchPackage(pkg: String?) { viewModelScope.launch { settingsRepo.setQuickLaunchPackage(pkg) } }
     fun launchByPackage(pkg: String) = appRepo.launch(pkg)
 

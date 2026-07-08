@@ -2,6 +2,8 @@ package com.martin.minimallauncher.ui
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,16 +24,21 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -63,7 +70,7 @@ fun SettingsScreen(
         Spacer(Modifier.height(8.dp))
         ScreenHeader(stringResource(R.string.settings_title), onBack)
 
-        Section(stringResource(R.string.settings_section_home)) {
+        Section(stringResource(R.string.settings_section_home), initiallyExpanded = true) {
             ToggleRow(stringResource(R.string.settings_clock), s.showClock, vm::setShowClock)
             ToggleRow(stringResource(R.string.settings_date), s.showDate, vm::setShowDate)
             ToggleRow(stringResource(R.string.settings_battery), s.showBattery, vm::setShowBattery)
@@ -98,22 +105,39 @@ fun SettingsScreen(
                 s.verticalPos,
                 vm::setVerticalPos,
             )
-            SegmentedSelector(
-                stringResource(R.string.settings_widgets_screen),
-                listOf(stringResource(R.string.settings_align_left), stringResource(R.string.settings_align_right)),
-                if (s.widgetsOnLeft) 0 else 1,
-            ) { vm.setWidgetsOnLeft(it == 0) }
             ToggleRow(stringResource(R.string.settings_clock_opens_alarms), s.clockOpensAlarms, vm::setClockOpensAlarms)
         }
 
-        Section(stringResource(R.string.settings_section_quick)) {
+        val dirOptions = listOf(
+            stringResource(R.string.settings_align_left),
+            stringResource(R.string.settings_align_right),
+            stringResource(R.string.settings_dir_up),
+        )
+        Section(stringResource(R.string.settings_section_gestures)) {
+            Text(
+                stringResource(R.string.settings_gestures_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 6.dp),
+            )
+            // Each gesture owns a distinct direction; picking a taken one swaps them.
+            SegmentedSelector(stringResource(R.string.settings_gesture_widgets), dirOptions, s.widgetsDir) {
+                vm.setGestureDir(0, it)
+            }
+            SegmentedSelector(stringResource(R.string.settings_gesture_quick), dirOptions, s.quickLaunchDir) {
+                vm.setGestureDir(1, it)
+            }
+            SegmentedSelector(stringResource(R.string.settings_gesture_drawer), dirOptions, s.drawerDir) {
+                vm.setGestureDir(2, it)
+            }
+
+            // Quick-launch app lives on the direction chosen above.
             val quickApp = s.quickLaunchPackage?.let { pkg ->
                 state.allApps.firstOrNull { it.packageName == pkg }
             }
+            val quickDirName = dirOptions[s.quickLaunchDir.coerceIn(0, 2)].lowercase()
             ActionRow(
-                title = stringResource(
-                    if (s.widgetsOnLeft) R.string.settings_quick_app_right else R.string.settings_quick_app_left
-                ),
+                title = stringResource(R.string.settings_quick_app_dir, quickDirName),
                 subtitle = quickApp?.originalLabel ?: stringResource(R.string.settings_quick_unset),
                 onClick = { showAppPicker.value = true },
             )
@@ -137,7 +161,24 @@ fun SettingsScreen(
                 listOf(stringResource(R.string.settings_pos_top), stringResource(R.string.settings_pos_bottom)),
                 if (s.searchBarBottom) 1 else 0,
             ) { vm.setSearchBarBottom(it == 1) }
+            DpSlider(stringResource(R.string.settings_drawer_top_space), s.drawerTopSpace, 0, 200, vm::setDrawerTopSpace)
+            ToggleRow(stringResource(R.string.settings_drawer_show_title), s.drawerShowTitle, vm::setDrawerShowTitle)
+            if (s.drawerShowTitle) {
+                val titleField = remember(s.drawerTitle) { mutableStateOf(s.drawerTitle) }
+                OutlinedTextField(
+                    value = titleField.value,
+                    onValueChange = { titleField.value = it; vm.setDrawerTitle(it) },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.settings_drawer_title)) },
+                    placeholder = { Text(stringResource(R.string.drawer_default_title)) },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                )
+            }
+            ToggleRow(stringResource(R.string.settings_drawer_show_usage), s.drawerShowUsage, vm::setDrawerShowUsage)
             ToggleRow(stringResource(R.string.settings_alphabet_index), s.alphabetIndex, vm::setAlphabetIndex)
+            if (s.alphabetIndex) {
+                DpSlider(stringResource(R.string.settings_scrubber_width), s.scrubberWidth, 24, 72, vm::setScrubberWidth)
+            }
         }
 
         Section(stringResource(R.string.settings_section_distractions)) {
@@ -278,23 +319,48 @@ fun SettingsScreen(
     }
 }
 
-/** Section title (gray) + rounded card grouping the controls. */
+/** Collapsible settings group: a tappable title that reveals a rounded card with the controls. */
 @Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Text(
-        title,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.padding(start = 6.dp, top = 24.dp, bottom = 8.dp),
-    )
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        content = content,
-    )
+private fun Section(
+    title: String,
+    initiallyExpanded: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
+    Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickableText { expanded = !expanded }
+                .padding(horizontal = 6.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "⌄",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.rotate(rotation),
+            )
+        }
+        AnimatedVisibility(expanded) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                content = content,
+            )
+        }
+    }
 }
 
 @Composable
@@ -342,6 +408,30 @@ private fun SizeSlider(label: String, value: Int, min: Int, max: Int, onChange: 
             Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
             Text(
                 stringResource(R.string.settings_size_value, value),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+        }
+        Slider(
+            value = value.toFloat(),
+            onValueChange = { onChange(it.toInt()) },
+            valueRange = min.toFloat()..max.toFloat(),
+        )
+    }
+}
+
+/** Slider whose value is shown in dp (used for spacing / touch-band widths). */
+@Composable
+private fun DpSlider(label: String, value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
+            Text(
+                stringResource(R.string.settings_dp_value, value),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.secondary,
             )

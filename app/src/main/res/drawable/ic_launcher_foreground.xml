@@ -3,7 +3,13 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Minimalist light bulb ("foco"): round glass over a narrower screw base. -->
+    <!-- Glass -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,54m-15,0a15,15 0,1 1,30 0a15,15 0,1 1,-30 0" />
+        android:pathData="M34,46 a20,20 0 1 1 40,0 a20,20 0 1 1 -40,0 Z" />
+    <!-- Base / cap -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,64 h16 v12 a4,4 0 0 1 -4,4 h-8 a4,4 0 0 1 -4,-4 Z" />
 </vector>

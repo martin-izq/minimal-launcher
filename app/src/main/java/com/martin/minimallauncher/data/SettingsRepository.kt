@@ -37,15 +37,30 @@ data class LauncherSettings(
     val homeAlign: Int = 0,           // 0 = left, 1 = center, 2 = right
     val verticalPos: Int = 0,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
-    val widgetsOnLeft: Boolean = true, // side of the widgets screen relative to home
+    // Gesture directions (0 = left, 1 = right, 2 = up). Always a permutation of {0,1,2};
+    // the remaining free direction "down" is reserved for the notification shade.
+    val widgetsDir: Int = DIR_LEFT,
+    val quickLaunchDir: Int = DIR_RIGHT,
+    val drawerDir: Int = DIR_UP,
     // App drawer
     val appDrawerSize: Int = 18,       // app label size in sp
     val appDrawerAlign: Int = 0,       // 0 = left, 1 = center, 2 = right
     val alphabetIndex: Boolean = true, // alphabet scrubber on the side
+    val scrubberWidth: Int = 40,       // touch band width of the scrubber, in dp
     val searchBarBottom: Boolean = false, // false = search bar on top, true = bottom
-    // Quick-launch app (swipe to the side opposite the widgets)
+    val drawerTopSpace: Int = 24,      // extra space above the drawer content, in dp
+    val drawerShowTitle: Boolean = true,
+    val drawerTitle: String = "",      // blank → localized default in the UI
+    val drawerShowUsage: Boolean = false,
+    // Quick-launch app (swipe toward quickLaunchDir)
     val quickLaunchPackage: String? = null,
-)
+) {
+    companion object {
+        const val DIR_LEFT = 0
+        const val DIR_RIGHT = 1
+        const val DIR_UP = 2
+    }
+}
 
 class SettingsRepository(private val context: Context) {
 
@@ -67,15 +82,48 @@ class SettingsRepository(private val context: Context) {
         val HOME_ALIGN = intPreferencesKey("home_align")
         val VERTICAL_POS = intPreferencesKey("vertical_pos")
         val CLOCK_OPENS_ALARMS = booleanPreferencesKey("clock_opens_alarms")
-        val WIDGETS_ON_LEFT = booleanPreferencesKey("widgets_on_left")
+        val WIDGETS_ON_LEFT = booleanPreferencesKey("widgets_on_left") // legacy, read for migration
+        val WIDGETS_DIR = intPreferencesKey("widgets_dir")
+        val QUICK_DIR = intPreferencesKey("quick_dir")
+        val DRAWER_DIR = intPreferencesKey("drawer_dir")
         val APP_DRAWER_SIZE = intPreferencesKey("app_drawer_size")
         val APP_DRAWER_ALIGN = intPreferencesKey("app_drawer_align")
         val ALPHABET_INDEX = booleanPreferencesKey("alphabet_index")
+        val SCRUBBER_WIDTH = intPreferencesKey("scrubber_width")
         val SEARCH_BAR_BOTTOM = booleanPreferencesKey("search_bar_bottom")
+        val DRAWER_TOP_SPACE = intPreferencesKey("drawer_top_space")
+        val DRAWER_SHOW_TITLE = booleanPreferencesKey("drawer_show_title")
+        val DRAWER_TITLE = stringPreferencesKey("drawer_title")
+        val DRAWER_SHOW_USAGE = booleanPreferencesKey("drawer_show_usage")
         val QUICK_LAUNCH_PKG = stringPreferencesKey("quick_launch_pkg")
     }
 
+    /**
+     * Reads the three gesture directions and forces them to be a permutation of {left, right, up}.
+     * Widgets keeps its preferred slot, then quick-launch, then drawer fills what's left.
+     */
+    private fun readDirs(p: Preferences): Triple<Int, Int, Int> {
+        val legacyLeft = p[Keys.WIDGETS_ON_LEFT]
+        val defW = if (legacyLeft == false) LauncherSettings.DIR_RIGHT else LauncherSettings.DIR_LEFT
+        val defQ = if (legacyLeft == false) LauncherSettings.DIR_LEFT else LauncherSettings.DIR_RIGHT
+        val prefs = intArrayOf(
+            p[Keys.WIDGETS_DIR] ?: defW,
+            p[Keys.QUICK_DIR] ?: defQ,
+            p[Keys.DRAWER_DIR] ?: LauncherSettings.DIR_UP,
+        )
+        val used = mutableSetOf<Int>()
+        val out = IntArray(3)
+        for (i in 0..2) {
+            var v = prefs[i].coerceIn(0, 2)
+            if (v in used) v = (0..2).first { it !in used }
+            used.add(v)
+            out[i] = v
+        }
+        return Triple(out[0], out[1], out[2])
+    }
+
     val settings: Flow<LauncherSettings> = context.dataStore.data.map { p ->
+        val (wDir, qDir, dDir) = readDirs(p)
         LauncherSettings(
             favorites = p[Keys.FAVORITES]?.split("\n")?.filter { it.isNotBlank() } ?: emptyList(),
             hidden = p[Keys.HIDDEN] ?: emptySet(),
@@ -94,11 +142,18 @@ class SettingsRepository(private val context: Context) {
             homeAlign = p[Keys.HOME_ALIGN] ?: 0,
             verticalPos = p[Keys.VERTICAL_POS] ?: 0,
             clockOpensAlarms = p[Keys.CLOCK_OPENS_ALARMS] ?: true,
-            widgetsOnLeft = p[Keys.WIDGETS_ON_LEFT] ?: true,
+            widgetsDir = wDir,
+            quickLaunchDir = qDir,
+            drawerDir = dDir,
             appDrawerSize = p[Keys.APP_DRAWER_SIZE] ?: 18,
             appDrawerAlign = p[Keys.APP_DRAWER_ALIGN] ?: 0,
             alphabetIndex = p[Keys.ALPHABET_INDEX] ?: true,
+            scrubberWidth = p[Keys.SCRUBBER_WIDTH] ?: 40,
             searchBarBottom = p[Keys.SEARCH_BAR_BOTTOM] ?: false,
+            drawerTopSpace = p[Keys.DRAWER_TOP_SPACE] ?: 24,
+            drawerShowTitle = p[Keys.DRAWER_SHOW_TITLE] ?: true,
+            drawerTitle = p[Keys.DRAWER_TITLE] ?: "",
+            drawerShowUsage = p[Keys.DRAWER_SHOW_USAGE] ?: false,
             quickLaunchPackage = p[Keys.QUICK_LAUNCH_PKG],
         )
     }
@@ -152,11 +207,35 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHomeAlign(v: Int) = context.dataStore.edit { it[Keys.HOME_ALIGN] = v }
     suspend fun setVerticalPos(v: Int) = context.dataStore.edit { it[Keys.VERTICAL_POS] = v }
     suspend fun setClockOpensAlarms(v: Boolean) = putBool(Keys.CLOCK_OPENS_ALARMS, v)
-    suspend fun setWidgetsOnLeft(v: Boolean) = putBool(Keys.WIDGETS_ON_LEFT, v)
+
+    /**
+     * Sets the direction of one gesture (0 = widgets, 1 = quick-launch, 2 = drawer) to [dir]
+     * (0 = left, 1 = right, 2 = up). If another gesture already owned [dir], they swap so the
+     * three stay a valid permutation.
+     */
+    suspend fun setGestureDir(item: Int, dir: Int) = context.dataStore.edit { p ->
+        val (w, q, d) = readDirs(p)
+        val arr = intArrayOf(w, q, d)
+        val target = dir.coerceIn(0, 2)
+        if (item !in 0..2 || arr[item] == target) return@edit
+        val other = arr.indexOfFirst { it == target }
+        val old = arr[item]
+        arr[item] = target
+        if (other >= 0) arr[other] = old
+        p[Keys.WIDGETS_DIR] = arr[0]
+        p[Keys.QUICK_DIR] = arr[1]
+        p[Keys.DRAWER_DIR] = arr[2]
+    }
+
     suspend fun setAppDrawerSize(v: Int) = context.dataStore.edit { it[Keys.APP_DRAWER_SIZE] = v }
     suspend fun setAppDrawerAlign(v: Int) = context.dataStore.edit { it[Keys.APP_DRAWER_ALIGN] = v }
     suspend fun setAlphabetIndex(v: Boolean) = putBool(Keys.ALPHABET_INDEX, v)
+    suspend fun setScrubberWidth(v: Int) = context.dataStore.edit { it[Keys.SCRUBBER_WIDTH] = v }
     suspend fun setSearchBarBottom(v: Boolean) = putBool(Keys.SEARCH_BAR_BOTTOM, v)
+    suspend fun setDrawerTopSpace(v: Int) = context.dataStore.edit { it[Keys.DRAWER_TOP_SPACE] = v }
+    suspend fun setDrawerShowTitle(v: Boolean) = putBool(Keys.DRAWER_SHOW_TITLE, v)
+    suspend fun setDrawerTitle(v: String) = context.dataStore.edit { it[Keys.DRAWER_TITLE] = v.trim() }
+    suspend fun setDrawerShowUsage(v: Boolean) = putBool(Keys.DRAWER_SHOW_USAGE, v)
     suspend fun setQuickLaunchPackage(pkg: String?) = context.dataStore.edit { p ->
         if (pkg == null) p.remove(Keys.QUICK_LAUNCH_PKG) else p[Keys.QUICK_LAUNCH_PKG] = pkg
     }

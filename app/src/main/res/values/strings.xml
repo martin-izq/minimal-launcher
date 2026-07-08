@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Minimal</string>
+    <string name="app_name" translatable="false">Foco</string>
     <string name="accessibility_description">Allows opening the notification panel (swipe down) and locking the screen (double tap) from home. It does not read or collect screen content.</string>
 
     <!-- Common -->
@@ -38,13 +38,14 @@
     <string name="home_screentime_summary">Today: %1$s  ·  %2$d unlocks</string>
     <string name="home_screentime_enable">Enable Screen Time →</string>
     <string name="home_no_favorites">No favorites yet.\nSwipe up and long-press an app to add it.</string>
-    <string name="home_swipe_hint">⌃ swipe to see all</string>
+    <string name="home_swipe_hint">swipe to see all</string>
     <string name="home_notif_gesture_disabled">Enable the gesture in Settings › Notifications on swipe</string>
     <string name="home_lock_disabled">Enable the accessibility service in Settings to lock</string>
 
     <!-- App drawer -->
     <string name="drawer_search_hint">Search app</string>
     <string name="drawer_no_results">No results</string>
+    <string name="drawer_default_title">Apps</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -69,7 +70,14 @@
     <string name="settings_pos_bottom">Bottom</string>
     <string name="settings_widgets_screen">Widgets screen</string>
     <string name="settings_clock_opens_alarms">Tapping the time opens the clock</string>
+    <string name="settings_dir_up">Up</string>
+    <string name="settings_section_gestures">Gestures &amp; navigation</string>
+    <string name="settings_gestures_hint">Assign a direction to each gesture. Picking a taken one swaps them. Swiping down always opens notifications.</string>
+    <string name="settings_gesture_widgets">Widgets</string>
+    <string name="settings_gesture_quick">Quick launch</string>
+    <string name="settings_gesture_drawer">App drawer</string>
     <string name="settings_section_quick">Quick launch</string>
+    <string name="settings_quick_app_dir">Quick-launch app (%1$s)</string>
     <string name="settings_quick_app_right">App on swipe right</string>
     <string name="settings_quick_app_left">App on swipe left</string>
     <string name="settings_quick_unset">Not set — tap to choose</string>
@@ -78,7 +86,12 @@
     <string name="settings_section_drawer">App drawer</string>
     <string name="settings_letter_size">Letter size</string>
     <string name="settings_search_position">Search bar position</string>
+    <string name="settings_drawer_top_space">Top space</string>
+    <string name="settings_drawer_show_title">Show title</string>
+    <string name="settings_drawer_title">Title</string>
+    <string name="settings_drawer_show_usage">Show usage summary</string>
     <string name="settings_alphabet_index">Alphabet scrubber</string>
+    <string name="settings_scrubber_width">Scrubber touch width</string>
     <string name="settings_section_distractions">Reduce distractions</string>
     <string name="settings_friction_screen">Friction screen</string>
     <string name="settings_friction_pause">Pause before opening</string>
@@ -90,6 +103,7 @@
     <string name="settings_no_hidden">No hidden apps.</string>
     <string name="settings_set_default_launcher">Set as default launcher</string>
     <string name="settings_size_value">%1$dsp</string>
+    <string name="settings_dp_value">%1$ddp</string>
     <string name="settings_seconds_value">%1$ds</string>
 
     <!-- Screen Time -->
