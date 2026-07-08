@@ -29,6 +29,9 @@ the app.
   notification shade (swipe) and lock the screen (double tap). The service does
   **not** read, log, or transmit screen content; it only performs those two
   actions on your request.
+- **Do Not Disturb access (`ACCESS_NOTIFICATION_POLICY`)** — optional. If you
+  grant it, Foco can turn Do Not Disturb on during focus sessions and off
+  afterwards. Nothing is read or transmitted.
 - **Uninstall packages (`REQUEST_DELETE_PACKAGES`)** — lets you uninstall an app
   from the long-press menu, via the standard system dialog.
 

@@ -31,6 +31,8 @@ import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.data.minuteOfDayLabel
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_LEFT
 import com.martin.minimallauncher.service.NotificationService
+import com.martin.minimallauncher.util.canControlDnd
+import com.martin.minimallauncher.util.setDnd
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.ui.widgets.LocalWidgetController
@@ -157,6 +159,13 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         else -> null
     }
     var showFocusControl by remember { mutableStateOf(false) }
+
+    // Do Not Disturb during focus (best-effort while Foco is alive; needs DND access granted).
+    if (state.settings.dndInFocus) {
+        LaunchedEffect(focusActiveNow) {
+            if (canControlDnd(view.context)) setDnd(view.context, focusActiveNow)
+        }
+    }
 
     // Unread notification badges (needs notification access granted).
     val notifCounts by NotificationService.counts.collectAsState()

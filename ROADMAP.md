@@ -23,6 +23,7 @@ El corazón de la marca, sobre la base de la pantalla de fricción:
 - [x] **Límites de tiempo por app** (UsageStats): al superar X min → bloqueo suave.
 - [x] **Sesiones programadas** (franjas horarias) que **bloquean** apps distractoras (grisadas + no clickeables).
 - [x] **Foco manual** rápido desde el inicio (chip): iniciar 25/50 min o indefinido, y salir (incluso de una sesión programada en curso).
+- [x] **No molestar** (DND) durante el foco (permiso concedido por el usuario, sin adb).
 - ~~Escala de grises~~: descartada — Android no permite forzarla sin `WRITE_SECURE_SETTINGS` (adb), así que no hay forma 100% sin adb.
 - Nota: el enforcement es solo-al-lanzar-desde-Foco (sin servicio en background → cero batería). Un bloqueo "duro" (recientes/notificaciones) requeriría un servicio → evaluar batería y política de Play.
 

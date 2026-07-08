@@ -63,7 +63,9 @@ import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.ui.theme.AccentColors
+import com.martin.minimallauncher.util.canControlDnd
 import com.martin.minimallauncher.util.openAccessibilitySettings
+import com.martin.minimallauncher.util.setDnd
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +93,7 @@ fun SettingsScreen(
     var a11yActive by remember { mutableStateOf(NotificationAccessibilityService.isActive()) }
     var notifAccess by remember { mutableStateOf(notifAccessGranted()) }
     var isDefault by remember { mutableStateOf(isDefaultLauncher()) }
+    var dndGranted by remember { mutableStateOf(canControlDnd(context)) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -98,6 +101,7 @@ fun SettingsScreen(
                 a11yActive = NotificationAccessibilityService.isActive()
                 notifAccess = notifAccessGranted()
                 isDefault = isDefaultLauncher()
+                dndGranted = canControlDnd(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -269,6 +273,24 @@ fun SettingsScreen(
                 modifier = Modifier.padding(vertical = 6.dp),
             )
             ToggleRow(stringResource(R.string.settings_focus_show_home), s.showFocusOnHome, vm::setShowFocusOnHome)
+            ToggleRow(stringResource(R.string.settings_dnd_focus), s.dndInFocus) { v ->
+                vm.setDndInFocus(v)
+                if (!v) setDnd(context, false) // restore sound when turning it off
+            }
+            if (s.dndInFocus && !dndGranted) {
+                ActionRow(
+                    title = stringResource(R.string.settings_dnd_grant),
+                    subtitle = stringResource(R.string.settings_notif_access_grant),
+                    onClick = {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                        }
+                    },
+                )
+            }
 
             // Scheduled sessions — hard block distracting apps during these windows.
             SubHead(stringResource(R.string.settings_focus_sessions))

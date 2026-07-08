@@ -46,6 +46,8 @@
     <string name="settings_section_focus">Focus mode</string>
     <string name="settings_focus_hint">During a session, distracting apps are greyed out and can\'t be opened. Outside sessions, a friction screen adds a pause.</string>
     <string name="settings_focus_show_home">Quick focus toggle on home</string>
+    <string name="settings_dnd_focus">Do Not Disturb during focus</string>
+    <string name="settings_dnd_grant">Grant Do Not Disturb access</string>
     <string name="settings_focus_sessions">Scheduled sessions</string>
     <string name="settings_focus_friction">Friction (outside sessions)</string>
     <string name="settings_focus_add">+ Add session</string>

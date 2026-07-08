@@ -114,6 +114,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setManualFocusUntil(v: Long) { viewModelScope.launch { settingsRepo.setManualFocusUntil(v) } }
     fun setFocusSkipUntil(v: Long) { viewModelScope.launch { settingsRepo.setFocusSkipUntil(v) } }
     fun setShowFocusOnHome(v: Boolean) { viewModelScope.launch { settingsRepo.setShowFocusOnHome(v) } }
+    fun setDndInFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setDndInFocus(v) } }
 
     /** Serializes all current settings to JSON (for backup export). */
     fun exportSettingsJson(): String = Json.encodeToString(uiState.value.settings)
