@@ -37,13 +37,14 @@ UsageStatsManager  ──► UsageStatsRepository ──┘
 
 ### Estructura de la UI
 
-`LauncherRoot` contiene un `HorizontalPager` de 2 páginas:
-- **Página de widgets** → `WidgetScreen`: widgets reales de terceros vía `AppWidgetHost`
-- **Página de inicio** → un `VerticalPager` anidado de 2 páginas:
-  - `HomeScreen`: reloj, fecha, batería, favoritos
-  - `AppDrawer`: lista alfabética de apps + búsqueda en tiempo real
+**Gestos configurables (asignación libre).** Tres funciones —widgets, acceso rápido y app drawer— se reparten las tres direcciones libres desde el inicio (**izquierda / derecha / arriba**); "abajo" queda siempre para el panel de notificaciones. `SettingsRepository` guarda `widgetsDir`, `quickLaunchDir` y `drawerDir` (0=izq, 1=der, 2=arriba) forzados a ser una permutación de `{0,1,2}`; `setGestureDir(item, dir)` intercambia si la dirección ya estaba ocupada.
 
-El lado de la pantalla de widgets (izquierda/derecha) es configurable. El **acceso rápido** no es una página del pager: es un gesto en `HomeScreen` (deslizar hacia el lado opuesto a los widgets) que lanza una app configurable. El `HorizontalPager` usa `beyondViewportPageCount = 1` para mantener viva la página de widgets (si no, las `AppWidgetHostView` se desanclan y quedan invisibles al volver).
+`LauncherRoot` arma los pagers dinámicamente según esa asignación:
+- **`WidgetScreen`** (widgets de terceros vía `AppWidgetHost`) y **`AppDrawer`** (lista alfabética + búsqueda) son *pantallas*; se ubican en la dirección asignada.
+- El **acceso rápido** no es una página: es un gesto en `HomeScreen` (deslizar hacia `quickLaunchDir`) que lanza una app configurable.
+- Las pantallas horizontales (izq/der) van como páginas del `HorizontalPager` externo `[izq?, Home, der?]`; si una pantalla está "arriba", `HomeScreen` se envuelve en un `VerticalPager` anidado `[Home, pantalla]`.
+- `HomeScreen` (`quickLaunchDir`) captura el swipe hacia el lado del acceso rápido; ese lado nunca tiene página, así que el pager no lo consume.
+- Ambos pagers usan `beyondViewportPageCount = 1` para mantener vivas las `AppWidgetHostView` (si no, se desanclan y quedan invisibles al volver).
 
 Sobre el pager se superponen 2 overlays controlados por flags locales en `LauncherRoot`:
 - `ScreenTimeScreen`: estadísticas de uso (requiere permiso especial)
@@ -59,8 +60,10 @@ Todos los textos visibles están en recursos: `res/values/strings.xml` (inglés,
 - `favorites`: lista ordenada (separada por `\n`)
 - `hidden` / `distracting`: conjuntos de package names
 - `renames`: `Map<String, String>` serializado como JSON (kotlinx.serialization); **solo aplica a favoritos**, el cajón muestra el nombre original
-- Booleanos: `showClock`, `showDate`, `showBattery`, `showScreenTimeHome`, `frictionEnabled`, `amoledDark`, `clockOpensAlarms`, `widgetsOnLeft`, `alphabetIndex`, `searchBarBottom`
-- Ints (tamaños/alineación): `clockSize`, `dateSize`, `favoritesSize`, `homeAlign`, `verticalPos`, `appDrawerSize`, `appDrawerAlign`
+- Booleanos: `showClock`, `showDate`, `showBattery`, `showScreenTimeHome`, `frictionEnabled`, `amoledDark`, `clockOpensAlarms`, `alphabetIndex`, `searchBarBottom`, `drawerShowTitle`, `drawerShowUsage`
+- Direcciones de gestos (permutación de `{0,1,2}` = izq/der/arriba): `widgetsDir`, `quickLaunchDir`, `drawerDir` (la clave legacy `widgets_on_left` se lee solo para migrar)
+- Ints (tamaños/alineación/espaciado): `clockSize`, `dateSize`, `favoritesSize`, `homeAlign`, `verticalPos`, `appDrawerSize`, `appDrawerAlign`, `scrubberWidth` (ancho táctil de la guía, dp), `drawerTopSpace` (espacio superior del cajón, dp)
+- `drawerTitle`: String (título del cajón; vacío → default localizado `drawer_default_title`)
 - `frictionSeconds`: Int (valores válidos: 3, 5, 10)
 - `quickLaunchPackage`: String? (app de acceso rápido)
 
@@ -76,7 +79,9 @@ Este permiso **no se puede solicitar con un dialog estándar**; el usuario debe 
 
 ### Gestos y accesibilidad
 
-`NotificationAccessibilityService` (servicio de accesibilidad mínimo, activado por el usuario) habilita desplegar el panel de notificaciones (swipe hacia abajo en el inicio) y bloquear la pantalla (doble toque). Los gestos se detectan con `pointerInput` + `awaitEachGesture` en `HomeScreen`; el cajón usa la fase `Initial` para volver al inicio con poca resistencia desde el tope sin robarle el gesto a la guía alfabética.
+`NotificationAccessibilityService` (servicio de accesibilidad mínimo, activado por el usuario) habilita desplegar el panel de notificaciones (swipe hacia abajo en el inicio) y bloquear la pantalla (doble toque). Los gestos se detectan con `pointerInput` + `awaitEachGesture` en `HomeScreen` (swipe hacia abajo = notificaciones; el resto = acceso rápido si el gesto apunta a `quickLaunchDir`). **Importante:** el lado del acceso rápido no tiene página, así que el dedo se mueve en la dirección **opuesta** a la de revelar una página de ese lado — igual que el pager (una página a la izquierda se revela deslizando el dedo a la derecha), el acceso rápido a la derecha se dispara con dedo a la izquierda y viceversa. Si se invierte esta relación, el gesto de acceso rápido roba la dirección que el pager necesita para llegar a la página del lado opuesto y "se rompe" ese lado. Durante el swipe, el contenido del inicio acompaña el dedo (traslación amortiguada vía `graphicsLayer` + estado `Float`, eje según `quickLaunchDir`) y vuelve con un resorte al soltar. El cajón usa la fase `Initial` para volver al inicio con poca resistencia desde el tope sin robarle el gesto a la guía alfabética; ese volver-al-inicio por swipe solo se activa cuando el cajón está asignado "arriba" (`enableSwipeDownToHome`).
+
+La **guía alfabética** (`AlphabetScrubber` en `AppDrawer.kt`) tiene ancho táctil configurable (`scrubberWidth`), resalta la letra de la sección actual (derivada de `firstVisibleItemIndex`) y muestra una burbuja flotante con la letra mientras se arrastra. El **encabezado del cajón** (`DrawerHeader`) puede mostrar un título configurable y/o el resumen de uso del día, y agrega `drawerTopSpace` para que la lista empiece más abajo (se oculta al buscar).
 
 ### Componentes de UI compartidos
 
