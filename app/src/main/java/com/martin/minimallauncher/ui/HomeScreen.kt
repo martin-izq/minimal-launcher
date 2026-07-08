@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -19,8 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -29,6 +32,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
@@ -39,10 +43,14 @@ import androidx.compose.ui.unit.sp
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.AppInfo
+import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_LEFT
+import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
+import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.formatDuration
 import com.martin.minimallauncher.util.openNotificationShade
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -58,7 +66,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenClock: () -> Unit,
     onQuickLaunch: (() -> Unit)? = null,
-    quickLaunchSwipeRight: Boolean = false,
+    quickLaunchDir: Int = DIR_RIGHT,
+    drawerDir: Int = DIR_UP,
 ) {
     val s = state.settings
     var hintVisible by remember { mutableStateOf(false) }
@@ -86,7 +95,10 @@ fun HomeScreen(
 
     val context = LocalContext.current
     val quickLaunch = rememberUpdatedState(onQuickLaunch)
-    val quickSwipeRight = rememberUpdatedState(quickLaunchSwipeRight)
+    val quickDir = rememberUpdatedState(quickLaunchDir)
+    // Home content follows the finger while doing the quick-launch swipe, then springs back.
+    var quickOffset by remember { mutableFloatStateOf(0f) }
+    val animScope = rememberCoroutineScope()
     val battery = remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(s.showBattery) {
         if (s.showBattery) battery.value = readBatteryLevel(context)
@@ -106,6 +118,10 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .graphicsLayer {
+                if (quickLaunchDir == DIR_UP) translationY = quickOffset
+                else translationX = quickOffset
+            }
             .statusBarsPadding()
             .pointerInput(Unit) {
                 val thresholdPx = 60.dp.toPx()
@@ -116,7 +132,7 @@ fun HomeScreen(
                     var totalDy = 0f
                     var decided = false
                     // 0 = don't capture (pagers handle it); 1 = swipe down (notifications);
-                    // 2 = horizontal swipe toward the side opposite the widgets (quick-launch).
+                    // 2 = swipe toward the quick-launch direction (left/right/up).
                     var mode = 0
                     var fired = false
                     while (true) {
@@ -129,23 +145,33 @@ fun HomeScreen(
                         if (!decided) {
                             if (abs(totalDy) > slop || abs(totalDx) > slop) {
                                 decided = true
-                                if (abs(totalDy) >= abs(totalDx)) {
-                                    // Vertical: only capture downward (up = drawer).
-                                    mode = if (totalDy > 0) 1 else 0
-                                } else {
-                                    // Horizontal: capture only if there's a quick-launch app and
-                                    // the gesture goes the right way (the side opposite the widgets).
-                                    // The other direction is handled by the pager (goes to widgets).
-                                    val goingRight = totalDx > 0
-                                    mode = if (quickLaunch.value != null &&
-                                        goingRight == quickSwipeRight.value
-                                    ) 2 else 0
+                                val vertical = abs(totalDy) >= abs(totalDx)
+                                val hasQuick = quickLaunch.value != null
+                                mode = when {
+                                    // Swipe down always opens the notification shade.
+                                    vertical && totalDy > 0 -> 1
+                                    // Swipe up quick-launch (only when nothing else owns "up").
+                                    vertical && hasQuick && quickDir.value == DIR_UP -> 2
+                                    // Horizontal quick-launch. The quick side has no page, so the
+                                    // pager stays at its edge and we capture the swipe here. The
+                                    // finger direction is the OPPOSITE of the quick side: the pager
+                                    // reveals a page-on-the-left with a finger-right (and vice
+                                    // versa), so quick-on-the-right fires on finger-left, and
+                                    // quick-on-the-left fires on finger-right.
+                                    !vertical && hasQuick && quickDir.value == DIR_RIGHT && totalDx < 0 -> 2
+                                    !vertical && hasQuick && quickDir.value == DIR_LEFT && totalDx > 0 -> 2
+                                    else -> 0
                                 }
                                 if (mode == 0) break
                             }
                         }
                         if (mode != 0) {
                             change.consume()
+                            if (mode == 2) {
+                                // Move Home along the swipe axis (damped) as feedback.
+                                val raw = if (quickDir.value == DIR_UP) totalDy else totalDx
+                                quickOffset = raw * 0.5f
+                            }
                             if (!fired) {
                                 when (mode) {
                                     1 -> if (totalDy >= thresholdPx) {
@@ -158,12 +184,21 @@ fun HomeScreen(
                                             ).show()
                                         }
                                     }
-                                    2 -> if (abs(totalDx) >= thresholdPx) {
-                                        fired = true
-                                        quickLaunch.value?.invoke()
+                                    2 -> {
+                                        val progress = if (quickDir.value == DIR_UP) abs(totalDy) else abs(totalDx)
+                                        if (progress >= thresholdPx) {
+                                            fired = true
+                                            quickLaunch.value?.invoke()
+                                        }
                                     }
                                 }
                             }
+                        }
+                    }
+                    // Spring Home back to its place once the finger lifts.
+                    if (mode == 2 && quickOffset != 0f) {
+                        animScope.launch {
+                            animate(quickOffset, 0f, animationSpec = tween(220)) { v, _ -> quickOffset = v }
                         }
                     }
                 }
@@ -288,8 +323,15 @@ fun HomeScreen(
             Modifier.fillMaxWidth().padding(vertical = 8.dp).alpha(hintAlpha),
             contentAlignment = Alignment.Center,
         ) {
+            // Arrow points in the finger-swipe direction that opens the drawer: up if the drawer
+            // is "up"; a screen on the left is revealed by swiping right (and vice versa).
+            val swipeArrow = when (drawerDir) {
+                DIR_LEFT -> "›"
+                DIR_RIGHT -> "‹"
+                else -> "⌃"
+            }
             Text(
-                stringResource(R.string.home_swipe_hint),
+                "$swipeArrow  ${stringResource(R.string.home_swipe_hint)}",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.outline,
             )

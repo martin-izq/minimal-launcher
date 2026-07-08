@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,38 +23,75 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.data.AppInfo
+import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_LEFT
+import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
+import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.ui.widgets.LocalWidgetController
 import com.martin.minimallauncher.ui.widgets.WidgetScreen
 import kotlinx.coroutines.launch
 
 private enum class Overlay { None, ScreenTime, Settings }
 
+/** The two full-screen surfaces that can live on a side gesture. Quick-launch is an action, not a screen. */
+private enum class SideScreen { Widgets, Drawer }
+
 @Composable
 fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val state by vm.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    // Side of the widgets screen relative to Home.
-    val widgetsOnLeft = state.settings.widgetsOnLeft
+
+    // Gesture layout: widgets, quick-launch and the drawer each own one of {left, right, up}
+    // (a permutation). "Down" is always the notification shade.
+    val widgetsDir = state.settings.widgetsDir
+    val quickDir = state.settings.quickLaunchDir
+    val drawerDir = state.settings.drawerDir
     val quickLaunchPackage = state.settings.quickLaunchPackage
-    // Quick-launch is NOT a pager page: it's a gesture on Home that launches the app without
-    // moving anything (like the swipe-down for notifications). Since it lives on the side
-    // opposite the widgets, the triggering gesture is swiping the finger toward that side.
-    // widgets on the left  → quick on the right → swipe finger left.
-    // widgets on the right → quick on the left  → swipe finger right.
-    val quickLaunchSwipeRight = !widgetsOnLeft
-    val homePage = if (widgetsOnLeft) 1 else 0
-    val widgetsPage = if (widgetsOnLeft) 0 else 1
-    // Vertical axis: Home (0) ↕ App drawer (1)
-    val verticalPager = rememberPagerState(pageCount = { 2 })
-    // Horizontal axis: Widgets ↔ Home/Drawer. Starts on Home.
-    val horizontalPager = rememberPagerState(initialPage = homePage, pageCount = { 2 })
-    val currentHomePage by rememberUpdatedState(homePage)
+
+    // Which side screen (if any) sits at each direction.
+    fun screenAt(dir: Int): SideScreen? = when (dir) {
+        widgetsDir -> SideScreen.Widgets
+        drawerDir -> SideScreen.Drawer
+        else -> null // quick-launch lives here; it's an action, not a page
+    }
+
+    val leftScreen = screenAt(DIR_LEFT)
+    val rightScreen = screenAt(DIR_RIGHT)
+    val upScreen = screenAt(DIR_UP)
+
+    val hasLeft = leftScreen != null
+    val hasRight = rightScreen != null
+    val homeIndex = if (hasLeft) 1 else 0
+    val leftPageIndex = 0
+    val rightPageIndex = homeIndex + 1
+    val pageCount = 1 + (if (hasLeft) 1 else 0) + (if (hasRight) 1 else 0)
+
+    // Horizontal axis: side screens ↔ Home. Vertical axis (only if a screen is assigned "up").
+    // Recreate both pagers whenever the gesture layout changes so they start fresh at Home with the
+    // right indices/pageCount. Persisting a single state across layout changes left the horizontal
+    // pager with a stale currentPage/pageCount and broke swiping toward one side.
+    val horizontalPager = key(widgetsDir, quickDir, drawerDir) {
+        rememberPagerState(initialPage = homeIndex, pageCount = { pageCount })
+    }
+    val verticalPager = key(widgetsDir, quickDir, drawerDir) {
+        rememberPagerState(pageCount = { 2 })
+    }
+    val homeIndexState = rememberUpdatedState(homeIndex)
+    // Effects that outlive a layout change (goHome) must read the current pager instances.
+    val horizontalPagerRef = rememberUpdatedState(horizontalPager)
+    val verticalPagerRef = rememberUpdatedState(verticalPager)
+    val hasUpScreen = upScreen != null
+
     val widgetController = LocalWidgetController.current
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
 
-    // Hide the keyboard / drop focus when we leave the app drawer.
-    val inDrawer = horizontalPager.currentPage == homePage && verticalPager.currentPage == 1
+    // Is the drawer the currently visible page? (for keyboard dismissal)
+    val inDrawer = when (drawerDir) {
+        DIR_UP -> horizontalPager.currentPage == homeIndex && verticalPager.currentPage == 1
+        DIR_LEFT -> horizontalPager.currentPage == leftPageIndex
+        DIR_RIGHT -> horizontalPager.currentPage == rightPageIndex
+        else -> false
+    }
     LaunchedEffect(inDrawer) {
         if (!inDrawer) {
             keyboard?.hide()
@@ -66,11 +104,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     var renameApp by remember { mutableStateOf<AppInfo?>(null) }
     var frictionApp by remember { mutableStateOf<AppInfo?>(null) }
 
-    // When the widgets side changes, move the pager back to Home.
-    LaunchedEffect(widgetsOnLeft) { horizontalPager.scrollToPage(homePage) }
-
-    // Quick-launch action: if an app is configured, swiping toward the side opposite the
-    // widgets launches it directly, without moving Home.
+    // Quick-launch action: swiping toward quickDir launches the configured app without moving Home.
     val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg -> { vm.launchByPackage(pkg) } }
 
     // Back to home when HOME is pressed
@@ -80,8 +114,8 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             optionsApp = null
             renameApp = null
             frictionApp = null
-            scope.launch { horizontalPager.scrollToPage(currentHomePage) }
-            scope.launch { verticalPager.scrollToPage(0) }
+            scope.launch { horizontalPagerRef.value.scrollToPage(homeIndexState.value) }
+            scope.launch { verticalPagerRef.value.scrollToPage(0) }
         }
     }
 
@@ -95,6 +129,37 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     }
     val onAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app }
 
+    // Reusable renderers for the two side screens.
+    val renderWidgets: @Composable () -> Unit = {
+        WidgetScreen(
+            placements = state.widgets,
+            onRemoveWidget = { id ->
+                widgetController?.removeWidget(id)
+                vm.removeWidget(id)
+            },
+            onResizeWidget = { id, heightDp -> vm.setWidgetHeight(id, heightDp) },
+            onMoveWidget = { id, up -> vm.moveWidget(id, up) },
+        )
+    }
+    val renderDrawer: @Composable () -> Unit = {
+        AppDrawer(
+            state = state,
+            onAppClick = onAppClick,
+            onAppLongClick = onAppLongClick,
+            onOpenScreenTime = { overlay = Overlay.ScreenTime },
+            // Swipe-down-to-home only makes sense when the drawer opens upward; otherwise the
+            // horizontal pager handles going back.
+            enableSwipeDownToHome = drawerDir == DIR_UP,
+            onSwipeDownToHome = { scope.launch { verticalPager.animateScrollToPage(0) } },
+        )
+    }
+    val renderSide: @Composable (SideScreen) -> Unit = { kind ->
+        when (kind) {
+            SideScreen.Widgets -> renderWidgets()
+            SideScreen.Drawer -> renderDrawer()
+        }
+    }
+
     Box(
         Modifier
             .fillMaxSize()
@@ -103,30 +168,23 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         when (overlay) {
             Overlay.ScreenTime -> ScreenTimeScreen(state = state, onBack = { overlay = Overlay.None })
             Overlay.Settings -> SettingsScreen(state = state, vm = vm, onBack = { overlay = Overlay.None })
-            // Keep the adjacent (widgets) page composed so its hosted AppWidgetHostViews are
-            // not detached/re-attached every time we return to it — re-attaching left them
-            // collapsed and invisible until a manual resize.
+            // Keep adjacent pages composed so hosted AppWidgetHostViews are not detached/re-attached
+            // every time we return (re-attaching left them collapsed and invisible until a resize).
             Overlay.None -> HorizontalPager(
                 state = horizontalPager,
                 beyondViewportPageCount = 1,
                 modifier = Modifier.fillMaxSize(),
             ) { hPage ->
-                when (hPage) {
-                    widgetsPage -> WidgetScreen(
-                        placements = state.widgets,
-                        onRemoveWidget = { id ->
-                            widgetController?.removeWidget(id)
-                            vm.removeWidget(id)
-                        },
-                        onResizeWidget = { id, heightDp -> vm.setWidgetHeight(id, heightDp) },
-                        onMoveWidget = { id, up -> vm.moveWidget(id, up) },
-                    )
-                    else -> VerticalPager(state = verticalPager, modifier = Modifier.fillMaxSize()) { page ->
-                        val isHomeVisible = horizontalPager.currentPage == homePage &&
-                            verticalPager.currentPage == 0 &&
+                when {
+                    hasLeft && hPage == leftPageIndex -> renderSide(leftScreen!!)
+                    hasRight && hPage == rightPageIndex -> renderSide(rightScreen!!)
+                    else -> {
+                        // Home container. If a screen is assigned "up", nest it in a vertical pager.
+                        val isHomeVisible = horizontalPager.currentPage == homeIndex &&
+                            (!hasUpScreen || verticalPager.currentPage == 0) &&
                             overlay == Overlay.None
-                        when (page) {
-                            0 -> HomeScreen(
+                        val home: @Composable () -> Unit = {
+                            HomeScreen(
                                 state = state,
                                 isHomeVisible = isHomeVisible,
                                 onAppClick = onAppClick,
@@ -135,14 +193,20 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                                 onOpenSettings = { overlay = Overlay.Settings },
                                 onOpenClock = { vm.openAlarms() },
                                 onQuickLaunch = onQuickLaunch,
-                                quickLaunchSwipeRight = quickLaunchSwipeRight,
+                                quickLaunchDir = quickDir,
+                                drawerDir = drawerDir,
                             )
-                            else -> AppDrawer(
-                                state = state,
-                                onAppClick = onAppClick,
-                                onAppLongClick = onAppLongClick,
-                                onSwipeDownToHome = { scope.launch { verticalPager.animateScrollToPage(0) } },
-                            )
+                        }
+                        if (upScreen != null) {
+                            VerticalPager(
+                                state = verticalPager,
+                                beyondViewportPageCount = 1,
+                                modifier = Modifier.fillMaxSize(),
+                            ) { vPage ->
+                                if (vPage == 0) home() else renderSide(upScreen)
+                            }
+                        } else {
+                            home()
                         }
                     }
                 }
