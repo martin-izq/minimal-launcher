@@ -104,6 +104,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setHidden(app: AppInfo, hidden: Boolean) { viewModelScope.launch { settingsRepo.setHidden(app.packageName, hidden) } }
     fun setDistracting(app: AppInfo, v: Boolean) { viewModelScope.launch { settingsRepo.setDistracting(app.packageName, v) } }
     fun rename(app: AppInfo, newName: String) { viewModelScope.launch { settingsRepo.rename(app.packageName, newName) } }
+    fun setAppLimit(app: AppInfo, minutes: Int?) { viewModelScope.launch { settingsRepo.setAppLimit(app.packageName, minutes) } }
 
     fun setShowClock(v: Boolean) { viewModelScope.launch { settingsRepo.setShowClock(v) } }
     fun setShowDate(v: Boolean) { viewModelScope.launch { settingsRepo.setShowDate(v) } }
@@ -118,6 +119,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setHomeAlign(v: Int) { viewModelScope.launch { settingsRepo.setHomeAlign(v) } }
     fun setVerticalPos(v: Int) { viewModelScope.launch { settingsRepo.setVerticalPos(v) } }
     fun setClockOpensAlarms(v: Boolean) { viewModelScope.launch { settingsRepo.setClockOpensAlarms(v) } }
+    fun setHideStatusBar(v: Boolean) { viewModelScope.launch { settingsRepo.setHideStatusBar(v) } }
     fun setGestureDir(item: Int, dir: Int) { viewModelScope.launch { settingsRepo.setGestureDir(item, dir) } }
     fun setAppDrawerSize(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerSize(v) } }
     fun setAppDrawerAlign(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerAlign(v) } }

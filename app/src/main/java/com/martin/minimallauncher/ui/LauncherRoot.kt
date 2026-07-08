@@ -17,9 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import android.app.Activity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.data.AppInfo
@@ -104,6 +109,19 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     var optionsApp by remember { mutableStateOf<AppInfo?>(null) }
     var renameApp by remember { mutableStateOf<AppInfo?>(null) }
     var frictionApp by remember { mutableStateOf<AppInfo?>(null) }
+    var limitApp by remember { mutableStateOf<AppInfo?>(null) }
+    var overLimitApp by remember { mutableStateOf<AppInfo?>(null) }
+
+    // Show/hide the system status bar per the setting.
+    val view = LocalView.current
+    val hideStatusBar = state.settings.hideStatusBar
+    LaunchedEffect(hideStatusBar) {
+        val window = (view.context as? Activity)?.window ?: return@LaunchedEffect
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (hideStatusBar) controller.hide(WindowInsetsCompat.Type.statusBars())
+        else controller.show(WindowInsetsCompat.Type.statusBars())
+    }
 
     // Quick-launch action: swiping toward quickDir launches the configured app without moving Home.
     val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg -> { vm.launchByPackage(pkg) } }
@@ -115,17 +133,22 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             optionsApp = null
             renameApp = null
             frictionApp = null
+            limitApp = null
+            overLimitApp = null
             scope.launch { horizontalPagerRef.value.scrollToPage(homeIndexState.value) }
             scope.launch { verticalPagerRef.value.scrollToPage(0) }
         }
     }
 
     val onAppClick: (AppInfo) -> Unit = { app ->
+        val limitMin = state.settings.appLimits[app.packageName]
+        val usedMs = state.usage.perAppToday[app.packageName] ?: 0L
         val distracting = app.packageName in state.settings.distracting
-        if (state.settings.frictionEnabled && distracting) {
-            frictionApp = app
-        } else {
-            vm.launch(app)
+        when {
+            // Over the daily limit → soft block. Requires usage permission for perAppToday.
+            limitMin != null && usedMs >= limitMin * 60_000L -> overLimitApp = app
+            state.settings.frictionEnabled && distracting -> frictionApp = app
+            else -> vm.launch(app)
         }
     }
     val onAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app }
@@ -227,6 +250,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                 onRename = { renameApp = app; optionsApp = null },
                 onHide = { vm.setHidden(app, true) },
                 onToggleDistracting = { vm.setDistracting(app, app.packageName !in state.settings.distracting) },
+                onSetLimit = { limitApp = app; optionsApp = null },
                 onInfo = { vm.openAppInfo(app) },
                 onUninstall = { vm.uninstall(app) },
                 onMoveUp = { vm.moveFavorite(app, up = true) },
@@ -252,6 +276,28 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                 seconds = state.settings.frictionSeconds,
                 onProceed = { vm.launch(app); frictionApp = null },
                 onDismiss = { frictionApp = null },
+            )
+        }
+
+        // Time-limit picker (from the app options menu)
+        limitApp?.let { app ->
+            TimeLimitDialog(
+                appLabel = app.displayLabel(state.settings.renames),
+                currentMinutes = state.settings.appLimits[app.packageName],
+                onSelect = { minutes -> vm.setAppLimit(app, minutes); limitApp = null },
+                onDismiss = { limitApp = null },
+            )
+        }
+
+        // Daily limit reached → soft block
+        overLimitApp?.let { app ->
+            LimitReachedDialog(
+                appLabel = app.displayLabel(state.settings.renames),
+                usedTodayMs = state.usage.perAppToday[app.packageName] ?: 0L,
+                limitMinutes = state.settings.appLimits[app.packageName] ?: 0,
+                seconds = state.settings.frictionSeconds,
+                onProceed = { vm.launch(app); overLimitApp = null },
+                onDismiss = { overLimitApp = null },
             )
         }
         }

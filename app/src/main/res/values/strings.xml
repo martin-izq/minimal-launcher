@@ -19,6 +19,8 @@
     <string name="app_options_mark_distracting">Mark as distracting</string>
     <string name="app_options_unmark_distracting">Remove distracting mark</string>
     <string name="app_options_hide">Hide app</string>
+    <string name="app_options_limit">Time limit</string>
+    <string name="app_options_limit_set">Time limit: %1$d min</string>
     <string name="app_options_info">App info</string>
     <string name="app_options_uninstall">Uninstall</string>
 
@@ -32,6 +34,15 @@
     <string name="friction_breathe">Take a breath. Do you really need it right now?</string>
     <string name="friction_open_countdown">Open (%1$d)</string>
     <string name="friction_open_anyway">Open anyway</string>
+
+    <!-- Time limit / Focus -->
+    <string name="limit_dialog_title">Daily limit — %1$s</string>
+    <string name="limit_off">No limit</string>
+    <string name="limit_minutes">%1$d min</string>
+    <string name="limit_reached_title">Limit reached — %1$s</string>
+    <string name="limit_reached_body">You\'ve used %1$s of your %2$d min limit today.</string>
+    <string name="limit_reached_hint">Maybe leave it for now?</string>
+    <string name="limit_reached_back">Back</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>
@@ -90,6 +101,7 @@
     <string name="settings_pos_bottom">Bottom</string>
     <string name="settings_widgets_screen">Widgets screen</string>
     <string name="settings_clock_opens_alarms">Tapping the time opens the clock</string>
+    <string name="settings_hide_status_bar">Hide status bar</string>
     <string name="settings_dir_up">Up</string>
     <string name="settings_section_gestures">Gestures &amp; navigation</string>
     <string name="settings_gestures_hint">Assign a direction to each gesture. Picking a taken one swaps them. Swiping down always opens notifications.</string>

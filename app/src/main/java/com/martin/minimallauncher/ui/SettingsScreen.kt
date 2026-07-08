@@ -75,6 +75,7 @@ fun SettingsScreen(
             ToggleRow(stringResource(R.string.settings_date), s.showDate, vm::setShowDate)
             ToggleRow(stringResource(R.string.settings_battery), s.showBattery, vm::setShowBattery)
             ToggleRow(stringResource(R.string.settings_screentime_summary), s.showScreenTimeHome, vm::setShowScreenTimeHome)
+            ToggleRow(stringResource(R.string.settings_hide_status_bar), s.hideStatusBar, vm::setHideStatusBar)
             val a11yActive = NotificationAccessibilityService.isActive()
             ActionRow(
                 title = stringResource(R.string.settings_notif_gesture_title),

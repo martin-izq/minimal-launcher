@@ -62,7 +62,8 @@ Todos los textos visibles están en recursos: `res/values/strings.xml` (inglés,
 - `favorites`: lista ordenada (separada por `\n`)
 - `hidden` / `distracting`: conjuntos de package names
 - `renames`: `Map<String, String>` serializado como JSON (kotlinx.serialization); **solo aplica a favoritos**, el cajón muestra el nombre original
-- Booleanos: `showClock`, `showDate`, `showBattery`, `showScreenTimeHome`, `frictionEnabled`, `amoledDark`, `clockOpensAlarms`, `alphabetIndex`, `searchBarBottom`, `drawerShowTitle`, `drawerShowUsage`
+- `appLimits`: `Map<String, Int>` (package → minutos/día) serializado como JSON; límite de tiempo diario por app
+- Booleanos: `showClock`, `showDate`, `showBattery`, `showScreenTimeHome`, `frictionEnabled`, `amoledDark`, `clockOpensAlarms`, `hideStatusBar`, `alphabetIndex`, `searchBarBottom`, `drawerShowTitle`, `drawerShowUsage`, `onboarded`
 - Direcciones de gestos (permutación de `{0,1,2}` = izq/der/arriba): `widgetsDir`, `quickLaunchDir`, `drawerDir` (la clave legacy `widgets_on_left` se lee solo para migrar)
 - Ints (tamaños/alineación/espaciado): `clockSize`, `dateSize`, `favoritesSize`, `homeAlign`, `verticalPos`, `appDrawerSize`, `appDrawerAlign`, `scrubberWidth` (ancho táctil de la guía, dp), `drawerTopSpace` (espacio superior del cajón, dp)
 - `drawerTitle`: String (título del cajón; vacío → default localizado `drawer_default_title`)
@@ -78,6 +79,10 @@ Este permiso **no se puede solicitar con un dialog estándar**; el usuario debe 
 ### Pantalla de fricción
 
 `FrictionDialog` (en `ui/FrictionDialog.kt`) se muestra al abrir apps marcadas como "distractoras" si `frictionEnabled = true`. Muestra el tiempo de uso del día y un countdown configurable (3/5/10 s) antes de habilitar el botón "Abrir igual".
+
+### Modo Foco — límites de tiempo (Fase 2, en progreso)
+
+`ui/FocusLimit.kt` define `TimeLimitDialog` (elegir el límite diario por app, en minutos, desde el menú largo) y `LimitReachedDialog` (bloqueo suave: se muestra al abrir una app que ya superó su límite del día, con countdown antes de "Abrir igual"). La verificación se hace en `onAppClick` de `LauncherRoot` comparando `usage.perAppToday[pkg]` contra `appLimits[pkg]`, con prioridad sobre la fricción. **Solo se aplica al lanzar desde Foco y requiere el permiso de uso** (sin `perAppToday` el límite nunca dispara). Pendiente de la fase: sesiones programadas y nudge a escala de grises.
 
 ### Gestos y accesibilidad
 

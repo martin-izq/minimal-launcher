@@ -29,6 +29,7 @@ fun AppOptionsSheet(
     onRename: () -> Unit,
     onHide: () -> Unit,
     onToggleDistracting: () -> Unit,
+    onSetLimit: () -> Unit,
     onInfo: () -> Unit,
     onUninstall: () -> Unit,
     onMoveUp: () -> Unit,
@@ -36,6 +37,7 @@ fun AppOptionsSheet(
 ) {
     val isFavorite = app.packageName in settings.favorites
     val isDistracting = app.packageName in settings.distracting
+    val limit = settings.appLimits[app.packageName]
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.navigationBarsPadding().padding(bottom = 12.dp)) {
@@ -59,6 +61,10 @@ fun AppOptionsSheet(
                     if (isDistracting) R.string.app_options_unmark_distracting else R.string.app_options_mark_distracting
                 )
             ) { onToggleDistracting(); onDismiss() }
+            SheetItem(
+                if (limit != null) stringResource(R.string.app_options_limit_set, limit)
+                else stringResource(R.string.app_options_limit)
+            ) { onSetLimit() }
             SheetItem(stringResource(R.string.app_options_hide)) { onHide(); onDismiss() }
             SheetItem(stringResource(R.string.app_options_info)) { onInfo(); onDismiss() }
             SheetItem(stringResource(R.string.app_options_uninstall)) { onUninstall(); onDismiss() }

@@ -18,6 +18,8 @@
     <string name="app_options_mark_distracting">Marcar como distractora</string>
     <string name="app_options_unmark_distracting">Quitar marca de distractora</string>
     <string name="app_options_hide">Ocultar app</string>
+    <string name="app_options_limit">Límite de tiempo</string>
+    <string name="app_options_limit_set">Límite: %1$d min</string>
     <string name="app_options_info">Info de la app</string>
     <string name="app_options_uninstall">Desinstalar</string>
 
@@ -31,6 +33,15 @@
     <string name="friction_breathe">Respirá un segundo. ¿Realmente lo necesitás ahora?</string>
     <string name="friction_open_countdown">Abrir (%1$d)</string>
     <string name="friction_open_anyway">Abrir igual</string>
+
+    <!-- Límite de tiempo / Foco -->
+    <string name="limit_dialog_title">Límite diario — %1$s</string>
+    <string name="limit_off">Sin límite</string>
+    <string name="limit_minutes">%1$d min</string>
+    <string name="limit_reached_title">Límite alcanzado — %1$s</string>
+    <string name="limit_reached_body">Usaste %1$s de tu límite de %2$d min de hoy.</string>
+    <string name="limit_reached_hint">¿Quizás lo dejás por ahora?</string>
+    <string name="limit_reached_back">Volver</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>
@@ -89,6 +100,7 @@
     <string name="settings_pos_bottom">Abajo</string>
     <string name="settings_widgets_screen">Pantalla de widgets</string>
     <string name="settings_clock_opens_alarms">Tocar la hora abre el reloj</string>
+    <string name="settings_hide_status_bar">Ocultar barra superior</string>
     <string name="settings_dir_up">Arriba</string>
     <string name="settings_section_gestures">Gestos y navegación</string>
     <string name="settings_gestures_hint">Asigná una dirección a cada gesto. Si elegís una ocupada, se intercambian. Deslizar hacia abajo siempre abre las notificaciones.</string>

@@ -23,6 +23,7 @@ data class LauncherSettings(
     val hidden: Set<String> = emptySet(),
     val distracting: Set<String> = emptySet(),
     val renames: Map<String, String> = emptyMap(),
+    val appLimits: Map<String, Int> = emptyMap(), // package -> daily limit in minutes
     val showClock: Boolean = true,
     val showDate: Boolean = true,
     val showBattery: Boolean = false,
@@ -37,6 +38,7 @@ data class LauncherSettings(
     val homeAlign: Int = 0,           // 0 = left, 1 = center, 2 = right
     val verticalPos: Int = 0,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
+    val hideStatusBar: Boolean = false,
     // Gesture directions (0 = left, 1 = right, 2 = up). Always a permutation of {0,1,2};
     // the remaining free direction "down" is reserved for the notification shade.
     val widgetsDir: Int = DIR_LEFT,
@@ -71,6 +73,7 @@ class SettingsRepository(private val context: Context) {
         val HIDDEN = stringSetPreferencesKey("hidden")
         val DISTRACTING = stringSetPreferencesKey("distracting")
         val RENAMES = stringPreferencesKey("renames")                // JSON Map<String,String>
+        val APP_LIMITS = stringPreferencesKey("app_limits")          // JSON Map<String,Int> (minutes/day)
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -84,6 +87,7 @@ class SettingsRepository(private val context: Context) {
         val HOME_ALIGN = intPreferencesKey("home_align")
         val VERTICAL_POS = intPreferencesKey("vertical_pos")
         val CLOCK_OPENS_ALARMS = booleanPreferencesKey("clock_opens_alarms")
+        val HIDE_STATUS_BAR = booleanPreferencesKey("hide_status_bar")
         val WIDGETS_ON_LEFT = booleanPreferencesKey("widgets_on_left") // legacy, read for migration
         val WIDGETS_DIR = intPreferencesKey("widgets_dir")
         val QUICK_DIR = intPreferencesKey("quick_dir")
@@ -132,6 +136,7 @@ class SettingsRepository(private val context: Context) {
             hidden = p[Keys.HIDDEN] ?: emptySet(),
             distracting = p[Keys.DISTRACTING] ?: emptySet(),
             renames = p[Keys.RENAMES]?.let { decodeRenames(it) } ?: emptyMap(),
+            appLimits = p[Keys.APP_LIMITS]?.let { decodeLimits(it) } ?: emptyMap(),
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
             showBattery = p[Keys.SHOW_BATTERY] ?: false,
@@ -145,6 +150,7 @@ class SettingsRepository(private val context: Context) {
             homeAlign = p[Keys.HOME_ALIGN] ?: 0,
             verticalPos = p[Keys.VERTICAL_POS] ?: 0,
             clockOpensAlarms = p[Keys.CLOCK_OPENS_ALARMS] ?: true,
+            hideStatusBar = p[Keys.HIDE_STATUS_BAR] ?: false,
             widgetsDir = wDir,
             quickLaunchDir = qDir,
             drawerDir = dDir,
@@ -198,6 +204,13 @@ class SettingsRepository(private val context: Context) {
         p[Keys.RENAMES] = Json.encodeToString(map)
     }
 
+    /** Sets a daily time limit (minutes) for [pkg]; null or <= 0 removes it. */
+    suspend fun setAppLimit(pkg: String, minutes: Int?) = context.dataStore.edit { p ->
+        val map = (p[Keys.APP_LIMITS]?.let { decodeLimits(it) } ?: emptyMap()).toMutableMap()
+        if (minutes == null || minutes <= 0) map.remove(pkg) else map[pkg] = minutes
+        p[Keys.APP_LIMITS] = Json.encodeToString(map)
+    }
+
     suspend fun setShowClock(v: Boolean) = putBool(Keys.SHOW_CLOCK, v)
     suspend fun setShowDate(v: Boolean) = putBool(Keys.SHOW_DATE, v)
     suspend fun setShowBattery(v: Boolean) = putBool(Keys.SHOW_BATTERY, v)
@@ -211,6 +224,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setHomeAlign(v: Int) = context.dataStore.edit { it[Keys.HOME_ALIGN] = v }
     suspend fun setVerticalPos(v: Int) = context.dataStore.edit { it[Keys.VERTICAL_POS] = v }
     suspend fun setClockOpensAlarms(v: Boolean) = putBool(Keys.CLOCK_OPENS_ALARMS, v)
+    suspend fun setHideStatusBar(v: Boolean) = putBool(Keys.HIDE_STATUS_BAR, v)
 
     /**
      * Sets the direction of one gesture (0 = widgets, 1 = quick-launch, 2 = drawer) to [dir]
@@ -250,4 +264,7 @@ class SettingsRepository(private val context: Context) {
 
     private fun decodeRenames(raw: String): Map<String, String> =
         runCatching { Json.decodeFromString<Map<String, String>>(raw) }.getOrDefault(emptyMap())
+
+    private fun decodeLimits(raw: String): Map<String, Int> =
+        runCatching { Json.decodeFromString<Map<String, Int>>(raw) }.getOrDefault(emptyMap())
 }
