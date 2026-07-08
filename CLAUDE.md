@@ -96,6 +96,10 @@ Este permiso **no se puede solicitar con un dialog estándar**; el usuario debe 
 
 La **guía alfabética** (`AlphabetScrubber` en `AppDrawer.kt`) tiene ancho táctil configurable (`scrubberWidth`), resalta la letra de la sección actual (derivada de `firstVisibleItemIndex`) y muestra una burbuja flotante con la letra mientras se arrastra. El **encabezado del cajón** (`DrawerHeader`) puede mostrar un título configurable y/o el resumen de uso del día, y agrega `drawerTopSpace` para que la lista empiece más abajo (se oculta al buscar).
 
+### Badges de notificaciones
+
+`NotificationService` (`NotificationListenerService`, opcional, activado por el usuario) publica un `StateFlow<Map<String,Int>>` (`counts`) con la cantidad de notificaciones activas *clearables* por paquete — **solo cuenta, nunca contenido**. Con `showNotificationBadges`, `LauncherRoot` lo colecta y pasa `badgeCounts` a `HomeScreen`/`AppDrawer`; `AppRow` muestra un globo con el número (9+ máximo). Se concede en *Ajustes → acceso a notificaciones* (`ACTION_NOTIFICATION_LISTENER_SETTINGS`).
+
 ### Componentes de UI compartidos
 
 `Components.kt` se dividió por componente: `AppRow.kt`, `AppOptionsSheet.kt`, `RenameDialog.kt`, `FrictionDialog.kt` y `ScreenHeader.kt`, todos en el paquete `ui`. `Modifiers.kt` expone `clickableText` (clickable sin ripple).

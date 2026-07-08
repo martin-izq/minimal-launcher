@@ -55,6 +55,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Notification listener (opcional): solo cuenta notificaciones para los badges -->
+        <service
+            android:name=".service.NotificationService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <!-- Servicio de accesibilidad: solo para desplegar las notificaciones por gesto -->
         <service
             android:name=".service.NotificationAccessibilityService"

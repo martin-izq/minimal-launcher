@@ -43,6 +43,7 @@ data class LauncherSettings(
     val verticalPos: Int = 0,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
     val hideStatusBar: Boolean = false,
+    val showNotificationBadges: Boolean = false,
     // Gesture directions (0 = left, 1 = right, 2 = up). Always a permutation of {0,1,2};
     // the remaining free direction "down" is reserved for the notification shade.
     val widgetsDir: Int = DIR_LEFT,
@@ -94,6 +95,7 @@ class SettingsRepository(private val context: Context) {
         val VERTICAL_POS = intPreferencesKey("vertical_pos")
         val CLOCK_OPENS_ALARMS = booleanPreferencesKey("clock_opens_alarms")
         val HIDE_STATUS_BAR = booleanPreferencesKey("hide_status_bar")
+        val NOTIF_BADGES = booleanPreferencesKey("notif_badges")
         val WIDGETS_ON_LEFT = booleanPreferencesKey("widgets_on_left") // legacy, read for migration
         val WIDGETS_DIR = intPreferencesKey("widgets_dir")
         val QUICK_DIR = intPreferencesKey("quick_dir")
@@ -159,6 +161,7 @@ class SettingsRepository(private val context: Context) {
             verticalPos = p[Keys.VERTICAL_POS] ?: 0,
             clockOpensAlarms = p[Keys.CLOCK_OPENS_ALARMS] ?: true,
             hideStatusBar = p[Keys.HIDE_STATUS_BAR] ?: false,
+            showNotificationBadges = p[Keys.NOTIF_BADGES] ?: false,
             widgetsDir = wDir,
             quickLaunchDir = qDir,
             drawerDir = dDir,
@@ -257,6 +260,7 @@ class SettingsRepository(private val context: Context) {
         p[Keys.VERTICAL_POS] = s.verticalPos
         p[Keys.CLOCK_OPENS_ALARMS] = s.clockOpensAlarms
         p[Keys.HIDE_STATUS_BAR] = s.hideStatusBar
+        p[Keys.NOTIF_BADGES] = s.showNotificationBadges
         p[Keys.WIDGETS_DIR] = s.widgetsDir
         p[Keys.QUICK_DIR] = s.quickLaunchDir
         p[Keys.DRAWER_DIR] = s.drawerDir
@@ -288,6 +292,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVerticalPos(v: Int) = context.dataStore.edit { it[Keys.VERTICAL_POS] = v }
     suspend fun setClockOpensAlarms(v: Boolean) = putBool(Keys.CLOCK_OPENS_ALARMS, v)
     suspend fun setHideStatusBar(v: Boolean) = putBool(Keys.HIDE_STATUS_BAR, v)
+    suspend fun setShowNotificationBadges(v: Boolean) = putBool(Keys.NOTIF_BADGES, v)
 
     /**
      * Sets the direction of one gesture (0 = widgets, 1 = quick-launch, 2 = drawer) to [dir]

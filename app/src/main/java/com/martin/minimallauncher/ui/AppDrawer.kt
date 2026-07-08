@@ -66,6 +66,7 @@ fun AppDrawer(
     enableSwipeDownToHome: Boolean = true,
     onSwipeDownToHome: () -> Unit = {},
     blockedPackages: Set<String> = emptySet(),
+    badgeCounts: Map<String, Int> = emptyMap(),
 ) {
     var query by remember { mutableStateOf("") }
     val s = state.settings
@@ -231,6 +232,7 @@ fun AppDrawer(
                         onClick = { launchApp(app) },
                         onLongClick = { onAppLongClick(app) },
                         blocked = app.packageName in blockedPackages,
+                        badge = badgeCounts[app.packageName] ?: 0,
                     )
                 }
             }

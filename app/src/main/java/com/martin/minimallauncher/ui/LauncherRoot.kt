@@ -30,6 +30,7 @@ import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.data.minuteOfDayLabel
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_LEFT
+import com.martin.minimallauncher.service.NotificationService
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.ui.widgets.LocalWidgetController
@@ -142,6 +143,10 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     }
     val blockedPackages = if (focusActiveNow) state.settings.distracting else emptySet()
 
+    // Unread notification badges (needs notification access granted).
+    val notifCounts by NotificationService.counts.collectAsState()
+    val badgeCounts = if (state.settings.showNotificationBadges) notifCounts else emptyMap()
+
     // Grayscale during focus sessions (best-effort while Foco is foreground; needs the
     // WRITE_SECURE_SETTINGS permission granted once via adb).
     if (state.settings.grayscaleInFocus) {
@@ -214,6 +219,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             enableSwipeDownToHome = drawerDir == DIR_UP,
             onSwipeDownToHome = { scope.launch { verticalPager.animateScrollToPage(0) } },
             blockedPackages = blockedPackages,
+            badgeCounts = badgeCounts,
         )
     }
     val renderSide: @Composable (SideScreen) -> Unit = { kind ->
@@ -262,6 +268,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                                 quickLaunchDir = quickDir,
                                 drawerDir = drawerDir,
                                 blockedPackages = blockedPackages,
+                                badgeCounts = badgeCounts,
                             )
                         }
                         if (upScreen != null) {

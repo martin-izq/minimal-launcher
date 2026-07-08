@@ -1,11 +1,13 @@
 package com.martin.minimallauncher.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -14,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,7 @@ fun AppRow(
     fontSizeSp: Int? = null,
     textAlign: TextAlign? = null,
     blocked: Boolean = false,
+    badge: Int = 0,
 ) {
     Row(
         modifier = modifier
@@ -53,6 +57,18 @@ fun AppRow(
             textAlign = textAlign,
             modifier = Modifier.weight(1f),
         )
+        if (badge > 0 && !blocked) {
+            Text(
+                text = if (badge > 9) "9+" else badge.toString(),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(horizontal = 7.dp, vertical = 1.dp),
+            )
+        }
         if (isFavorite) {
             Icon(
                 imageVector = Icons.Filled.Star,

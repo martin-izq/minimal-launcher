@@ -137,6 +137,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setVerticalPos(v: Int) { viewModelScope.launch { settingsRepo.setVerticalPos(v) } }
     fun setClockOpensAlarms(v: Boolean) { viewModelScope.launch { settingsRepo.setClockOpensAlarms(v) } }
     fun setHideStatusBar(v: Boolean) { viewModelScope.launch { settingsRepo.setHideStatusBar(v) } }
+    fun setShowNotificationBadges(v: Boolean) { viewModelScope.launch { settingsRepo.setShowNotificationBadges(v) } }
     fun setGestureDir(item: Int, dir: Int) { viewModelScope.launch { settingsRepo.setGestureDir(item, dir) } }
     fun setAppDrawerSize(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerSize(v) } }
     fun setAppDrawerAlign(v: Int) { viewModelScope.launch { settingsRepo.setAppDrawerAlign(v) } }

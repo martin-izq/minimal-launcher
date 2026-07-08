@@ -115,6 +115,9 @@
     <string name="settings_widgets_screen">Pantalla de widgets</string>
     <string name="settings_clock_opens_alarms">Tocar la hora abre el reloj</string>
     <string name="settings_hide_status_bar">Ocultar barra superior</string>
+    <string name="settings_notif_badges">Globos de notificación</string>
+    <string name="settings_notif_access">Acceso a notificaciones</string>
+    <string name="settings_notif_access_grant">Tocá para conceder</string>
     <string name="settings_dir_up">Arriba</string>
     <string name="settings_section_gestures">Gestos y navegación</string>
     <string name="settings_gestures_hint">Asigná una dirección a cada gesto. Si elegís una ocupada, se intercambian. Deslizar hacia abajo siempre abre las notificaciones.</string>

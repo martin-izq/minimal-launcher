@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.R
@@ -113,6 +114,24 @@ fun SettingsScreen(
                 ),
                 onClick = { openAccessibilitySettings(context) },
             )
+            ToggleRow(stringResource(R.string.settings_notif_badges), s.showNotificationBadges, vm::setShowNotificationBadges)
+            if (s.showNotificationBadges) {
+                val granted = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+                ActionRow(
+                    title = stringResource(R.string.settings_notif_access),
+                    subtitle = stringResource(
+                        if (granted) R.string.settings_notif_enabled else R.string.settings_notif_access_grant
+                    ),
+                    onClick = {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                        }
+                    },
+                )
+            }
         }
 
         val alignOptions = listOf(

@@ -69,6 +69,7 @@ fun HomeScreen(
     quickLaunchDir: Int = DIR_RIGHT,
     drawerDir: Int = DIR_UP,
     blockedPackages: Set<String> = emptySet(),
+    badgeCounts: Map<String, Int> = emptyMap(),
 ) {
     val s = state.settings
     var hintVisible by remember { mutableStateOf(false) }
@@ -312,6 +313,7 @@ fun HomeScreen(
                     onClick = { onAppClick(app) },
                     onLongClick = { onAppLongClick(app) },
                     blocked = app.packageName in blockedPackages,
+                    badge = badgeCounts[app.packageName] ?: 0,
                 )
             }
         }

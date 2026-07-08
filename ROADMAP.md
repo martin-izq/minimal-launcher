@@ -26,8 +26,9 @@ El corazón de la marca, sobre la base de la pantalla de fricción:
 - Nota: el enforcement es solo-al-lanzar-desde-Foco (sin servicio en background → cero batería). Un bloqueo "duro" (recientes/notificaciones) o grises 100% confiables en background requeriría un servicio → evaluar batería y política de Play.
 
 ## Fase 3 — Paridad: Notificaciones mínimas
-Badges de no-leídas en favoritos y/o lista mínima (`NotificationListenerService`,
-permiso sensible → declarar).
+- [x] **Badges de no-leídas** en favoritos y cajón (`NotificationService`,
+  `NotificationListenerService`; permiso especial concedido por el usuario).
+- [ ] Lista/superficie de notificaciones (opcional, más adelante).
 
 ## Fase 4 — Búsqueda universal
 Extender el buscador del cajón a contactos, ajustes y "buscar en web".
