@@ -61,6 +61,7 @@
     <string name="focus_dur_25">25 min</string>
     <string name="focus_dur_50">50 min</string>
     <string name="focus_dur_until_off">Hasta que lo apague</string>
+    <string name="focus_resume_scheduled">Reanudar foco programado</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>
@@ -166,6 +167,7 @@
     <string name="settings_backup_import">Importar ajustes</string>
     <string name="settings_backup_import_desc">Restaurar desde un archivo</string>
     <string name="settings_set_default_launcher">Establecer como launcher por defecto</string>
+    <string name="settings_default_launcher_set">✓ Foco ya es tu launcher por defecto</string>
     <string name="settings_size_value">%1$dsp</string>
     <string name="settings_dp_value">%1$ddp</string>
     <string name="settings_seconds_value">%1$ds</string>

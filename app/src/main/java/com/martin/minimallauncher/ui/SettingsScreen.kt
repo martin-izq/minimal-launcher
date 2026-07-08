@@ -1,6 +1,7 @@
 package com.martin.minimallauncher.ui
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,6 +50,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.CircleShape
 import androidx.core.app.NotificationManagerCompat
@@ -77,17 +79,25 @@ fun SettingsScreen(
     var editorSession by remember { mutableStateOf<FocusSession?>(null) }
     var editorIsNew by remember { mutableStateOf(false) }
 
-    // Re-check special-access permissions on resume so status updates after returning from settings.
+    // Re-check special-access permissions / default-launcher status on resume, so they update
+    // after returning from system settings.
     fun notifAccessGranted() =
         NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+    fun isDefaultLauncher(): Boolean {
+        val home = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        val res = context.packageManager.resolveActivity(home, PackageManager.MATCH_DEFAULT_ONLY)
+        return res?.activityInfo?.packageName == context.packageName
+    }
     var a11yActive by remember { mutableStateOf(NotificationAccessibilityService.isActive()) }
     var notifAccess by remember { mutableStateOf(notifAccessGranted()) }
+    var isDefault by remember { mutableStateOf(isDefaultLauncher()) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 a11yActive = NotificationAccessibilityService.isActive()
                 notifAccess = notifAccessGranted()
+                isDefault = isDefaultLauncher()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -421,14 +431,24 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(24.dp))
-        OutlinedButton(
-            onClick = {
-                context.startActivity(
-                    Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(R.string.settings_set_default_launcher)) }
+        if (isDefault) {
+            Text(
+                stringResource(R.string.settings_default_launcher_set),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            )
+        } else {
+            OutlinedButton(
+                onClick = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_HOME_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.settings_set_default_launcher)) }
+        }
 
         Spacer(Modifier.height(40.dp))
     }

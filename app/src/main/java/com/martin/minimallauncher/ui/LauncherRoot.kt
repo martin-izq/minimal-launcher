@@ -144,6 +144,8 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     val scheduledActive = sessionNow != null && nowMs >= state.settings.focusSkipUntil
     val manualActive = nowMs < state.settings.manualFocusUntil
     val focusActiveNow = scheduledActive || manualActive
+    // A scheduled session is in its window right now but was skipped → can be resumed.
+    val sessionSkipped = sessionNow != null && nowMs < state.settings.focusSkipUntil
     val blockedPackages = if (focusActiveNow) state.settings.distracting else emptySet()
     val focusUntil: String? = when {
         manualActive && state.settings.manualFocusUntil != Long.MAX_VALUE ->
@@ -364,14 +366,19 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             )
         }
 
-        // Quick focus control (start manual focus / exit current focus)
+        // Quick focus control (start manual focus / resume / exit current focus)
         if (showFocusControl) {
-            FocusControlDialog(
+            FocusControlSheet(
                 active = focusActiveNow,
+                canResume = sessionSkipped,
                 onStart = { mins ->
                     val until = if (mins == null) Long.MAX_VALUE
                     else System.currentTimeMillis() + mins * 60_000L
                     vm.setManualFocusUntil(until)
+                    showFocusControl = false
+                },
+                onResume = {
+                    vm.setFocusSkipUntil(0L)
                     showFocusControl = false
                 },
                 onStop = {

@@ -62,6 +62,7 @@
     <string name="focus_dur_25">25 min</string>
     <string name="focus_dur_50">50 min</string>
     <string name="focus_dur_until_off">Until I turn it off</string>
+    <string name="focus_resume_scheduled">Resume scheduled focus</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>
@@ -167,6 +168,7 @@
     <string name="settings_backup_import">Import settings</string>
     <string name="settings_backup_import_desc">Restore from a backup file</string>
     <string name="settings_set_default_launcher">Set as default launcher</string>
+    <string name="settings_default_launcher_set">✓ Foco is your default launcher</string>
     <string name="settings_size_value">%1$dsp</string>
     <string name="settings_dp_value">%1$ddp</string>
     <string name="settings_seconds_value">%1$ds</string>

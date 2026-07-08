@@ -7,12 +7,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,47 +56,51 @@ fun FocusBlockDialog(
     )
 }
 
-/** Quick control to start manual focus (with a duration) or exit the current focus. */
+/**
+ * Quick focus control as a minimal bottom sheet (matching the app-options sheet): start manual
+ * focus for a duration, resume a skipped scheduled session, or exit the current focus. Dismiss by
+ * swiping down.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FocusControlDialog(
+fun FocusControlSheet(
     active: Boolean,
+    canResume: Boolean,
     onStart: (minutes: Int?) -> Unit,
+    onResume: () -> Unit,
     onStop: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(if (active) R.string.focus_control_active else R.string.focus_control_start))
-        },
-        text = {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState()) {
+        Column(Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
+            Text(
+                stringResource(if (active) R.string.focus_control_active else R.string.focus_control_start),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(horizontal = 28.dp, top = 8.dp, bottom = 8.dp),
+            )
             if (active) {
-                Text(stringResource(R.string.focus_control_exit_q), style = MaterialTheme.typography.bodyMedium)
+                FocusSheetItem(stringResource(R.string.focus_control_exit), destructive = true) { onStop() }
             } else {
-                Column {
-                    FocusStartRow(stringResource(R.string.focus_dur_25)) { onStart(25) }
-                    FocusStartRow(stringResource(R.string.focus_dur_50)) { onStart(50) }
-                    FocusStartRow(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
-                }
+                if (canResume) FocusSheetItem(stringResource(R.string.focus_resume_scheduled)) { onResume() }
+                FocusSheetItem(stringResource(R.string.focus_dur_25)) { onStart(25) }
+                FocusSheetItem(stringResource(R.string.focus_dur_50)) { onStart(50) }
+                FocusSheetItem(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
             }
-        },
-        confirmButton = {
-            if (active) TextButton(onClick = onStop) { Text(stringResource(R.string.focus_control_exit)) }
-            else TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
-        },
-        dismissButton = {
-            if (active) TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
-        },
-    )
+        }
+    }
 }
 
 @Composable
-private fun FocusStartRow(label: String, onClick: () -> Unit) {
+private fun FocusSheetItem(text: String, destructive: Boolean = false, onClick: () -> Unit) {
     Text(
-        label,
+        text,
         style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.fillMaxWidth().clickableText(onClick).padding(vertical = 12.dp),
+        color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickableText(onClick)
+            .padding(horizontal = 28.dp, vertical = 14.dp),
     )
 }
 
