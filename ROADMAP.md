@@ -22,8 +22,8 @@ opcionales explicados (uso / accesibilidad), tips de uso.
 El corazón de la marca, sobre la base de la pantalla de fricción:
 - [x] **Límites de tiempo por app** (UsageStats): al superar X min → bloqueo suave.
 - [x] **Sesiones programadas** (franjas horarias) que **bloquean** apps distractoras (grisadas + no clickeables).
-- [x] **Escala de grises en sesiones** (via `WRITE_SECURE_SETTINGS`, concedido por adb).
-- Nota: el enforcement es solo-al-lanzar-desde-Foco (sin servicio en background → cero batería). Un bloqueo "duro" (recientes/notificaciones) o grises 100% confiables en background requeriría un servicio → evaluar batería y política de Play.
+- ~~Escala de grises~~: descartada — Android no permite forzarla sin `WRITE_SECURE_SETTINGS` (adb), así que no hay forma 100% sin adb.
+- Nota: el enforcement es solo-al-lanzar-desde-Foco (sin servicio en background → cero batería). Un bloqueo "duro" (recientes/notificaciones) requeriría un servicio → evaluar batería y política de Play.
 
 ## Fase 3 — Paridad: Notificaciones mínimas
 - [x] **Badges de no-leídas** en favoritos y cajón (`NotificationService`,

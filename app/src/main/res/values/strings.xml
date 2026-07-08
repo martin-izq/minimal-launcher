@@ -54,11 +54,6 @@
     <string name="focus_invalid">End must be after start, and pick at least one day.</string>
     <string name="focus_block_title">In focus — %1$s</string>
     <string name="focus_block_body">You\'re in a focus session until %1$s.</string>
-    <string name="settings_grayscale">Grayscale</string>
-    <string name="settings_grayscale_focus">Grayscale during sessions</string>
-    <string name="settings_grayscale_perm">Automatic (no root): run this once with the phone connected via adb, then reopen Foco.</string>
-    <string name="settings_grayscale_manual">Enable manually (no adb)</string>
-    <string name="settings_grayscale_manual_sub">Open Accessibility → Color correction (grayscale) and turn on its shortcut to toggle it fast during sessions.</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>
@@ -66,7 +61,6 @@
     <string name="home_screentime_enable">Enable Screen Time →</string>
     <string name="home_no_favorites">No favorites yet.\nSwipe up and long-press an app to add it.</string>
     <string name="home_swipe_hint">swipe to see all</string>
-    <string name="home_grayscale_nudge">In focus · tap to turn on grayscale</string>
     <string name="home_notif_gesture_disabled">Enable the gesture in Settings › Notifications on swipe</string>
     <string name="home_lock_disabled">Enable the accessibility service in Settings to lock</string>
 
