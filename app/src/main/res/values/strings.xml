@@ -53,7 +53,7 @@
     <string name="focus_end">End</string>
     <string name="focus_invalid">End must be after start, and pick at least one day.</string>
     <string name="focus_block_title">In focus — %1$s</string>
-    <string name="focus_block_body">This app is paused on purpose during your focus session (until %1$s). It\'s not an error.</string>
+    <string name="focus_block_body">This app is paused intentionally during your focus session.</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>

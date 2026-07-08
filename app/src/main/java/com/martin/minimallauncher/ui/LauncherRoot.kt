@@ -342,15 +342,10 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             )
         }
 
-        // Distracting app opened during a focus session → soft block
+        // Distracting app tapped during a focus session → firm block message
         focusBlockApp?.let { app ->
-            val now = java.time.LocalDateTime.now()
-            val until = state.settings.focusSessions
-                .firstOrNull { it.isActiveAt(now.dayOfWeek.value, now.hour * 60 + now.minute) }
-                ?.let { minuteOfDayLabel(it.end) } ?: ""
             FocusBlockDialog(
                 appLabel = app.displayLabel(state.settings.renames),
-                untilLabel = until,
                 onDismiss = { focusBlockApp = null },
             )
         }

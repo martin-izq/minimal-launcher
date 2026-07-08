@@ -52,7 +52,7 @@
     <string name="focus_end">Fin</string>
     <string name="focus_invalid">El fin debe ser posterior al inicio y elegí al menos un día.</string>
     <string name="focus_block_title">En foco — %1$s</string>
-    <string name="focus_block_body">Esta app está en pausa a propósito durante tu sesión de foco (hasta las %1$s). No es un error.</string>
+    <string name="focus_block_body">Esta app está en pausa intencionalmente durante tu sesión de foco.</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>

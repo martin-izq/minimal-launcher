@@ -37,7 +37,6 @@ import java.util.Locale
 @Composable
 fun FocusBlockDialog(
     appLabel: String,
-    untilLabel: String,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -45,7 +44,7 @@ fun FocusBlockDialog(
         title = { Text(stringResource(R.string.focus_block_title, appLabel)) },
         text = {
             Text(
-                stringResource(R.string.focus_block_body, untilLabel),
+                stringResource(R.string.focus_block_body),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
