@@ -33,7 +33,7 @@ data class LauncherSettings(
     val showFocusOnHome: Boolean = true, // quick focus chip on the home screen
     val showClock: Boolean = true,
     val showDate: Boolean = true,
-    val showBattery: Boolean = true,
+    val showBattery: Boolean = false,
     val showScreenTimeHome: Boolean = true,
     val frictionEnabled: Boolean = true,
     val frictionSeconds: Int = 10,
@@ -46,13 +46,14 @@ data class LauncherSettings(
     val homeAlign: Int = 0,           // 0 = left, 1 = center, 2 = right
     val verticalPos: Int = 1,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
-    val hideStatusBar: Boolean = true,
-    val showNotificationBadges: Boolean = true,
+    val hideStatusBar: Boolean = false,
+    val showNotificationBadges: Boolean = false,
     // Gesture directions (0 = left, 1 = right, 2 = up). Always a permutation of {0,1,2};
     // the remaining free direction "down" is reserved for the notification shade.
+    // Default: widgets left, drawer right, quick-launch up.
     val widgetsDir: Int = DIR_LEFT,
-    val quickLaunchDir: Int = DIR_RIGHT,
-    val drawerDir: Int = DIR_UP,
+    val quickLaunchDir: Int = DIR_UP,
+    val drawerDir: Int = DIR_RIGHT,
     // App drawer
     val appDrawerSize: Int = 23,       // app label size in sp
     val appDrawerAlign: Int = 0,       // 0 = left, 1 = center, 2 = right
@@ -126,12 +127,17 @@ class SettingsRepository(private val context: Context) {
      */
     private fun readDirs(p: Preferences): Triple<Int, Int, Int> {
         val legacyLeft = p[Keys.WIDGETS_ON_LEFT]
-        val defW = if (legacyLeft == false) LauncherSettings.DIR_RIGHT else LauncherSettings.DIR_LEFT
-        val defQ = if (legacyLeft == false) LauncherSettings.DIR_LEFT else LauncherSettings.DIR_RIGHT
+        // Migration from the old two-side layout kept the drawer "up"; fresh installs default to
+        // widgets left, drawer right, quick-launch up.
+        val (defW, defQ, defD) = when (legacyLeft) {
+            true -> Triple(LauncherSettings.DIR_LEFT, LauncherSettings.DIR_RIGHT, LauncherSettings.DIR_UP)
+            false -> Triple(LauncherSettings.DIR_RIGHT, LauncherSettings.DIR_LEFT, LauncherSettings.DIR_UP)
+            null -> Triple(LauncherSettings.DIR_LEFT, LauncherSettings.DIR_UP, LauncherSettings.DIR_RIGHT)
+        }
         val prefs = intArrayOf(
             p[Keys.WIDGETS_DIR] ?: defW,
             p[Keys.QUICK_DIR] ?: defQ,
-            p[Keys.DRAWER_DIR] ?: LauncherSettings.DIR_UP,
+            p[Keys.DRAWER_DIR] ?: defD,
         )
         val used = mutableSetOf<Int>()
         val out = IntArray(3)
