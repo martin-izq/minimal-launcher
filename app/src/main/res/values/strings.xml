@@ -67,7 +67,7 @@
     <string name="home_battery">Battery %1$d%%</string>
     <string name="home_screentime_summary">Today: %1$s  ·  %2$d unlocks</string>
     <string name="home_screentime_enable">Enable Screen Time →</string>
-    <string name="home_no_favorites">No favorites yet.\nSwipe up and long-press an app to add it.</string>
+    <string name="home_no_favorites">No favorites yet.\nOpen the app drawer and long-press an app to add it.</string>
     <string name="home_swipe_hint">swipe to see all</string>
     <string name="home_focus_indicator">In focus · until %1$s</string>
     <string name="home_focus_active">In focus</string>

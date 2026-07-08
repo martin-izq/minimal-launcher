@@ -36,6 +36,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.CircleShape
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.R
@@ -72,6 +76,23 @@ fun SettingsScreen(
     val showAppPicker = remember { mutableStateOf(false) }
     var editorSession by remember { mutableStateOf<FocusSession?>(null) }
     var editorIsNew by remember { mutableStateOf(false) }
+
+    // Re-check special-access permissions on resume so status updates after returning from settings.
+    fun notifAccessGranted() =
+        NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+    var a11yActive by remember { mutableStateOf(NotificationAccessibilityService.isActive()) }
+    var notifAccess by remember { mutableStateOf(notifAccessGranted()) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                a11yActive = NotificationAccessibilityService.isActive()
+                notifAccess = notifAccessGranted()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -108,7 +129,6 @@ fun SettingsScreen(
             ToggleRow(stringResource(R.string.settings_battery), s.showBattery, vm::setShowBattery)
             ToggleRow(stringResource(R.string.settings_screentime_summary), s.showScreenTimeHome, vm::setShowScreenTimeHome)
             ToggleRow(stringResource(R.string.settings_hide_status_bar), s.hideStatusBar, vm::setHideStatusBar)
-            val a11yActive = NotificationAccessibilityService.isActive()
             ActionRow(
                 title = stringResource(R.string.settings_notif_gesture_title),
                 subtitle = stringResource(
@@ -118,11 +138,10 @@ fun SettingsScreen(
             )
             ToggleRow(stringResource(R.string.settings_notif_badges), s.showNotificationBadges, vm::setShowNotificationBadges)
             if (s.showNotificationBadges) {
-                val granted = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
                 ActionRow(
                     title = stringResource(R.string.settings_notif_access),
                     subtitle = stringResource(
-                        if (granted) R.string.settings_notif_enabled else R.string.settings_notif_access_grant
+                        if (notifAccess) R.string.settings_notif_enabled else R.string.settings_notif_access_grant
                     ),
                     onClick = {
                         runCatching {
