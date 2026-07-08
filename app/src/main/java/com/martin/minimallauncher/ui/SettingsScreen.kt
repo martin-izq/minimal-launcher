@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -262,6 +263,7 @@ fun SettingsScreen(
                     Switch(
                         checked = session.enabled,
                         onCheckedChange = { vm.upsertFocusSession(session.copy(enabled = it)) },
+                        colors = minimalSwitchColors(),
                     )
                 }
             }
@@ -559,9 +561,23 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f),
         )
-        Switch(checked = checked, onCheckedChange = onChange)
+        Switch(checked = checked, onCheckedChange = onChange, colors = minimalSwitchColors())
     }
 }
+
+/**
+ * Switch colors with a clearly visible OFF thumb. The default Material3 off state renders the
+ * thumb and track in near-identical dark grays on the AMOLED theme, which reads as "disabled".
+ */
+@Composable
+private fun minimalSwitchColors() = SwitchDefaults.colors(
+    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+    checkedTrackColor = MaterialTheme.colorScheme.primary,
+    checkedBorderColor = MaterialTheme.colorScheme.primary,
+    uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
+    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+    uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+)
 
 @Composable
 private fun ActionRow(title: String, subtitle: String, onClick: () -> Unit) {
