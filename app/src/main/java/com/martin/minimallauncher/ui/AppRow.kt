@@ -4,6 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -36,6 +38,11 @@ fun AppRow(
     blocked: Boolean = false,
     badge: Int = 0,
 ) {
+    // Indicators (badge/star) sit on the side opposite the text alignment, so they never push a
+    // right-aligned or centered label off its position.
+    val indicatorsOnLeft = textAlign == TextAlign.End
+    val showBadge = badge > 0 && !blocked
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -45,37 +52,53 @@ fun AppRow(
             .padding(horizontal = 28.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge.let {
-                if (fontSizeSp != null) it.copy(fontSize = fontSizeSp.sp) else it
-            },
-            color = if (blocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-            else MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = textAlign,
-            modifier = Modifier.weight(1f),
-        )
-        if (badge > 0 && !blocked) {
-            Text(
-                text = if (badge > 9) "9+" else badge.toString(),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .padding(horizontal = 7.dp, vertical = 1.dp),
-            )
-        }
-        if (isFavorite) {
-            Icon(
-                imageVector = Icons.Filled.Star,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary.copy(alpha = if (blocked) 0.45f else 1f),
-                modifier = Modifier.width(16.dp),
-            )
+        if (indicatorsOnLeft) {
+            if (isFavorite) { FavStar(blocked); Spacer(Modifier.width(8.dp)) }
+            if (showBadge) { NotifBadge(badge); Spacer(Modifier.width(8.dp)) }
+            Label(label, fontSizeSp, textAlign, blocked)
+        } else {
+            Label(label, fontSizeSp, textAlign, blocked)
+            if (showBadge) { Spacer(Modifier.width(8.dp)); NotifBadge(badge) }
+            if (isFavorite) { Spacer(Modifier.width(8.dp)); FavStar(blocked) }
         }
     }
+}
+
+@Composable
+private fun RowScope.Label(label: String, fontSizeSp: Int?, textAlign: TextAlign?, blocked: Boolean) {
+    Text(
+        text = label,
+        style = MaterialTheme.typography.bodyLarge.let {
+            if (fontSizeSp != null) it.copy(fontSize = fontSizeSp.sp) else it
+        },
+        color = if (blocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+        else MaterialTheme.colorScheme.onBackground,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = textAlign,
+        modifier = Modifier.weight(1f),
+    )
+}
+
+@Composable
+private fun NotifBadge(count: Int) {
+    Text(
+        text = if (count > 9) "9+" else count.toString(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onPrimary,
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 7.dp, vertical = 1.dp),
+    )
+}
+
+@Composable
+private fun FavStar(blocked: Boolean) {
+    Icon(
+        imageVector = Icons.Filled.Star,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.secondary.copy(alpha = if (blocked) 0.45f else 1f),
+        modifier = Modifier.width(16.dp),
+    )
 }
