@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,9 +39,6 @@ fun AppRow(
     blocked: Boolean = false,
     badge: Int = 0,
 ) {
-    // Indicators (badge/star) sit on the side opposite the text alignment, so they never push a
-    // right-aligned or centered label off its position.
-    val indicatorsOnLeft = textAlign == TextAlign.End
     val showBadge = badge > 0 && !blocked
 
     Row(
@@ -52,16 +50,35 @@ fun AppRow(
             .padding(horizontal = 28.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (indicatorsOnLeft) {
-            if (isFavorite) { FavStar(blocked); Spacer(Modifier.width(8.dp)) }
-            if (showBadge) { NotifBadge(badge); Spacer(Modifier.width(8.dp)) }
-            Label(label, fontSizeSp, textAlign, blocked)
-        } else {
-            Label(label, fontSizeSp, textAlign, blocked)
-            if (showBadge) { Spacer(Modifier.width(8.dp)); NotifBadge(badge) }
-            if (isFavorite) { Spacer(Modifier.width(8.dp)); FavStar(blocked) }
+        when (textAlign) {
+            // Right-aligned: indicators on the left so the label stays flush right.
+            TextAlign.End -> {
+                if (isFavorite) { FavStar(blocked); Spacer(Modifier.width(8.dp)) }
+                if (showBadge) { NotifBadge(badge); Spacer(Modifier.width(8.dp)) }
+                Label(label, fontSizeSp, textAlign, blocked)
+            }
+            // Centered: an invisible mirror of the indicators on the left keeps the label centered.
+            TextAlign.Center -> {
+                Row(Modifier.alpha(0f), verticalAlignment = Alignment.CenterVertically) {
+                    Indicators(showBadge, badge, isFavorite, blocked)
+                }
+                Label(label, fontSizeSp, textAlign, blocked)
+                Indicators(showBadge, badge, isFavorite, blocked)
+            }
+            // Left-aligned (default): indicators on the right.
+            else -> {
+                Label(label, fontSizeSp, textAlign, blocked)
+                Indicators(showBadge, badge, isFavorite, blocked)
+            }
         }
     }
+}
+
+/** Trailing indicators (badge + star) with a leading gap; used to the right of a label. */
+@Composable
+private fun Indicators(showBadge: Boolean, badge: Int, isFavorite: Boolean, blocked: Boolean) {
+    if (showBadge) { Spacer(Modifier.width(8.dp)); NotifBadge(badge) }
+    if (isFavorite) { Spacer(Modifier.width(8.dp)); FavStar(blocked) }
 }
 
 @Composable
