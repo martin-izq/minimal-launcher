@@ -55,7 +55,9 @@
     <string name="focus_block_body">Estás en una sesión de foco hasta las %1$s.</string>
     <string name="settings_grayscale">Escala de grises</string>
     <string name="settings_grayscale_focus">Escala de grises en sesiones</string>
-    <string name="settings_grayscale_perm">Configuración única, sin root: ejecutá esto con el teléfono conectado por adb y reabrí Foco.</string>
+    <string name="settings_grayscale_perm">Automático (sin root): ejecutá esto una vez con el teléfono conectado por adb y reabrí Foco.</string>
+    <string name="settings_grayscale_manual">Activar manualmente (sin adb)</string>
+    <string name="settings_grayscale_manual_sub">Abrí Accesibilidad → Corrección de color (grises) y activá su atajo para togglearlo rápido durante las sesiones.</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>
@@ -63,6 +65,7 @@
     <string name="home_screentime_enable">Activá Screen Time →</string>
     <string name="home_no_favorites">Sin favoritos todavía.\nDeslizá hacia arriba y mantené presionada una app para agregarla.</string>
     <string name="home_swipe_hint">deslizá para ver todas</string>
+    <string name="home_grayscale_nudge">En foco · tocá para activar grises</string>
     <string name="home_notif_gesture_disabled">Activá el gesto en Ajustes › Notificaciones al deslizar</string>
     <string name="home_lock_disabled">Activá el servicio de accesibilidad en Ajustes para bloquear</string>
 

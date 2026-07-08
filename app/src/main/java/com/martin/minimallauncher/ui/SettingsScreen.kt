@@ -347,6 +347,11 @@ fun SettingsScreen(
                         modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
+                ActionRow(
+                    title = stringResource(R.string.settings_grayscale_manual),
+                    subtitle = stringResource(R.string.settings_grayscale_manual_sub),
+                    onClick = { openAccessibilitySettings(context) },
+                )
             }
         }
 

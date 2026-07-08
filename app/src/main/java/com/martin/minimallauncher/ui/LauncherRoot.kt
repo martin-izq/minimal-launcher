@@ -36,6 +36,7 @@ import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.ui.widgets.LocalWidgetController
 import com.martin.minimallauncher.ui.widgets.WidgetScreen
 import com.martin.minimallauncher.util.canControlGrayscale
+import com.martin.minimallauncher.util.openAccessibilitySettings
 import com.martin.minimallauncher.util.setSystemGrayscale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -146,6 +147,9 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     // Unread notification badges (needs notification access granted).
     val notifCounts by NotificationService.counts.collectAsState()
     val badgeCounts = if (state.settings.showNotificationBadges) notifCounts else emptyMap()
+
+    // No-adb grayscale fallback: during a session, if we can't toggle it ourselves, nudge the user.
+    val grayscaleNudge = focusActiveNow && state.settings.grayscaleInFocus && !canControlGrayscale(view.context)
 
     // Grayscale during focus sessions (best-effort while Foco is foreground; needs the
     // WRITE_SECURE_SETTINGS permission granted once via adb).
@@ -269,6 +273,8 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                                 drawerDir = drawerDir,
                                 blockedPackages = blockedPackages,
                                 badgeCounts = badgeCounts,
+                                showGrayscaleNudge = grayscaleNudge,
+                                onGrayscaleNudge = { openAccessibilitySettings(view.context) },
                             )
                         }
                         if (upScreen != null) {

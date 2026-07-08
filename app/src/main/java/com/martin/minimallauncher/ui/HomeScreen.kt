@@ -70,6 +70,8 @@ fun HomeScreen(
     drawerDir: Int = DIR_UP,
     blockedPackages: Set<String> = emptySet(),
     badgeCounts: Map<String, Int> = emptyMap(),
+    showGrayscaleNudge: Boolean = false,
+    onGrayscaleNudge: () -> Unit = {},
 ) {
     val s = state.settings
     var hintVisible by remember { mutableStateOf(false) }
@@ -320,6 +322,20 @@ fun HomeScreen(
 
         // Bottom spacer: centers the block when the position is "center"
         if (s.verticalPos == 1) Spacer(Modifier.weight(1f))
+
+        // Grayscale nudge during a focus session when we can't toggle it automatically (no adb).
+        if (showGrayscaleNudge) {
+            Text(
+                stringResource(R.string.home_grayscale_nudge),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickableText(onGrayscaleNudge)
+                    .padding(horizontal = 28.dp, vertical = 6.dp),
+            )
+        }
 
         Spacer(Modifier.height(24.dp))
 
