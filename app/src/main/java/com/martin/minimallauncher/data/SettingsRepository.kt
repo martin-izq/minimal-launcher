@@ -25,6 +25,7 @@ data class LauncherSettings(
     val renames: Map<String, String> = emptyMap(),
     val appLimits: Map<String, Int> = emptyMap(), // package -> daily limit in minutes
     val focusSessions: List<FocusSession> = emptyList(),
+    val grayscaleInFocus: Boolean = false, // turn the screen grayscale during focus sessions
     val showClock: Boolean = true,
     val showDate: Boolean = true,
     val showBattery: Boolean = false,
@@ -76,6 +77,7 @@ class SettingsRepository(private val context: Context) {
         val RENAMES = stringPreferencesKey("renames")                // JSON Map<String,String>
         val APP_LIMITS = stringPreferencesKey("app_limits")          // JSON Map<String,Int> (minutes/day)
         val FOCUS_SESSIONS = stringPreferencesKey("focus_sessions")  // JSON List<FocusSession>
+        val GRAYSCALE_IN_FOCUS = booleanPreferencesKey("grayscale_in_focus")
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -140,6 +142,7 @@ class SettingsRepository(private val context: Context) {
             renames = p[Keys.RENAMES]?.let { decodeRenames(it) } ?: emptyMap(),
             appLimits = p[Keys.APP_LIMITS]?.let { decodeLimits(it) } ?: emptyMap(),
             focusSessions = p[Keys.FOCUS_SESSIONS]?.let { decodeSessions(it) } ?: emptyList(),
+            grayscaleInFocus = p[Keys.GRAYSCALE_IN_FOCUS] ?: false,
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
             showBattery = p[Keys.SHOW_BATTERY] ?: false,
@@ -226,6 +229,8 @@ class SettingsRepository(private val context: Context) {
         val list = (p[Keys.FOCUS_SESSIONS]?.let { decodeSessions(it) } ?: emptyList()).filterNot { it.id == id }
         p[Keys.FOCUS_SESSIONS] = Json.encodeToString(list)
     }
+
+    suspend fun setGrayscaleInFocus(v: Boolean) = putBool(Keys.GRAYSCALE_IN_FOCUS, v)
 
     suspend fun setShowClock(v: Boolean) = putBool(Keys.SHOW_CLOCK, v)
     suspend fun setShowDate(v: Boolean) = putBool(Keys.SHOW_DATE, v)

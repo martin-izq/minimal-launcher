@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -42,13 +43,16 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.service.NotificationAccessibilityService
+import com.martin.minimallauncher.util.canControlGrayscale
 import com.martin.minimallauncher.util.openAccessibilitySettings
+import com.martin.minimallauncher.util.setSystemGrayscale
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -272,6 +276,29 @@ fun SettingsScreen(
                             modifier = Modifier.clickableText { vm.setDistracting(app, false) },
                         )
                     }
+                }
+            }
+
+            // Grayscale during sessions (needs WRITE_SECURE_SETTINGS via adb).
+            SubHead(stringResource(R.string.settings_grayscale))
+            ToggleRow(stringResource(R.string.settings_grayscale_focus), s.grayscaleInFocus) { v ->
+                vm.setGrayscaleInFocus(v)
+                if (!v) setSystemGrayscale(context, false)
+            }
+            if (s.grayscaleInFocus && !canControlGrayscale(context)) {
+                Text(
+                    stringResource(R.string.settings_grayscale_perm),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                SelectionContainer {
+                    Text(
+                        "adb shell pm grant ${context.packageName} android.permission.WRITE_SECURE_SETTINGS",
+                        style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
                 }
             }
         }

@@ -53,6 +53,9 @@
     <string name="focus_invalid">El fin debe ser posterior al inicio y elegí al menos un día.</string>
     <string name="focus_block_title">En foco — %1$s</string>
     <string name="focus_block_body">Estás en una sesión de foco hasta las %1$s.</string>
+    <string name="settings_grayscale">Escala de grises</string>
+    <string name="settings_grayscale_focus">Escala de grises en sesiones</string>
+    <string name="settings_grayscale_perm">Configuración única, sin root: ejecutá esto con el teléfono conectado por adb y reabrí Foco.</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>

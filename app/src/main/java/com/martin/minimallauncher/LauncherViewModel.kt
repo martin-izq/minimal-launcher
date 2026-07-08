@@ -108,6 +108,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setAppLimit(app: AppInfo, minutes: Int?) { viewModelScope.launch { settingsRepo.setAppLimit(app.packageName, minutes) } }
     fun upsertFocusSession(session: FocusSession) { viewModelScope.launch { settingsRepo.upsertFocusSession(session) } }
     fun removeFocusSession(id: String) { viewModelScope.launch { settingsRepo.removeFocusSession(id) } }
+    fun setGrayscaleInFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setGrayscaleInFocus(v) } }
 
     fun setShowClock(v: Boolean) { viewModelScope.launch { settingsRepo.setShowClock(v) } }
     fun setShowDate(v: Boolean) { viewModelScope.launch { settingsRepo.setShowDate(v) } }

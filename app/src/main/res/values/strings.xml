@@ -54,6 +54,9 @@
     <string name="focus_invalid">End must be after start, and pick at least one day.</string>
     <string name="focus_block_title">In focus — %1$s</string>
     <string name="focus_block_body">You\'re in a focus session until %1$s.</string>
+    <string name="settings_grayscale">Grayscale</string>
+    <string name="settings_grayscale_focus">Grayscale during sessions</string>
+    <string name="settings_grayscale_perm">One-time setup, no root: run this with the phone connected via adb, then reopen Foco.</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>

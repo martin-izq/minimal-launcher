@@ -34,6 +34,8 @@ import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.ui.widgets.LocalWidgetController
 import com.martin.minimallauncher.ui.widgets.WidgetScreen
+import com.martin.minimallauncher.util.canControlGrayscale
+import com.martin.minimallauncher.util.setSystemGrayscale
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -139,6 +141,14 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         it.isActiveAt(nowTick.dayOfWeek.value, nowTick.hour * 60 + nowTick.minute)
     }
     val blockedPackages = if (focusActiveNow) state.settings.distracting else emptySet()
+
+    // Grayscale during focus sessions (best-effort while Foco is foreground; needs the
+    // WRITE_SECURE_SETTINGS permission granted once via adb).
+    if (state.settings.grayscaleInFocus) {
+        LaunchedEffect(focusActiveNow) {
+            if (canControlGrayscale(view.context)) setSystemGrayscale(view.context, focusActiveNow)
+        }
+    }
 
     // Back to home when HOME is pressed
     LaunchedEffect(Unit) {

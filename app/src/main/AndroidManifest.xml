@@ -15,6 +15,12 @@
     <!-- Desinstalar apps desde el menú largo -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
+    <!-- Escala de grises en Modo Foco. El usuario lo concede una vez por adb (sin root):
+         adb shell pm grant com.martin.minimallauncher android.permission.WRITE_SECURE_SETTINGS -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
     <!-- Por si algún OEM filtra la query de launcher -->
     <queries>
         <intent>
