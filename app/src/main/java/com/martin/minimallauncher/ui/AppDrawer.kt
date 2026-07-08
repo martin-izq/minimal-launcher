@@ -1,5 +1,8 @@
 package com.martin.minimallauncher.ui
 
+import android.app.SearchManager
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -42,6 +45,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -73,6 +77,7 @@ fun AppDrawer(
     val favorites = s.favorites.toSet()
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
@@ -219,6 +224,33 @@ fun AppDrawer(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
             )
+            if (query.isNotBlank()) {
+                val q = query.trim()
+                val closeSearch = {
+                    query = ""
+                    keyboard?.hide()
+                    focusManager.clearFocus()
+                }
+                SearchAction(stringResource(R.string.drawer_search_web, q)) {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_WEB_SEARCH)
+                                .putExtra(SearchManager.QUERY, q)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }
+                    closeSearch()
+                }
+                SearchAction(stringResource(R.string.drawer_search_play, q)) {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("market://search?q=${Uri.encode(q)}"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }
+                    closeSearch()
+                }
+            }
         }
 
         Box(Modifier.fillMaxWidth().weight(1f)) {
@@ -349,6 +381,20 @@ private fun SearchField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 12.dp),
+    )
+}
+
+/** A tappable "search the web / Play Store" row shown when no app matches. */
+@Composable
+private fun SearchAction(label: String, onClick: () -> Unit) {
+    Text(
+        label,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickableText(onClick)
+            .padding(horizontal = 28.dp, vertical = 12.dp),
     )
 }
 

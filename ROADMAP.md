@@ -31,7 +31,8 @@ El corazón de la marca, sobre la base de la pantalla de fricción:
 - [ ] Lista/superficie de notificaciones (opcional, más adelante).
 
 ## Fase 4 — Búsqueda universal
-Extender el buscador del cajón a contactos, ajustes y "buscar en web".
+- [x] Buscar en la **web** y en **Play Store** cuando no hay app que matchee.
+- [ ] Contactos (requiere `READ_CONTACTS`) y ajustes.
 
 ## Fase 5 — Monetización ética
 Tip jar / "supporter" con perk cosmético (temas/acentos, estilos de ícono) vía

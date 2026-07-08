@@ -69,6 +69,8 @@
     <!-- Cajón de apps -->
     <string name="drawer_search_hint">Buscar app</string>
     <string name="drawer_no_results">Sin resultados</string>
+    <string name="drawer_search_web">Buscar en la web «%1$s»</string>
+    <string name="drawer_search_play">Buscar en Play Store «%1$s»</string>
     <string name="drawer_default_title">Apps</string>
 
     <!-- Onboarding -->

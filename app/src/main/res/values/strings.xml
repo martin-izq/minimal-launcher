@@ -70,6 +70,8 @@
     <!-- App drawer -->
     <string name="drawer_search_hint">Search app</string>
     <string name="drawer_no_results">No results</string>
+    <string name="drawer_search_web">Search the web for “%1$s”</string>
+    <string name="drawer_search_play">Search Play Store for “%1$s”</string>
     <string name="drawer_default_title">Apps</string>
 
     <!-- Onboarding -->
