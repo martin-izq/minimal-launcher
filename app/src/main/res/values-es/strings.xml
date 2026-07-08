@@ -146,6 +146,11 @@
     <string name="settings_amoled">Tema oscuro AMOLED (negro puro)</string>
     <string name="settings_hidden_apps">Apps ocultas (%1$d)</string>
     <string name="settings_no_hidden">Ninguna app oculta.</string>
+    <string name="settings_section_backup">Copia de seguridad</string>
+    <string name="settings_backup_export">Exportar ajustes</string>
+    <string name="settings_backup_export_desc">Guardar todos los ajustes en un archivo</string>
+    <string name="settings_backup_import">Importar ajustes</string>
+    <string name="settings_backup_import_desc">Restaurar desde un archivo</string>
     <string name="settings_set_default_launcher">Establecer como launcher por defecto</string>
     <string name="settings_size_value">%1$dsp</string>
     <string name="settings_dp_value">%1$ddp</string>

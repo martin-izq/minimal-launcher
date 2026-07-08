@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,6 +19,7 @@ import kotlinx.serialization.json.Json
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "launcher_settings")
 
 /** Full launcher configuration state. */
+@Serializable
 data class LauncherSettings(
     val favorites: List<String> = emptyList(),     // order matters
     val hidden: Set<String> = emptySet(),
@@ -231,6 +233,46 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setGrayscaleInFocus(v: Boolean) = putBool(Keys.GRAYSCALE_IN_FOCUS, v)
+
+    /** Overwrites all preferences from an imported [LauncherSettings] (backup restore). */
+    suspend fun importSettings(s: LauncherSettings) = context.dataStore.edit { p ->
+        p[Keys.FAVORITES] = s.favorites.joinToString("\n")
+        p[Keys.HIDDEN] = s.hidden
+        p[Keys.DISTRACTING] = s.distracting
+        p[Keys.RENAMES] = Json.encodeToString(s.renames)
+        p[Keys.APP_LIMITS] = Json.encodeToString(s.appLimits)
+        p[Keys.FOCUS_SESSIONS] = Json.encodeToString(s.focusSessions)
+        p[Keys.GRAYSCALE_IN_FOCUS] = s.grayscaleInFocus
+        p[Keys.SHOW_CLOCK] = s.showClock
+        p[Keys.SHOW_DATE] = s.showDate
+        p[Keys.SHOW_BATTERY] = s.showBattery
+        p[Keys.SHOW_ST_HOME] = s.showScreenTimeHome
+        p[Keys.FRICTION] = s.frictionEnabled
+        p[Keys.FRICTION_SECONDS] = s.frictionSeconds
+        p[Keys.AMOLED] = s.amoledDark
+        p[Keys.CLOCK_SIZE] = s.clockSize
+        p[Keys.DATE_SIZE] = s.dateSize
+        p[Keys.FAVORITES_SIZE] = s.favoritesSize
+        p[Keys.HOME_ALIGN] = s.homeAlign
+        p[Keys.VERTICAL_POS] = s.verticalPos
+        p[Keys.CLOCK_OPENS_ALARMS] = s.clockOpensAlarms
+        p[Keys.HIDE_STATUS_BAR] = s.hideStatusBar
+        p[Keys.WIDGETS_DIR] = s.widgetsDir
+        p[Keys.QUICK_DIR] = s.quickLaunchDir
+        p[Keys.DRAWER_DIR] = s.drawerDir
+        p[Keys.APP_DRAWER_SIZE] = s.appDrawerSize
+        p[Keys.APP_DRAWER_ALIGN] = s.appDrawerAlign
+        p[Keys.ALPHABET_INDEX] = s.alphabetIndex
+        p[Keys.SCRUBBER_WIDTH] = s.scrubberWidth
+        p[Keys.SEARCH_BAR_BOTTOM] = s.searchBarBottom
+        p[Keys.DRAWER_TOP_SPACE] = s.drawerTopSpace
+        p[Keys.DRAWER_SHOW_TITLE] = s.drawerShowTitle
+        p[Keys.DRAWER_TITLE] = s.drawerTitle
+        p[Keys.DRAWER_SHOW_USAGE] = s.drawerShowUsage
+        p[Keys.ONBOARDED] = s.onboarded
+        if (s.quickLaunchPackage != null) p[Keys.QUICK_LAUNCH_PKG] = s.quickLaunchPackage
+        else p.remove(Keys.QUICK_LAUNCH_PKG)
+    }
 
     suspend fun setShowClock(v: Boolean) = putBool(Keys.SHOW_CLOCK, v)
     suspend fun setShowDate(v: Boolean) = putBool(Keys.SHOW_DATE, v)

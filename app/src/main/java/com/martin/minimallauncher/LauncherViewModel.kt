@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 data class LauncherUiState(
     val settings: LauncherSettings = LauncherSettings(),
@@ -109,6 +112,16 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun upsertFocusSession(session: FocusSession) { viewModelScope.launch { settingsRepo.upsertFocusSession(session) } }
     fun removeFocusSession(id: String) { viewModelScope.launch { settingsRepo.removeFocusSession(id) } }
     fun setGrayscaleInFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setGrayscaleInFocus(v) } }
+
+    /** Serializes all current settings to JSON (for backup export). */
+    fun exportSettingsJson(): String = Json.encodeToString(uiState.value.settings)
+
+    /** Restores settings from a backup JSON. Returns false if it couldn't be parsed. */
+    fun importSettings(json: String): Boolean {
+        val s = runCatching { Json.decodeFromString<LauncherSettings>(json) }.getOrNull() ?: return false
+        viewModelScope.launch { settingsRepo.importSettings(s) }
+        return true
+    }
 
     fun setShowClock(v: Boolean) { viewModelScope.launch { settingsRepo.setShowClock(v) } }
     fun setShowDate(v: Boolean) { viewModelScope.launch { settingsRepo.setShowDate(v) } }

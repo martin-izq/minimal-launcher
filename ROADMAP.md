@@ -38,7 +38,8 @@ Play Billing. Flag `isSupporter`, pantalla de apoyo no invasiva. Sin quitar nada
 funcional. Sin ads, sin suscripción agresiva.
 
 ## Fase 6 — Pulido / extra
-Temas y acentos, backup/restore de settings, gestos configurables extra.
+- [x] **Backup/restore** de settings (export/import JSON vía SAF).
+- [ ] Temas y acentos, gestos configurables extra.
 
 ## Transversal — Reducir riesgo en Play
 Minimizar la dependencia del **servicio de accesibilidad** (mayor riesgo de

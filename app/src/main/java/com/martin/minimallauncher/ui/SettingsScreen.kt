@@ -2,6 +2,8 @@ package com.martin.minimallauncher.ui
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -67,6 +69,25 @@ fun SettingsScreen(
     val showAppPicker = remember { mutableStateOf(false) }
     var editorSession by remember { mutableStateOf<FocusSession?>(null) }
     var editorIsNew by remember { mutableStateOf(false) }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { u ->
+            runCatching {
+                context.contentResolver.openOutputStream(u)?.use { it.write(vm.exportSettingsJson().toByteArray()) }
+            }
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { u ->
+            runCatching {
+                context.contentResolver.openInputStream(u)?.use { vm.importSettings(it.readBytes().decodeToString()) }
+            }
+        }
+    }
 
     Column(
         Modifier
@@ -337,6 +358,19 @@ fun SettingsScreen(
                     }
                 }
             }
+        }
+
+        Section(stringResource(R.string.settings_section_backup)) {
+            ActionRow(
+                title = stringResource(R.string.settings_backup_export),
+                subtitle = stringResource(R.string.settings_backup_export_desc),
+                onClick = { exportLauncher.launch("foco-settings.json") },
+            )
+            ActionRow(
+                title = stringResource(R.string.settings_backup_import),
+                subtitle = stringResource(R.string.settings_backup_import_desc),
+                onClick = { importLauncher.launch(arrayOf("application/json")) },
+            )
         }
 
         Spacer(Modifier.height(24.dp))
