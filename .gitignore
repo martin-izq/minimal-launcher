@@ -10,3 +10,7 @@
 .cxx
 local.properties
 .claude/
+# Release signing secrets — never commit
+keystore.properties
+*.jks
+*.keystore

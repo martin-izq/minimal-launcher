@@ -7,9 +7,10 @@
 - [x] Asignación libre de gestos (widgets / acceso rápido / drawer)
 - [x] Mejoras del cajón (encabezado, scrubber configurable, auto-launch)
 - [x] Settings reorganizados (secciones colapsables)
-- [ ] Firma de release + R8/`shrinkResources`, build **AAB**
-- [ ] **Privacy policy** (URL) + **Data safety** ("no se recopilan datos")
-- [ ] Declarar `QUERY_ALL_PACKAGES` y el servicio de accesibilidad en la Consola
+- [x] Firma de release (via `keystore.properties`) + R8/`shrinkResources` activados
+- [x] **Privacy policy** redactada (`PRIVACY.md`) — falta hostearla y poner la URL
+- [ ] Generar keystore + subir AAB firmado a la Consola
+- [ ] **Data safety** ("no se recopilan datos") + declarar `QUERY_ALL_PACKAGES` y accesibilidad en la Consola
 
 ## Fase 1 — Retención inmediata: Onboarding
 Wizard de primer arranque: bienvenida, poner como launcher por defecto, permisos
