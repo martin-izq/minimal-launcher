@@ -37,13 +37,14 @@
     <string name="home_screentime_summary">Hoy: %1$s  ·  %2$d desbloqueos</string>
     <string name="home_screentime_enable">Activá Screen Time →</string>
     <string name="home_no_favorites">Sin favoritos todavía.\nDeslizá hacia arriba y mantené presionada una app para agregarla.</string>
-    <string name="home_swipe_hint">⌃ deslizá para ver todas</string>
+    <string name="home_swipe_hint">deslizá para ver todas</string>
     <string name="home_notif_gesture_disabled">Activá el gesto en Ajustes › Notificaciones al deslizar</string>
     <string name="home_lock_disabled">Activá el servicio de accesibilidad en Ajustes para bloquear</string>
 
     <!-- Cajón de apps -->
     <string name="drawer_search_hint">Buscar app</string>
     <string name="drawer_no_results">Sin resultados</string>
+    <string name="drawer_default_title">Apps</string>
 
     <!-- Ajustes -->
     <string name="settings_title">Ajustes</string>
@@ -68,7 +69,14 @@
     <string name="settings_pos_bottom">Abajo</string>
     <string name="settings_widgets_screen">Pantalla de widgets</string>
     <string name="settings_clock_opens_alarms">Tocar la hora abre el reloj</string>
+    <string name="settings_dir_up">Arriba</string>
+    <string name="settings_section_gestures">Gestos y navegación</string>
+    <string name="settings_gestures_hint">Asigná una dirección a cada gesto. Si elegís una ocupada, se intercambian. Deslizar hacia abajo siempre abre las notificaciones.</string>
+    <string name="settings_gesture_widgets">Widgets</string>
+    <string name="settings_gesture_quick">Acceso rápido</string>
+    <string name="settings_gesture_drawer">Cajón de apps</string>
     <string name="settings_section_quick">Acceso rápido</string>
+    <string name="settings_quick_app_dir">App de acceso rápido (%1$s)</string>
     <string name="settings_quick_app_right">App al deslizar a la derecha</string>
     <string name="settings_quick_app_left">App al deslizar a la izquierda</string>
     <string name="settings_quick_unset">Sin configurar — tocá para elegir</string>
@@ -77,7 +85,12 @@
     <string name="settings_section_drawer">Cajón de apps</string>
     <string name="settings_letter_size">Tamaño de la letra</string>
     <string name="settings_search_position">Posición del buscador</string>
+    <string name="settings_drawer_top_space">Espacio superior</string>
+    <string name="settings_drawer_show_title">Mostrar título</string>
+    <string name="settings_drawer_title">Título</string>
+    <string name="settings_drawer_show_usage">Mostrar resumen de uso</string>
     <string name="settings_alphabet_index">Guía alfabética</string>
+    <string name="settings_scrubber_width">Ancho táctil de la guía</string>
     <string name="settings_section_distractions">Reducir distracciones</string>
     <string name="settings_friction_screen">Pantalla de fricción</string>
     <string name="settings_friction_pause">Pausa antes de abrir</string>
@@ -89,6 +102,7 @@
     <string name="settings_no_hidden">Ninguna app oculta.</string>
     <string name="settings_set_default_launcher">Establecer como launcher por defecto</string>
     <string name="settings_size_value">%1$dsp</string>
+    <string name="settings_dp_value">%1$ddp</string>
     <string name="settings_seconds_value">%1$ds</string>
 
     <!-- Screen Time -->
