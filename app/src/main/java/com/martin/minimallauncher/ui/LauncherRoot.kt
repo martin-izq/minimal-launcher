@@ -28,6 +28,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.data.AppInfo
+import com.martin.minimallauncher.data.minuteOfDayLabel
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_LEFT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
@@ -111,6 +112,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     var frictionApp by remember { mutableStateOf<AppInfo?>(null) }
     var limitApp by remember { mutableStateOf<AppInfo?>(null) }
     var overLimitApp by remember { mutableStateOf<AppInfo?>(null) }
+    var focusBlockApp by remember { mutableStateOf<AppInfo?>(null) }
 
     // Show/hide the system status bar per the setting.
     val view = LocalView.current
@@ -135,6 +137,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             frictionApp = null
             limitApp = null
             overLimitApp = null
+            focusBlockApp = null
             scope.launch { horizontalPagerRef.value.scrollToPage(homeIndexState.value) }
             scope.launch { verticalPagerRef.value.scrollToPage(0) }
         }
@@ -144,9 +147,14 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         val limitMin = state.settings.appLimits[app.packageName]
         val usedMs = state.usage.perAppToday[app.packageName] ?: 0L
         val distracting = app.packageName in state.settings.distracting
+        val now = java.time.LocalDateTime.now()
+        val inFocus = distracting && state.settings.focusSessions.any {
+            it.isActiveAt(now.dayOfWeek.value, now.hour * 60 + now.minute)
+        }
         when {
             // Over the daily limit → soft block. Requires usage permission for perAppToday.
             limitMin != null && usedMs >= limitMin * 60_000L -> overLimitApp = app
+            inFocus -> focusBlockApp = app
             state.settings.frictionEnabled && distracting -> frictionApp = app
             else -> vm.launch(app)
         }
@@ -298,6 +306,21 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                 seconds = state.settings.frictionSeconds,
                 onProceed = { vm.launch(app); overLimitApp = null },
                 onDismiss = { overLimitApp = null },
+            )
+        }
+
+        // Distracting app opened during a focus session → soft block
+        focusBlockApp?.let { app ->
+            val now = java.time.LocalDateTime.now()
+            val until = state.settings.focusSessions
+                .firstOrNull { it.isActiveAt(now.dayOfWeek.value, now.hour * 60 + now.minute) }
+                ?.let { minuteOfDayLabel(it.end) } ?: ""
+            FocusBlockDialog(
+                appLabel = app.displayLabel(state.settings.renames),
+                untilLabel = until,
+                seconds = state.settings.frictionSeconds,
+                onProceed = { vm.launch(app); focusBlockApp = null },
+                onDismiss = { focusBlockApp = null },
             )
         }
         }

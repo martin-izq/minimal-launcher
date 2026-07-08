@@ -42,6 +42,15 @@
     <string name="limit_reached_body">Usaste %1$s de tu límite de %2$d min de hoy.</string>
     <string name="limit_reached_hint">¿Quizás lo dejás por ahora?</string>
     <string name="limit_reached_back">Volver</string>
+    <string name="settings_section_focus">Modo Foco</string>
+    <string name="settings_focus_hint">Bloquea las apps distractoras en estos horarios.</string>
+    <string name="settings_focus_add">+ Agregar sesión</string>
+    <string name="focus_session_edit">Sesión de foco</string>
+    <string name="focus_start">Inicio</string>
+    <string name="focus_end">Fin</string>
+    <string name="focus_invalid">El fin debe ser posterior al inicio y elegí al menos un día.</string>
+    <string name="focus_block_title">En foco — %1$s</string>
+    <string name="focus_block_body">Estás en una sesión de foco hasta las %1$s.</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>

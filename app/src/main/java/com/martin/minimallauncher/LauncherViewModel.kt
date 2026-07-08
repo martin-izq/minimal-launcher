@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.data.AppRepository
+import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.data.LauncherSettings
 import com.martin.minimallauncher.data.SettingsRepository
 import com.martin.minimallauncher.data.UsageSnapshot
@@ -105,6 +106,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setDistracting(app: AppInfo, v: Boolean) { viewModelScope.launch { settingsRepo.setDistracting(app.packageName, v) } }
     fun rename(app: AppInfo, newName: String) { viewModelScope.launch { settingsRepo.rename(app.packageName, newName) } }
     fun setAppLimit(app: AppInfo, minutes: Int?) { viewModelScope.launch { settingsRepo.setAppLimit(app.packageName, minutes) } }
+    fun upsertFocusSession(session: FocusSession) { viewModelScope.launch { settingsRepo.upsertFocusSession(session) } }
+    fun removeFocusSession(id: String) { viewModelScope.launch { settingsRepo.removeFocusSession(id) } }
 
     fun setShowClock(v: Boolean) { viewModelScope.launch { settingsRepo.setShowClock(v) } }
     fun setShowDate(v: Boolean) { viewModelScope.launch { settingsRepo.setShowDate(v) } }

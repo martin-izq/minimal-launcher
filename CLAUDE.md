@@ -82,7 +82,9 @@ Este permiso **no se puede solicitar con un dialog estándar**; el usuario debe 
 
 ### Modo Foco — límites de tiempo (Fase 2, en progreso)
 
-`ui/FocusLimit.kt` define `TimeLimitDialog` (elegir el límite diario por app, en minutos, desde el menú largo) y `LimitReachedDialog` (bloqueo suave: se muestra al abrir una app que ya superó su límite del día, con countdown antes de "Abrir igual"). La verificación se hace en `onAppClick` de `LauncherRoot` comparando `usage.perAppToday[pkg]` contra `appLimits[pkg]`, con prioridad sobre la fricción. **Solo se aplica al lanzar desde Foco y requiere el permiso de uso** (sin `perAppToday` el límite nunca dispara). Pendiente de la fase: sesiones programadas y nudge a escala de grises.
+`ui/FocusLimit.kt` define `TimeLimitDialog` (elegir el límite diario por app, en minutos, desde el menú largo) y `LimitReachedDialog` (bloqueo suave: se muestra al abrir una app que ya superó su límite del día, con countdown antes de "Abrir igual"). La verificación se hace en `onAppClick` de `LauncherRoot` comparando `usage.perAppToday[pkg]` contra `appLimits[pkg]`, con prioridad sobre la fricción. **Solo se aplica al lanzar desde Foco y requiere el permiso de uso** (sin `perAppToday` el límite nunca dispara).
+
+`data/FocusSession.kt` modela las **sesiones de foco programadas** (`FocusSession`: `start`/`end` en minutos del día, `days` = weekdays 1..7, `enabled`), serializadas como JSON en `focusSessions`. `ui/FocusSessions.kt` tiene el editor (`FocusSessionEditorDialog`, con steppers de ±15 min y chips de días) y `FocusBlockDialog`. Se editan desde la sección "Modo Foco" de Ajustes. En `onAppClick`, si hay una sesión activa (`isActiveAt(day, minuteOfDay)`) y la app es distractora, se bloquea (suave, con countdown) — mismo criterio solo-desde-Foco. Orden de prioridad en `onAppClick`: límite diario → sesión de foco → fricción → lanzar. Pendiente de la fase: nudge a escala de grises.
 
 ### Gestos y accesibilidad
 

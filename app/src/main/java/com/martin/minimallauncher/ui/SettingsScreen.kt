@@ -46,8 +46,10 @@ import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.LauncherUiState
 import com.martin.minimallauncher.LauncherViewModel
 import com.martin.minimallauncher.R
+import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.openAccessibilitySettings
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +61,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val s = state.settings
     val showAppPicker = remember { mutableStateOf(false) }
+    var editorSession by remember { mutableStateOf<FocusSession?>(null) }
+    var editorIsNew by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -227,6 +231,51 @@ fun SettingsScreen(
             }
         }
 
+        Section(stringResource(R.string.settings_section_focus)) {
+            Text(
+                stringResource(R.string.settings_focus_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 6.dp),
+            )
+            s.focusSessions.forEach { session ->
+                Row(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        focusSessionLabel(session),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickableText { editorSession = session; editorIsNew = false },
+                    )
+                    Switch(
+                        checked = session.enabled,
+                        onCheckedChange = { vm.upsertFocusSession(session.copy(enabled = it)) },
+                    )
+                }
+            }
+            Text(
+                stringResource(R.string.settings_focus_add),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clickableText {
+                        editorSession = FocusSession(
+                            id = UUID.randomUUID().toString(),
+                            start = 9 * 60,
+                            end = 18 * 60,
+                            days = setOf(1, 2, 3, 4, 5),
+                        )
+                        editorIsNew = true
+                    }
+                    .padding(vertical = 10.dp),
+            )
+        }
+
         Section(stringResource(R.string.settings_section_appearance)) {
             ToggleRow(stringResource(R.string.settings_amoled), s.amoledDark, vm::setAmoled)
         }
@@ -317,6 +366,16 @@ fun SettingsScreen(
                 item { Spacer(Modifier.height(32.dp)) }
             }
         }
+    }
+
+    editorSession?.let { session ->
+        FocusSessionEditorDialog(
+            session = session,
+            isNew = editorIsNew,
+            onSave = { vm.upsertFocusSession(it); editorSession = null },
+            onDelete = { vm.removeFocusSession(session.id); editorSession = null },
+            onDismiss = { editorSession = null },
+        )
     }
 }
 

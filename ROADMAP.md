@@ -19,10 +19,10 @@ opcionales explicados (uso / accesibilidad), tips de uso.
 
 ## Fase 2 — Diferenciador: Modo Foco ⭐
 El corazón de la marca, sobre la base de la pantalla de fricción:
-- **Límites de tiempo por app** (UsageStats): al superar X min → fricción reforzada.
-- **Sesiones programadas** (franjas horarias) que ocultan/bloquean apps distractoras.
-- **Nudge a escala de grises** (deep-link / atajo, opcionalmente programado).
-- Riesgo: monitoreo en runtime → cuidar batería y política de Play.
+- [x] **Límites de tiempo por app** (UsageStats): al superar X min → bloqueo suave.
+- [x] **Sesiones programadas** (franjas horarias) que bloquean apps distractoras.
+- [ ] **Nudge a escala de grises** (deep-link / atajo, opcionalmente programado).
+- Nota: el enforcement actual es solo-al-lanzar-desde-Foco (sin servicio en background → cero batería). Un bloqueo "duro" (recientes/notificaciones) requeriría monitoreo en runtime → evaluar batería y política de Play.
 
 ## Fase 3 — Paridad: Notificaciones mínimas
 Badges de no-leídas en favoritos y/o lista mínima (`NotificationListenerService`,

@@ -24,6 +24,7 @@ data class LauncherSettings(
     val distracting: Set<String> = emptySet(),
     val renames: Map<String, String> = emptyMap(),
     val appLimits: Map<String, Int> = emptyMap(), // package -> daily limit in minutes
+    val focusSessions: List<FocusSession> = emptyList(),
     val showClock: Boolean = true,
     val showDate: Boolean = true,
     val showBattery: Boolean = false,
@@ -74,6 +75,7 @@ class SettingsRepository(private val context: Context) {
         val DISTRACTING = stringSetPreferencesKey("distracting")
         val RENAMES = stringPreferencesKey("renames")                // JSON Map<String,String>
         val APP_LIMITS = stringPreferencesKey("app_limits")          // JSON Map<String,Int> (minutes/day)
+        val FOCUS_SESSIONS = stringPreferencesKey("focus_sessions")  // JSON List<FocusSession>
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -137,6 +139,7 @@ class SettingsRepository(private val context: Context) {
             distracting = p[Keys.DISTRACTING] ?: emptySet(),
             renames = p[Keys.RENAMES]?.let { decodeRenames(it) } ?: emptyMap(),
             appLimits = p[Keys.APP_LIMITS]?.let { decodeLimits(it) } ?: emptyMap(),
+            focusSessions = p[Keys.FOCUS_SESSIONS]?.let { decodeSessions(it) } ?: emptyList(),
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
             showBattery = p[Keys.SHOW_BATTERY] ?: false,
@@ -211,6 +214,19 @@ class SettingsRepository(private val context: Context) {
         p[Keys.APP_LIMITS] = Json.encodeToString(map)
     }
 
+    /** Adds or replaces a focus session (matched by id). */
+    suspend fun upsertFocusSession(session: FocusSession) = context.dataStore.edit { p ->
+        val list = (p[Keys.FOCUS_SESSIONS]?.let { decodeSessions(it) } ?: emptyList()).toMutableList()
+        val i = list.indexOfFirst { it.id == session.id }
+        if (i >= 0) list[i] = session else list.add(session)
+        p[Keys.FOCUS_SESSIONS] = Json.encodeToString(list)
+    }
+
+    suspend fun removeFocusSession(id: String) = context.dataStore.edit { p ->
+        val list = (p[Keys.FOCUS_SESSIONS]?.let { decodeSessions(it) } ?: emptyList()).filterNot { it.id == id }
+        p[Keys.FOCUS_SESSIONS] = Json.encodeToString(list)
+    }
+
     suspend fun setShowClock(v: Boolean) = putBool(Keys.SHOW_CLOCK, v)
     suspend fun setShowDate(v: Boolean) = putBool(Keys.SHOW_DATE, v)
     suspend fun setShowBattery(v: Boolean) = putBool(Keys.SHOW_BATTERY, v)
@@ -267,4 +283,7 @@ class SettingsRepository(private val context: Context) {
 
     private fun decodeLimits(raw: String): Map<String, Int> =
         runCatching { Json.decodeFromString<Map<String, Int>>(raw) }.getOrDefault(emptyMap())
+
+    private fun decodeSessions(raw: String): List<FocusSession> =
+        runCatching { Json.decodeFromString<List<FocusSession>>(raw) }.getOrDefault(emptyList())
 }

@@ -43,6 +43,15 @@
     <string name="limit_reached_body">You\'ve used %1$s of your %2$d min limit today.</string>
     <string name="limit_reached_hint">Maybe leave it for now?</string>
     <string name="limit_reached_back">Back</string>
+    <string name="settings_section_focus">Focus mode</string>
+    <string name="settings_focus_hint">Block distracting apps during these times.</string>
+    <string name="settings_focus_add">+ Add session</string>
+    <string name="focus_session_edit">Focus session</string>
+    <string name="focus_start">Start</string>
+    <string name="focus_end">End</string>
+    <string name="focus_invalid">End must be after start, and pick at least one day.</string>
+    <string name="focus_block_title">In focus — %1$s</string>
+    <string name="focus_block_body">You\'re in a focus session until %1$s.</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>
