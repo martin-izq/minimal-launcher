@@ -30,11 +30,14 @@ fun AppRow(
     isFavorite: Boolean = false,
     fontSizeSp: Int? = null,
     textAlign: TextAlign? = null,
+    blocked: Boolean = false,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            // Blocked (in-focus) apps can't be launched by tapping, but long-press still opens
+            // the options sheet so they can be managed.
+            .combinedClickable(onClick = { if (!blocked) onClick() }, onLongClick = onLongClick)
             .padding(horizontal = 28.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -43,7 +46,8 @@ fun AppRow(
             style = MaterialTheme.typography.bodyLarge.let {
                 if (fontSizeSp != null) it.copy(fontSize = fontSizeSp.sp) else it
             },
-            color = MaterialTheme.colorScheme.onBackground,
+            color = if (blocked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+            else MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
@@ -53,7 +57,7 @@ fun AppRow(
             Icon(
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary,
+                tint = MaterialTheme.colorScheme.secondary.copy(alpha = if (blocked) 0.45f else 1f),
                 modifier = Modifier.width(16.dp),
             )
         }

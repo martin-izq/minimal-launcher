@@ -43,7 +43,9 @@
     <string name="limit_reached_hint">¿Quizás lo dejás por ahora?</string>
     <string name="limit_reached_back">Volver</string>
     <string name="settings_section_focus">Modo Foco</string>
-    <string name="settings_focus_hint">Bloquea las apps distractoras en estos horarios.</string>
+    <string name="settings_focus_hint">Durante una sesión, las apps distractoras se grisan y no se pueden abrir. Fuera de sesión, una pantalla de fricción agrega una pausa.</string>
+    <string name="settings_focus_sessions">Sesiones programadas</string>
+    <string name="settings_focus_friction">Fricción (fuera de sesión)</string>
     <string name="settings_focus_add">+ Agregar sesión</string>
     <string name="focus_session_edit">Sesión de foco</string>
     <string name="focus_start">Inicio</string>

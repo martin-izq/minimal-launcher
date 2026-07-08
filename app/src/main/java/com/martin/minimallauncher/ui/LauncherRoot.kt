@@ -34,6 +34,7 @@ import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
 import com.martin.minimallauncher.ui.widgets.LocalWidgetController
 import com.martin.minimallauncher.ui.widgets.WidgetScreen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private enum class Overlay { None, ScreenTime, Settings }
@@ -125,8 +126,19 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         else controller.show(WindowInsetsCompat.Type.statusBars())
     }
 
-    // Quick-launch action: swiping toward quickDir launches the configured app without moving Home.
-    val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg -> { vm.launchByPackage(pkg) } }
+    // Tick every minute so focus sessions activate/deactivate on schedule. During an active
+    // session, distracting apps are "blocked": greyed out and non-launchable across the UI.
+    var nowTick by remember { mutableStateOf(java.time.LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            nowTick = java.time.LocalDateTime.now()
+            delay(60_000)
+        }
+    }
+    val focusActiveNow = state.settings.focusSessions.any {
+        it.isActiveAt(nowTick.dayOfWeek.value, nowTick.hour * 60 + nowTick.minute)
+    }
+    val blockedPackages = if (focusActiveNow) state.settings.distracting else emptySet()
 
     // Back to home when HOME is pressed
     LaunchedEffect(Unit) {
@@ -161,6 +173,14 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     }
     val onAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app }
 
+    // Quick-launch: route through onAppClick so it respects limits and focus blocks.
+    val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg ->
+        {
+            val app = state.allApps.firstOrNull { it.packageName == pkg }
+            if (app != null) onAppClick(app) else vm.launchByPackage(pkg)
+        }
+    }
+
     // Reusable renderers for the two side screens.
     val renderWidgets: @Composable () -> Unit = {
         WidgetScreen(
@@ -183,6 +203,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             // horizontal pager handles going back.
             enableSwipeDownToHome = drawerDir == DIR_UP,
             onSwipeDownToHome = { scope.launch { verticalPager.animateScrollToPage(0) } },
+            blockedPackages = blockedPackages,
         )
     }
     val renderSide: @Composable (SideScreen) -> Unit = { kind ->
@@ -230,6 +251,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                                 onQuickLaunch = onQuickLaunch,
                                 quickLaunchDir = quickDir,
                                 drawerDir = drawerDir,
+                                blockedPackages = blockedPackages,
                             )
                         }
                         if (upScreen != null) {
@@ -318,8 +340,6 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             FocusBlockDialog(
                 appLabel = app.displayLabel(state.settings.renames),
                 untilLabel = until,
-                seconds = state.settings.frictionSeconds,
-                onProceed = { vm.launch(app); focusBlockApp = null },
                 onDismiss = { focusBlockApp = null },
             )
         }

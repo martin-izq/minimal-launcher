@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,24 +32,14 @@ import com.martin.minimallauncher.data.minuteOfDayLabel
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
-import kotlinx.coroutines.delay
 
-/** Soft block shown when opening a distracting app during an active focus session. */
+/** Firm block shown when trying to open a distracting app during an active focus session. */
 @Composable
 fun FocusBlockDialog(
     appLabel: String,
     untilLabel: String,
-    seconds: Int,
-    onProceed: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var remaining by remember { mutableIntStateOf(seconds) }
-    LaunchedEffect(Unit) {
-        while (remaining > 0) {
-            delay(1000)
-            remaining -= 1
-        }
-    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.focus_block_title, appLabel)) },
@@ -60,15 +49,7 @@ fun FocusBlockDialog(
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
-        confirmButton = {
-            TextButton(onClick = onProceed, enabled = remaining <= 0) {
-                Text(
-                    if (remaining > 0) stringResource(R.string.friction_open_countdown, remaining)
-                    else stringResource(R.string.friction_open_anyway)
-                )
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.limit_reached_back)) } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_done)) } },
     )
 }
 

@@ -65,6 +65,7 @@ fun AppDrawer(
     onOpenScreenTime: () -> Unit = {},
     enableSwipeDownToHome: Boolean = true,
     onSwipeDownToHome: () -> Unit = {},
+    blockedPackages: Set<String> = emptySet(),
 ) {
     var query by remember { mutableStateOf("") }
     val s = state.settings
@@ -129,10 +130,12 @@ fun AppDrawer(
         onAppClick(app)
     }
 
-    // While typing, once the search narrows down to a single app, open it automatically.
+    // While typing, once the search narrows down to a single app, open it automatically
+    // (unless it's blocked by a focus session).
     LaunchedEffect(filtered) {
-        if (query.isNotBlank() && filtered.size == 1) {
-            launchApp(filtered.first())
+        val only = filtered.singleOrNull()
+        if (query.isNotBlank() && only != null && only.packageName !in blockedPackages) {
+            launchApp(only)
         }
     }
 
@@ -227,6 +230,7 @@ fun AppDrawer(
                         textAlign = textAlign,
                         onClick = { launchApp(app) },
                         onLongClick = { onAppLongClick(app) },
+                        blocked = app.packageName in blockedPackages,
                     )
                 }
             }

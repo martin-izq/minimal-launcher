@@ -186,51 +186,6 @@ fun SettingsScreen(
             }
         }
 
-        Section(stringResource(R.string.settings_section_distractions)) {
-            ToggleRow(stringResource(R.string.settings_friction_screen), s.frictionEnabled, vm::setFrictionEnabled)
-            val secs = listOf(3, 5, 10)
-            SegmentedSelector(
-                stringResource(R.string.settings_friction_pause),
-                secs.map { stringResource(R.string.settings_seconds_value, it) },
-                secs.indexOf(s.frictionSeconds).coerceAtLeast(0),
-            ) { vm.setFrictionSeconds(secs[it]) }
-            val distractingApps = state.allApps.filter { it.packageName in s.distracting }
-            if (distractingApps.isNotEmpty()) {
-                Text(
-                    stringResource(R.string.settings_distracting_apps, distractingApps.size),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
-                )
-                distractingApps.forEach { app ->
-                    Row(
-                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            app.originalLabel,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onBackground,
-                        )
-                        Text(
-                            stringResource(R.string.common_remove),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickableText { vm.setDistracting(app, false) },
-                        )
-                    }
-                }
-            } else {
-                Text(
-                    stringResource(R.string.settings_no_distracting),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 6.dp),
-                )
-            }
-        }
-
         Section(stringResource(R.string.settings_section_focus)) {
             Text(
                 stringResource(R.string.settings_focus_hint),
@@ -238,6 +193,9 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 6.dp),
             )
+
+            // Scheduled sessions — hard block distracting apps during these windows.
+            SubHead(stringResource(R.string.settings_focus_sessions))
             s.focusSessions.forEach { session ->
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -274,6 +232,48 @@ fun SettingsScreen(
                     }
                     .padding(vertical = 10.dp),
             )
+
+            // Friction — soft pause when there's no active session.
+            SubHead(stringResource(R.string.settings_focus_friction))
+            ToggleRow(stringResource(R.string.settings_friction_screen), s.frictionEnabled, vm::setFrictionEnabled)
+            val secs = listOf(3, 5, 10)
+            SegmentedSelector(
+                stringResource(R.string.settings_friction_pause),
+                secs.map { stringResource(R.string.settings_seconds_value, it) },
+                secs.indexOf(s.frictionSeconds).coerceAtLeast(0),
+            ) { vm.setFrictionSeconds(secs[it]) }
+
+            // Distracting apps that the two mechanisms above act on.
+            val distractingApps = state.allApps.filter { it.packageName in s.distracting }
+            SubHead(stringResource(R.string.settings_distracting_apps, distractingApps.size))
+            if (distractingApps.isEmpty()) {
+                Text(
+                    stringResource(R.string.settings_no_distracting),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 6.dp),
+                )
+            } else {
+                distractingApps.forEach { app ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            app.originalLabel,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Text(
+                            stringResource(R.string.common_remove),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickableText { vm.setDistracting(app, false) },
+                        )
+                    }
+                }
+            }
         }
 
         Section(stringResource(R.string.settings_section_appearance)) {
@@ -421,6 +421,17 @@ private fun Section(
             )
         }
     }
+}
+
+/** Small gray subheading inside a section. */
+@Composable
+private fun SubHead(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.secondary,
+        modifier = Modifier.padding(top = 14.dp, bottom = 4.dp),
+    )
 }
 
 @Composable

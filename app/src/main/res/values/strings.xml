@@ -44,7 +44,9 @@
     <string name="limit_reached_hint">Maybe leave it for now?</string>
     <string name="limit_reached_back">Back</string>
     <string name="settings_section_focus">Focus mode</string>
-    <string name="settings_focus_hint">Block distracting apps during these times.</string>
+    <string name="settings_focus_hint">During a session, distracting apps are greyed out and can\'t be opened. Outside sessions, a friction screen adds a pause.</string>
+    <string name="settings_focus_sessions">Scheduled sessions</string>
+    <string name="settings_focus_friction">Friction (outside sessions)</string>
     <string name="settings_focus_add">+ Add session</string>
     <string name="focus_session_edit">Focus session</string>
     <string name="focus_start">Start</string>

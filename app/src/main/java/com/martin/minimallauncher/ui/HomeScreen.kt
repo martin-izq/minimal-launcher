@@ -68,6 +68,7 @@ fun HomeScreen(
     onQuickLaunch: (() -> Unit)? = null,
     quickLaunchDir: Int = DIR_RIGHT,
     drawerDir: Int = DIR_UP,
+    blockedPackages: Set<String> = emptySet(),
 ) {
     val s = state.settings
     var hintVisible by remember { mutableStateOf(false) }
@@ -310,6 +311,7 @@ fun HomeScreen(
                     textAlign = textAlign,
                     onClick = { onAppClick(app) },
                     onLongClick = { onAppLongClick(app) },
+                    blocked = app.packageName in blockedPackages,
                 )
             }
         }
