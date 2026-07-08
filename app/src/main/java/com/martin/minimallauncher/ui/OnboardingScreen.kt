@@ -19,10 +19,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +46,22 @@ private const val LAST_STEP = 3
 fun OnboardingScreen(vm: LauncherViewModel, onFinish: () -> Unit) {
     val context = LocalContext.current
     var step by rememberSaveable { mutableIntStateOf(0) }
+
+    // Re-check permissions whenever we come back (e.g. from the system settings screen), so a
+    // just-granted permission shows as enabled without leaving onboarding.
+    var usageGranted by remember { mutableStateOf(vm.hasUsagePermission()) }
+    var a11yActive by remember { mutableStateOf(NotificationAccessibilityService.isActive()) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                usageGranted = vm.hasUsagePermission()
+                a11yActive = NotificationAccessibilityService.isActive()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Column(
         Modifier
@@ -94,7 +116,7 @@ fun OnboardingScreen(vm: LauncherViewModel, onFinish: () -> Unit) {
                         PermissionRow(
                             title = stringResource(R.string.onboarding_perm_usage),
                             body = stringResource(R.string.onboarding_perm_usage_body),
-                            enabled = vm.hasUsagePermission(),
+                            enabled = usageGranted,
                             onEnable = {
                                 runCatching {
                                     context.startActivity(
@@ -108,7 +130,7 @@ fun OnboardingScreen(vm: LauncherViewModel, onFinish: () -> Unit) {
                         PermissionRow(
                             title = stringResource(R.string.onboarding_perm_a11y),
                             body = stringResource(R.string.onboarding_perm_a11y_body),
-                            enabled = NotificationAccessibilityService.isActive(),
+                            enabled = a11yActive,
                             onEnable = { openAccessibilitySettings(context) },
                         )
                     }
