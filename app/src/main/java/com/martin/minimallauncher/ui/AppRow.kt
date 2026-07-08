@@ -46,9 +46,9 @@ fun AppRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            // Blocked (in-focus) apps can't be launched by tapping, but long-press still opens
-            // the options sheet so they can be managed.
-            .combinedClickable(onClick = { if (!blocked) onClick() }, onLongClick = onLongClick)
+            // Blocked (in-focus) apps still receive the tap: onClick routes through onAppClick,
+            // which shows the focus-block message instead of launching. Long-press opens options.
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = 28.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

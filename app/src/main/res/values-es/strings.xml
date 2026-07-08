@@ -52,7 +52,7 @@
     <string name="focus_end">Fin</string>
     <string name="focus_invalid">El fin debe ser posterior al inicio y elegí al menos un día.</string>
     <string name="focus_block_title">En foco — %1$s</string>
-    <string name="focus_block_body">Estás en una sesión de foco hasta las %1$s.</string>
+    <string name="focus_block_body">Esta app está en pausa a propósito durante tu sesión de foco (hasta las %1$s). No es un error.</string>
 
     <!-- Inicio -->
     <string name="home_battery">Batería %1$d%%</string>
@@ -60,6 +60,7 @@
     <string name="home_screentime_enable">Activá Screen Time →</string>
     <string name="home_no_favorites">Sin favoritos todavía.\nDeslizá hacia arriba y mantené presionada una app para agregarla.</string>
     <string name="home_swipe_hint">deslizá para ver todas</string>
+    <string name="home_focus_indicator">En foco · hasta %1$s</string>
     <string name="home_notif_gesture_disabled">Activá el gesto en Ajustes › Notificaciones al deslizar</string>
     <string name="home_lock_disabled">Activá el servicio de accesibilidad en Ajustes para bloquear</string>
 

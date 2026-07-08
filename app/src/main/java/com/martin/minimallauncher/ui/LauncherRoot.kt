@@ -136,10 +136,12 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             delay(60_000)
         }
     }
-    val focusActiveNow = state.settings.focusSessions.any {
+    val activeFocusSession = state.settings.focusSessions.firstOrNull {
         it.isActiveAt(nowTick.dayOfWeek.value, nowTick.hour * 60 + nowTick.minute)
     }
+    val focusActiveNow = activeFocusSession != null
     val blockedPackages = if (focusActiveNow) state.settings.distracting else emptySet()
+    val focusUntil = activeFocusSession?.let { minuteOfDayLabel(it.end) }
 
     // Unread notification badges (needs notification access granted).
     val notifCounts by NotificationService.counts.collectAsState()
@@ -169,9 +171,10 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             it.isActiveAt(now.dayOfWeek.value, now.hour * 60 + now.minute)
         }
         when {
+            // Focus session → firm block (takes priority; it's the hard block).
+            inFocus -> focusBlockApp = app
             // Over the daily limit → soft block. Requires usage permission for perAppToday.
             limitMin != null && usedMs >= limitMin * 60_000L -> overLimitApp = app
-            inFocus -> focusBlockApp = app
             state.settings.frictionEnabled && distracting -> frictionApp = app
             else -> vm.launch(app)
         }
@@ -259,6 +262,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                                 drawerDir = drawerDir,
                                 blockedPackages = blockedPackages,
                                 badgeCounts = badgeCounts,
+                                focusUntil = focusUntil,
                             )
                         }
                         if (upScreen != null) {

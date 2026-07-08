@@ -7,6 +7,8 @@ import android.os.BatteryManager
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +34,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -70,6 +73,7 @@ fun HomeScreen(
     drawerDir: Int = DIR_UP,
     blockedPackages: Set<String> = emptySet(),
     badgeCounts: Map<String, Int> = emptyMap(),
+    focusUntil: String? = null,
 ) {
     val s = state.settings
     var hintVisible by remember { mutableStateOf(false) }
@@ -233,6 +237,19 @@ fun HomeScreen(
                 .padding(start = 28.dp, end = 28.dp, top = 48.dp, bottom = 8.dp),
             horizontalAlignment = horizontalAlign,
         ) {
+            // Focus mode indicator, so it's clear a session is active.
+            if (focusUntil != null) {
+                Text(
+                    text = stringResource(R.string.home_focus_indicator, focusUntil),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.primary)
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                )
+                Spacer(Modifier.height(10.dp))
+            }
             if (s.showClock) {
                 Text(
                     text = now.format(DateTimeFormatter.ofPattern("HH:mm")),
