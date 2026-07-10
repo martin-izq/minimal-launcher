@@ -7,8 +7,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.martin.minimallauncher.R
 
 private val DarkColors = darkColorScheme(
     background = Color.Black,
@@ -48,14 +52,27 @@ private val LightColors = lightColorScheme(
     surfaceContainerHighest = Color(0xFFE3E0D8),
 )
 
+/**
+ * Manrope (variable font). Requires app/src/main/res/font/manrope.ttf — download the Manrope
+ * variable font from Google Fonts. Falls back to the system font until the file is present.
+ */
+private val Manrope = FontFamily(
+    Font(R.font.manrope, weight = FontWeight.Light, variationSettings = FontVariation.Settings(FontVariation.weight(300))),
+    Font(R.font.manrope, weight = FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
+    Font(R.font.manrope, weight = FontWeight.Medium, variationSettings = FontVariation.Settings(FontVariation.weight(500))),
+    Font(R.font.manrope, weight = FontWeight.SemiBold, variationSettings = FontVariation.Settings(FontVariation.weight(600))),
+)
+
 private val MinimalTypography = Typography(
-    displayLarge = TextStyle(fontWeight = FontWeight.Light, fontSize = 64.sp, letterSpacing = (-1.5).sp),
-    headlineMedium = TextStyle(fontWeight = FontWeight.Light, fontSize = 24.sp, letterSpacing = (-0.4).sp),
-    titleLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 22.sp, letterSpacing = (-0.3).sp),
-    titleSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, letterSpacing = (-0.1).sp),
-    bodyLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 18.sp, letterSpacing = 0.1.sp),
-    bodyMedium = TextStyle(fontWeight = FontWeight.Normal, fontSize = 15.sp, letterSpacing = 0.1.sp),
-    labelLarge = TextStyle(fontWeight = FontWeight.Medium, fontSize = 13.sp, letterSpacing = 0.4.sp),
+    displayLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Light, fontSize = 64.sp, letterSpacing = (-1.5).sp),
+    headlineMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Light, fontSize = 24.sp, letterSpacing = (-0.4).sp),
+    titleLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Normal, fontSize = 22.sp, letterSpacing = (-0.3).sp),
+    titleSmall = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Medium, fontSize = 15.sp, letterSpacing = (-0.1).sp),
+    bodyLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Normal, fontSize = 18.sp, letterSpacing = 0.1.sp),
+    bodyMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Normal, fontSize = 15.sp, letterSpacing = 0.1.sp),
+    labelLarge = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Medium, fontSize = 13.sp, letterSpacing = 0.4.sp),
+    titleMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Medium, fontSize = 16.sp),
+    labelMedium = TextStyle(fontFamily = Manrope, fontWeight = FontWeight.Medium, fontSize = 12.sp),
 )
 
 /** Warm "focus light" — the brand's amber, used for the active focus state regardless of accent. */
