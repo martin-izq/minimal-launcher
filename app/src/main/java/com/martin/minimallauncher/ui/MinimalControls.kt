@@ -117,10 +117,10 @@ fun MinimalSlider(value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
             },
         contentAlignment = Alignment.CenterStart,
     ) {
-        val thumb = 14.dp
+        val thumb = 16.dp
         val thumbX = (maxWidth - thumb) * fraction
-        Box(Modifier.fillMaxWidth().height(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outline))
-        Box(Modifier.fillMaxWidth(fraction).height(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
-        Box(Modifier.offset(x = thumbX).size(thumb).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
+        Box(Modifier.fillMaxWidth().height(3.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outline))
+        Box(Modifier.fillMaxWidth(fraction).height(3.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
+        Box(Modifier.offset(x = thumbX).size(thumb).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
     }
 }

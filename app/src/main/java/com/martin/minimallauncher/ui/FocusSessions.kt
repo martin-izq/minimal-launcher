@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.martin.minimallauncher.R
 import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.data.minuteOfDayLabel
+import com.martin.minimallauncher.ui.theme.FocusWarm
+import com.martin.minimallauncher.ui.theme.OnFocusWarm
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
@@ -221,11 +223,11 @@ private fun DayChips(days: Set<Int>, onToggle: (Int) -> Unit) {
                 DayOfWeek.of(d).getDisplayName(TextStyle.NARROW, locale),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Center,
-                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (selected) OnFocusWarm else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(50))
-                    .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .background(if (selected) FocusWarm else Color.Transparent)
                     .clickableText { onToggle(d) }
                     .padding(vertical = 8.dp),
             )
