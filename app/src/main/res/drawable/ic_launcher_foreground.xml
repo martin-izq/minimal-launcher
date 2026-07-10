@@ -1,15 +1,39 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Minimalist light bulb ("foco"): round glass over a narrower screw base. -->
+    <!-- Foco: a warm glowing light bulb — "the brand is the light". -->
+
+    <!-- Soft warm glow -->
+    <path android:pathData="M54,44 m-32,0 a32,32 0 1,1 64,0 a32,32 0 1,1 -64,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="42"
+                android:gradientRadius="32"
+                android:startColor="#59D8A24A"
+                android:endColor="#00D8A24A" />
+        </aapt:attr>
+    </path>
+
     <!-- Glass -->
+    <path android:pathData="M54,42 m-21,0 a21,21 0 1,1 42,0 a21,21 0 1,1 -42,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="51"
+                android:centerY="36"
+                android:gradientRadius="25"
+                android:startColor="#FFF7E6B8"
+                android:endColor="#FFD69A3C" />
+        </aapt:attr>
+    </path>
+
+    <!-- Screw base / cap -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M34,46 a20,20 0 1 1 40,0 a20,20 0 1 1 -40,0 Z" />
-    <!-- Base / cap -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,64 h16 v12 a4,4 0 0 1 -4,4 h-8 a4,4 0 0 1 -4,-4 Z" />
+        android:fillColor="#FFB8B2A6"
+        android:pathData="M46,62 h16 v11 a4,4 0 0 1 -4,4 h-8 a4,4 0 0 1 -4,-4 Z" />
 </vector>
