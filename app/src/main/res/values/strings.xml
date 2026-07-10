@@ -66,6 +66,9 @@
     <string name="focus_control_exit">Exit</string>
     <string name="focus_dur_25">25 min</string>
     <string name="focus_dur_50">50 min</string>
+    <string name="focus_duration">Duration</string>
+    <string name="focus_minutes_value">%1$d min</string>
+    <string name="focus_start_dur">Start · %1$d min</string>
     <string name="focus_dur_until_off">Until I turn it off</string>
     <string name="focus_resume_scheduled">Resume scheduled focus</string>
     <string name="focus_locked_msg">In focus until %1$s. You can\'t exit until it ends.</string>

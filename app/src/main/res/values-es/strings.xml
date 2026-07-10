@@ -65,6 +65,9 @@
     <string name="focus_control_exit">Salir</string>
     <string name="focus_dur_25">25 min</string>
     <string name="focus_dur_50">50 min</string>
+    <string name="focus_duration">Duración</string>
+    <string name="focus_minutes_value">%1$d min</string>
+    <string name="focus_start_dur">Iniciar · %1$d min</string>
     <string name="focus_dur_until_off">Hasta que lo apague</string>
     <string name="focus_resume_scheduled">Reanudar foco programado</string>
     <string name="focus_locked_msg">En foco hasta las %1$s. No podés salir hasta que termine.</string>

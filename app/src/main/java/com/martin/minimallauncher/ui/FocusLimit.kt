@@ -1,22 +1,19 @@
 package com.martin.minimallauncher.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,19 +31,17 @@ fun TimeLimitDialog(
     onSelect: (Int?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.limit_dialog_title, appLabel)) },
-        text = {
-            Column {
-                LimitOption(stringResource(R.string.limit_off), currentMinutes == null) { onSelect(null) }
-                LIMIT_PRESETS.forEach { m ->
-                    LimitOption(stringResource(R.string.limit_minutes, m), currentMinutes == m) { onSelect(m) }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_done)) } },
-    )
+    MinimalDialog(onDismiss) {
+        DialogTitle(stringResource(R.string.limit_dialog_title, appLabel))
+        Spacer(Modifier.height(6.dp))
+        LimitOption(stringResource(R.string.limit_off), currentMinutes == null) { onSelect(null) }
+        LIMIT_PRESETS.forEach { m ->
+            LimitOption(stringResource(R.string.limit_minutes, m), currentMinutes == m) { onSelect(m) }
+        }
+        DialogActions {
+            DialogButton(stringResource(R.string.common_done), onClick = onDismiss)
+        }
+    }
 }
 
 @Composable
@@ -86,31 +81,18 @@ fun LimitReachedDialog(
             remaining -= 1
         }
     }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.limit_reached_title, appLabel)) },
-        text = {
-            Column {
-                Text(
-                    stringResource(R.string.limit_reached_body, formatDuration(usedTodayMs), limitMinutes),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.limit_reached_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onProceed, enabled = remaining <= 0) {
-                Text(
-                    if (remaining > 0) stringResource(R.string.friction_open_countdown, remaining)
-                    else stringResource(R.string.friction_open_anyway)
-                )
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.limit_reached_back)) } },
-    )
+    MinimalDialog(onDismiss) {
+        DialogTitle(stringResource(R.string.limit_reached_title, appLabel))
+        DialogBody(stringResource(R.string.limit_reached_body, formatDuration(usedTodayMs), limitMinutes))
+        DialogBody(stringResource(R.string.limit_reached_hint))
+        DialogActions {
+            DialogButton(stringResource(R.string.limit_reached_back), emphasized = false, onClick = onDismiss)
+            DialogButton(
+                text = if (remaining > 0) stringResource(R.string.friction_open_countdown, remaining)
+                else stringResource(R.string.friction_open_anyway),
+                enabled = remaining <= 0,
+                onClick = onProceed,
+            )
+        }
+    }
 }

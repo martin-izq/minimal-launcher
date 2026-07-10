@@ -9,15 +9,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,7 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -72,7 +67,6 @@ import com.martin.minimallauncher.util.canControlDnd
 import com.martin.minimallauncher.util.openAccessibilitySettings
 import com.martin.minimallauncher.util.setDnd
 import java.util.UUID
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -377,12 +371,11 @@ fun SettingsScreen(
             // Friction — soft pause when there's no active session.
             SubHead(stringResource(R.string.settings_focus_friction))
             ToggleRow(stringResource(R.string.settings_friction_screen), s.frictionEnabled, vm::setFrictionEnabled)
-            val secs = listOf(3, 5, 10)
-            SegmentedSelector(
+            LabeledSlider(
                 stringResource(R.string.settings_friction_pause),
-                secs.map { stringResource(R.string.settings_seconds_value, it) },
-                secs.indexOf(s.frictionSeconds).coerceAtLeast(0),
-            ) { vm.setFrictionSeconds(secs[it]) }
+                stringResource(R.string.settings_seconds_value, s.frictionSeconds),
+                s.frictionSeconds, 0, 30, vm::setFrictionSeconds,
+            )
 
             // Distracting apps that the two mechanisms above act on.
             val distractingApps = state.allApps.filter { it.packageName in s.distracting }
@@ -675,74 +668,30 @@ private fun ActionRow(title: String, subtitle: String, onClick: () -> Unit) {
     }
 }
 
+/** A label + right-aligned value, over a minimal slider. */
+@Composable
+private fun LabeledSlider(label: String, valueText: String, value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
+            Text(valueText, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+        }
+        MinimalSlider(value, min, max, onChange)
+    }
+}
+
 @Composable
 private fun SizeSlider(label: String, value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
-            Text(
-                stringResource(R.string.settings_size_value, value),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-        }
-        MinimalSlider(value, min, max, onChange)
-    }
+    LabeledSlider(label, stringResource(R.string.settings_size_value, value), value, min, max, onChange)
 }
 
-/** Slider whose value is shown in dp (used for spacing / touch-band widths). */
 @Composable
 private fun DpSlider(label: String, value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
-            Text(
-                stringResource(R.string.settings_dp_value, value),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-        }
-        MinimalSlider(value, min, max, onChange)
-    }
-}
-
-/** Thin, monochrome slider: a hairline track with a small knob. Tap or drag anywhere. */
-@Composable
-private fun MinimalSlider(value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
-    val range = (max - min).coerceAtLeast(1)
-    val fraction = ((value - min).toFloat() / range).coerceIn(0f, 1f)
-    BoxWithConstraints(
-        Modifier
-            .fillMaxWidth()
-            .height(30.dp)
-            // Tap to set; horizontal drag to scrub — vertical scrolls pass through to the list.
-            .pointerInput(min, max) {
-                detectTapGestures { pos ->
-                    onChange((min + (pos.x / size.width.toFloat()).coerceIn(0f, 1f) * range).roundToInt())
-                }
-            }
-            .pointerInput(min, max) {
-                detectHorizontalDragGestures { change, _ ->
-                    onChange((min + (change.position.x / size.width.toFloat()).coerceIn(0f, 1f) * range).roundToInt())
-                    change.consume()
-                }
-            },
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        val thumb = 14.dp
-        val thumbX = (maxWidth - thumb) * fraction
-        Box(Modifier.fillMaxWidth().height(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outline))
-        Box(Modifier.fillMaxWidth(fraction).height(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
-        Box(Modifier.offset(x = thumbX).size(thumb).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
-    }
+    LabeledSlider(label, stringResource(R.string.settings_dp_value, value), value, min, max, onChange)
 }
 
 /** Pill-style option selector: the chosen option is highlighted with a filled background. */

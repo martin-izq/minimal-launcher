@@ -10,12 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,17 +41,13 @@ fun FocusBlockDialog(
     appLabel: String,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.focus_block_title, appLabel)) },
-        text = {
-            Text(
-                stringResource(R.string.focus_block_body),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_done)) } },
-    )
+    MinimalDialog(onDismiss) {
+        DialogTitle(stringResource(R.string.focus_block_title, appLabel))
+        DialogBody(stringResource(R.string.focus_block_body))
+        DialogActions {
+            DialogButton(stringResource(R.string.common_done), onClick = onDismiss)
+        }
+    }
 }
 
 /**
@@ -93,8 +87,27 @@ fun FocusControlSheet(
                 active -> FocusSheetItem(stringResource(R.string.focus_control_exit), destructive = true) { onStop() }
                 else -> {
                     if (canResume) FocusSheetItem(stringResource(R.string.focus_resume_scheduled)) { onResume() }
-                    FocusSheetItem(stringResource(R.string.focus_dur_25)) { onStart(25) }
-                    FocusSheetItem(stringResource(R.string.focus_dur_50)) { onStart(50) }
+                    var mins by remember { mutableIntStateOf(30) }
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 10.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                stringResource(R.string.focus_duration),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                stringResource(R.string.focus_minutes_value, mins),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.secondary,
+                            )
+                        }
+                        MinimalSlider(mins, 5, 120) { mins = it }
+                    }
+                    FocusSheetItem(stringResource(R.string.focus_start_dur, mins)) { onStart(mins) }
                     if (allowIndefinite) FocusSheetItem(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
                 }
             }
@@ -129,43 +142,32 @@ fun FocusSessionEditorDialog(
     var days by remember { mutableStateOf(session.days) }
     val valid = end > start && days.isNotEmpty()
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.focus_session_edit)) },
-        text = {
-            Column {
-                TimeStepper(stringResource(R.string.focus_start), start) { start = it }
-                Spacer(Modifier.height(8.dp))
-                TimeStepper(stringResource(R.string.focus_end), end) { end = it }
-                Spacer(Modifier.height(16.dp))
-                DayChips(days) { d -> days = if (d in days) days - d else days + d }
-                if (!valid) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.focus_invalid),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onSave(session.copy(start = start, end = end, days = days)) },
+    MinimalDialog(onDismiss) {
+        DialogTitle(stringResource(R.string.focus_session_edit))
+        Spacer(Modifier.height(18.dp))
+        TimeStepper(stringResource(R.string.focus_start), start) { start = it }
+        Spacer(Modifier.height(8.dp))
+        TimeStepper(stringResource(R.string.focus_end), end) { end = it }
+        Spacer(Modifier.height(16.dp))
+        DayChips(days) { d -> days = if (d in days) days - d else days + d }
+        if (!valid) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.focus_invalid),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        DialogActions {
+            if (!isNew) DialogButton(stringResource(R.string.common_remove), destructive = true, onClick = onDelete)
+            DialogButton(stringResource(R.string.common_cancel), emphasized = false, onClick = onDismiss)
+            DialogButton(
+                stringResource(R.string.common_save),
                 enabled = valid,
-            ) { Text(stringResource(R.string.common_save)) }
-        },
-        dismissButton = {
-            Row {
-                if (!isNew) {
-                    TextButton(onClick = onDelete) {
-                        Text(stringResource(R.string.common_remove), color = MaterialTheme.colorScheme.error)
-                    }
-                }
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
-            }
-        },
-    )
+                onClick = { onSave(session.copy(start = start, end = end, days = days)) },
+            )
+        }
+    }
 }
 
 /** Formats a session for a settings row, e.g. "09:00–18:00 · M T W". */
