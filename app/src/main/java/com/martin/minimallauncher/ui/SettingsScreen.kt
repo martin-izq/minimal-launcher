@@ -301,12 +301,24 @@ fun SettingsScreen(
                 val manualTimed = s.manualFocusUntil != Long.MAX_VALUE && nowMs < s.manualFocusUntil
                 s.strictFocus && (schedActive || manualTimed)
             }
-            ToggleRow(
-                stringResource(R.string.settings_strict_focus),
-                s.strictFocus,
-                vm::setStrictFocus,
-                enabled = !focusLockedNow,
-            )
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.settings_strict_focus),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(
+                    checked = s.strictFocus,
+                    onCheckedChange = vm::setStrictFocus,
+                    enabled = !focusLockedNow,
+                    colors = minimalSwitchColors(),
+                )
+            }
             if (s.strictFocus) {
                 Text(
                     stringResource(if (focusLockedNow) R.string.settings_strict_locked else R.string.settings_strict_hint),
@@ -609,12 +621,7 @@ private fun SubHead(text: String) {
 }
 
 @Composable
-private fun ToggleRow(
-    label: String,
-    checked: Boolean,
-    onChange: (Boolean) -> Unit,
-    enabled: Boolean = true,
-) {
+private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -626,7 +633,7 @@ private fun ToggleRow(
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f),
         )
-        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled, colors = minimalSwitchColors())
+        Switch(checked = checked, onCheckedChange = onChange, colors = minimalSwitchColors())
     }
 }
 
