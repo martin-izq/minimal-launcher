@@ -24,25 +24,27 @@ private val DarkColors = darkColorScheme(
 )
 
 private val LightColors = lightColorScheme(
-    background = Color(0xFFFAFAFA),
-    onBackground = Color(0xFF111111),
+    // Warm-biased neutrals (a chosen grey, not a default), matching the amber accent.
+    background = Color(0xFFF7F6F3),
+    onBackground = Color(0xFF1A1917),
     surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF111111),
-    surfaceVariant = Color(0xFFEFEFEF),
-    onSurfaceVariant = Color(0xFF555555),
-    primary = Color(0xFF111111),
+    onSurface = Color(0xFF1A1917),
+    surfaceVariant = Color(0xFFEFEDE7),
+    onSurfaceVariant = Color(0xFF5C5A54),
+    primary = Color(0xFF1A1917),
     onPrimary = Color(0xFFFFFFFF),
-    secondary = Color(0xFF777777),
-    outline = Color(0xFFDDDDDD),
+    secondary = Color(0xFF78766F),
+    outline = Color(0xFFE3E1DA),
 )
 
 private val MinimalTypography = Typography(
-    displayLarge = TextStyle(fontWeight = FontWeight.Light, fontSize = 64.sp, letterSpacing = (-1).sp),
-    headlineMedium = TextStyle(fontWeight = FontWeight.Normal, fontSize = 24.sp),
-    titleLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 22.sp),
-    bodyLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 18.sp, letterSpacing = 0.2.sp),
-    bodyMedium = TextStyle(fontWeight = FontWeight.Normal, fontSize = 15.sp),
-    labelLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 13.sp, letterSpacing = 0.5.sp),
+    displayLarge = TextStyle(fontWeight = FontWeight.Light, fontSize = 64.sp, letterSpacing = (-1.5).sp),
+    headlineMedium = TextStyle(fontWeight = FontWeight.Light, fontSize = 24.sp, letterSpacing = (-0.4).sp),
+    titleLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 22.sp, letterSpacing = (-0.3).sp),
+    titleSmall = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp, letterSpacing = (-0.1).sp),
+    bodyLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 18.sp, letterSpacing = 0.1.sp),
+    bodyMedium = TextStyle(fontWeight = FontWeight.Normal, fontSize = 15.sp, letterSpacing = 0.1.sp),
+    labelLarge = TextStyle(fontWeight = FontWeight.Medium, fontSize = 13.sp, letterSpacing = 0.4.sp),
 )
 
 /** Warm "focus light" — the brand's amber, used for the active focus state regardless of accent. */

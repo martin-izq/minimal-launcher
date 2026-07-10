@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.CircleShape
 import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
@@ -565,7 +566,7 @@ fun SettingsScreen(
     }
 }
 
-/** Collapsible settings group: a tappable title that reveals a rounded card with the controls. */
+/** Collapsible settings group: an uppercase section label that reveals a soft card of controls. */
 @Composable
 private fun Section(
     title: String,
@@ -574,35 +575,36 @@ private fun Section(
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
-    Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
+    Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(10.dp))
                 .clickableText { expanded = !expanded }
-                .padding(horizontal = 6.dp, vertical = 14.dp),
+                .padding(horizontal = 4.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onBackground,
+                title.uppercase(),
+                style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.8.sp),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.weight(1f),
             )
             Text(
                 "⌄",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.rotate(rotation),
             )
         }
+        Spacer(Modifier.height(6.dp))
         AnimatedVisibility(expanded) {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
                 content = content,
             )
         }

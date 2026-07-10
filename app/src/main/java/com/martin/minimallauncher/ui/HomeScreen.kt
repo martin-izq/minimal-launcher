@@ -36,6 +36,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -130,6 +134,18 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // Warm "light on" glow from the top while in focus.
+            .drawBehind {
+                if (focusActive) {
+                    drawRect(
+                        brush = Brush.radialGradient(
+                            colors = listOf(FocusWarm.copy(alpha = 0.13f), Color.Transparent),
+                            center = Offset(size.width / 2f, 0f),
+                            radius = size.height * 0.55f,
+                        )
+                    )
+                }
+            }
             .graphicsLayer {
                 if (quickLaunchDir == DIR_UP) translationY = quickOffset
                 else translationX = quickOffset
