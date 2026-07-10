@@ -50,6 +50,8 @@ import com.martin.minimallauncher.data.AppInfo
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_LEFT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.minimallauncher.data.LauncherSettings.Companion.DIR_UP
+import com.martin.minimallauncher.ui.theme.FocusWarm
+import com.martin.minimallauncher.ui.theme.OnFocusWarm
 import com.martin.minimallauncher.service.NotificationAccessibilityService
 import com.martin.minimallauncher.util.formatDuration
 import com.martin.minimallauncher.util.openNotificationShade
@@ -249,16 +251,16 @@ fun HomeScreen(
                     else -> stringResource(R.string.home_focus_off)
                 }
                 val chipShape = RoundedCornerShape(50)
+                // Warm "light on" when in focus; a quiet outline at rest.
                 val chipBg = if (focusActive) {
-                    Modifier.clip(chipShape).background(MaterialTheme.colorScheme.primary)
+                    Modifier.clip(chipShape).background(FocusWarm)
                 } else {
                     Modifier.clip(chipShape).border(1.dp, MaterialTheme.colorScheme.outline, chipShape)
                 }
                 Text(
                     text = chipText,
                     style = MaterialTheme.typography.labelLarge,
-                    color = if (focusActive) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.secondary,
+                    color = if (focusActive) OnFocusWarm else MaterialTheme.colorScheme.secondary,
                     modifier = chipBg
                         .clickableText(onFocusTap)
                         .padding(horizontal = 12.dp, vertical = 4.dp),

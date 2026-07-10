@@ -45,6 +45,10 @@ private val MinimalTypography = Typography(
     labelLarge = TextStyle(fontWeight = FontWeight.Normal, fontSize = 13.sp, letterSpacing = 0.5.sp),
 )
 
+/** Warm "focus light" — the brand's amber, used for the active focus state regardless of accent. */
+val FocusWarm = Color(0xFFD8A24A)
+val OnFocusWarm = Color(0xFF1A1206)
+
 /** Optional accent colors; index 0 = default (monochrome). Tints primary (badges, highlights…). */
 val AccentColors: List<Color?> = listOf(
     null,               // default: monochrome primary
