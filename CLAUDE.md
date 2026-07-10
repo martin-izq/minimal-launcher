@@ -108,3 +108,7 @@ La **guía alfabética** (`AlphabetScrubber` en `AppDrawer.kt`) tiene ancho tác
 - `compileSdk` 35 · `minSdk` 26 · `targetSdk` 35
 - DataStore Preferences 1.1.1 · kotlinx.serialization 1.7.3
 - El tema AMOLED dark/light se aplica en runtime sin reiniciar la Activity
+
+## Dirección visual
+
+**"Frío en reposo, cálido en foco."** La app es negro OLED monocromo y quieto; el estado de **foco** introduce una **luz cálida ámbar** (`FocusWarm`/`OnFocusWarm` en `theme/Theme.kt`), usada independientemente del acento elegido: el chip de foco se enciende en ámbar y `HomeScreen` dibuja un glow radial cálido desde arriba (`drawBehind`) mientras el foco está activo. El **ícono** (`ic_launcher_foreground.xml`, gradientes radiales + `ic_launcher_monochrome.xml`) es ese mismo foco encendido. Tipografía como interfaz (sin íconos): display fino y tight, etiquetas en mayúscula con tracking en las secciones de Ajustes. Grises "elegidos" (el modo claro tiene leve sesgo cálido hacia el ámbar). El ámbar `#D8A24A` es además una de las opciones de acento.
