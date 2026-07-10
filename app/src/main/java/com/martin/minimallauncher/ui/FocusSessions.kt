@@ -77,7 +77,7 @@ fun FocusControlSheet(
                 stringResource(if (active) R.string.focus_control_active else R.string.focus_control_start),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(horizontal = 28.dp, top = 8.dp, bottom = 8.dp),
+                modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 8.dp, bottom = 8.dp),
             )
             if (active) {
                 FocusSheetItem(stringResource(R.string.focus_control_exit), destructive = true) { onStop() }
