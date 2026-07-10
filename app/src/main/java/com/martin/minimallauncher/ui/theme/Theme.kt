@@ -21,6 +21,12 @@ private val DarkColors = darkColorScheme(
     onPrimary = Color.Black,
     secondary = Color(0xFF8A8A8A),
     outline = Color(0xFF333333),
+    // Tonal surfaces — keep dialogs, sheets and menus on our near-black aesthetic.
+    surfaceContainerLowest = Color(0xFF000000),
+    surfaceContainerLow = Color(0xFF0C0C0D),
+    surfaceContainer = Color(0xFF121214),
+    surfaceContainerHigh = Color(0xFF17171A),
+    surfaceContainerHighest = Color(0xFF1E1E22),
 )
 
 private val LightColors = lightColorScheme(
@@ -35,6 +41,11 @@ private val LightColors = lightColorScheme(
     onPrimary = Color(0xFFFFFFFF),
     secondary = Color(0xFF78766F),
     outline = Color(0xFFE3E1DA),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF4F2ED),
+    surfaceContainer = Color(0xFFEEECE6),
+    surfaceContainerHigh = Color(0xFFE9E6DF),
+    surfaceContainerHighest = Color(0xFFE3E0D8),
 )
 
 private val MinimalTypography = Typography(

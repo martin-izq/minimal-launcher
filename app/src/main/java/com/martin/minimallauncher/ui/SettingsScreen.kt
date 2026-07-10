@@ -9,11 +9,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -48,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -68,6 +72,7 @@ import com.martin.minimallauncher.util.canControlDnd
 import com.martin.minimallauncher.util.openAccessibilitySettings
 import com.martin.minimallauncher.util.setDnd
 import java.util.UUID
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -685,11 +690,7 @@ private fun SizeSlider(label: String, value: Int, min: Int, max: Int, onChange: 
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
-        Slider(
-            value = value.toFloat(),
-            onValueChange = { onChange(it.toInt()) },
-            valueRange = min.toFloat()..max.toFloat(),
-        )
+        MinimalSlider(value, min, max, onChange)
     }
 }
 
@@ -709,11 +710,38 @@ private fun DpSlider(label: String, value: Int, min: Int, max: Int, onChange: (I
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
-        Slider(
-            value = value.toFloat(),
-            onValueChange = { onChange(it.toInt()) },
-            valueRange = min.toFloat()..max.toFloat(),
-        )
+        MinimalSlider(value, min, max, onChange)
+    }
+}
+
+/** Thin, monochrome slider: a hairline track with a small knob. Tap or drag anywhere. */
+@Composable
+private fun MinimalSlider(value: Int, min: Int, max: Int, onChange: (Int) -> Unit) {
+    val range = (max - min).coerceAtLeast(1)
+    val fraction = ((value - min).toFloat() / range).coerceIn(0f, 1f)
+    BoxWithConstraints(
+        Modifier
+            .fillMaxWidth()
+            .height(30.dp)
+            // Tap to set; horizontal drag to scrub — vertical scrolls pass through to the list.
+            .pointerInput(min, max) {
+                detectTapGestures { pos ->
+                    onChange((min + (pos.x / size.width.toFloat()).coerceIn(0f, 1f) * range).roundToInt())
+                }
+            }
+            .pointerInput(min, max) {
+                detectHorizontalDragGestures { change, _ ->
+                    onChange((min + (change.position.x / size.width.toFloat()).coerceIn(0f, 1f) * range).roundToInt())
+                    change.consume()
+                }
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        val thumb = 14.dp
+        val thumbX = (maxWidth - thumb) * fraction
+        Box(Modifier.fillMaxWidth().height(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outline))
+        Box(Modifier.fillMaxWidth(fraction).height(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
+        Box(Modifier.offset(x = thumbX).size(thumb).clip(CircleShape).background(MaterialTheme.colorScheme.onBackground))
     }
 }
 
