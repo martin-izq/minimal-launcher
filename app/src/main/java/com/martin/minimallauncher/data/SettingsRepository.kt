@@ -32,6 +32,7 @@ data class LauncherSettings(
     val focusSkipUntil: Long = 0L,      // epoch ms; scheduled sessions suppressed while now < this
     val showFocusOnHome: Boolean = true, // quick focus chip on the home screen
     val dndInFocus: Boolean = false,    // turn on Do Not Disturb during focus
+    val strictFocus: Boolean = false,   // once started with a fixed time, focus can't be exited early
     val showClock: Boolean = true,
     val showDate: Boolean = true,
     val showBattery: Boolean = false,
@@ -90,6 +91,7 @@ class SettingsRepository(private val context: Context) {
         val FOCUS_SKIP_UNTIL = longPreferencesKey("focus_skip_until")
         val SHOW_FOCUS_HOME = booleanPreferencesKey("show_focus_home")
         val DND_IN_FOCUS = booleanPreferencesKey("dnd_in_focus")
+        val STRICT_FOCUS = booleanPreferencesKey("strict_focus")
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -165,6 +167,7 @@ class SettingsRepository(private val context: Context) {
             focusSkipUntil = p[Keys.FOCUS_SKIP_UNTIL] ?: 0L,
             showFocusOnHome = p[Keys.SHOW_FOCUS_HOME] ?: true,
             dndInFocus = p[Keys.DND_IN_FOCUS] ?: false,
+            strictFocus = p[Keys.STRICT_FOCUS] ?: false,
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
             showBattery = p[Keys.SHOW_BATTERY] ?: false,
@@ -258,6 +261,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setFocusSkipUntil(v: Long) = context.dataStore.edit { it[Keys.FOCUS_SKIP_UNTIL] = v }
     suspend fun setShowFocusOnHome(v: Boolean) = putBool(Keys.SHOW_FOCUS_HOME, v)
     suspend fun setDndInFocus(v: Boolean) = putBool(Keys.DND_IN_FOCUS, v)
+    suspend fun setStrictFocus(v: Boolean) = putBool(Keys.STRICT_FOCUS, v)
 
     /** Overwrites all preferences from an imported [LauncherSettings] (backup restore). */
     suspend fun importSettings(s: LauncherSettings) = context.dataStore.edit { p ->
@@ -269,6 +273,7 @@ class SettingsRepository(private val context: Context) {
         p[Keys.FOCUS_SESSIONS] = Json.encodeToString(s.focusSessions)
         p[Keys.SHOW_FOCUS_HOME] = s.showFocusOnHome
         p[Keys.DND_IN_FOCUS] = s.dndInFocus
+        p[Keys.STRICT_FOCUS] = s.strictFocus
         p[Keys.MANUAL_FOCUS_UNTIL] = 0L   // don't restore transient focus state
         p[Keys.FOCUS_SKIP_UNTIL] = 0L
         p[Keys.SHOW_CLOCK] = s.showClock

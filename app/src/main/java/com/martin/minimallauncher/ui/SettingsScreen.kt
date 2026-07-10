@@ -291,6 +291,30 @@ fun SettingsScreen(
                     },
                 )
             }
+            // A strict focus with a fixed end is currently running → can't disable strict now.
+            val focusLockedNow = run {
+                val now = java.time.LocalDateTime.now()
+                val nowMs = System.currentTimeMillis()
+                val schedActive = s.focusSessions.any {
+                    it.isActiveAt(now.dayOfWeek.value, now.hour * 60 + now.minute)
+                } && nowMs >= s.focusSkipUntil
+                val manualTimed = s.manualFocusUntil != Long.MAX_VALUE && nowMs < s.manualFocusUntil
+                s.strictFocus && (schedActive || manualTimed)
+            }
+            ToggleRow(
+                stringResource(R.string.settings_strict_focus),
+                s.strictFocus,
+                vm::setStrictFocus,
+                enabled = !focusLockedNow,
+            )
+            if (s.strictFocus) {
+                Text(
+                    stringResource(if (focusLockedNow) R.string.settings_strict_locked else R.string.settings_strict_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
 
             // Scheduled sessions — hard block distracting apps during these windows.
             SubHead(stringResource(R.string.settings_focus_sessions))
@@ -585,7 +609,12 @@ private fun SubHead(text: String) {
 }
 
 @Composable
-private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun ToggleRow(
+    label: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+) {
     Row(
         Modifier.fillMaxWidth().padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -597,7 +626,7 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f),
         )
-        Switch(checked = checked, onCheckedChange = onChange, colors = minimalSwitchColors())
+        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled, colors = minimalSwitchColors())
     }
 }
 

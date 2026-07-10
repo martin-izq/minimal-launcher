@@ -48,6 +48,9 @@
     <string name="settings_focus_show_home">Quick focus toggle on home</string>
     <string name="settings_dnd_focus">Do Not Disturb during focus</string>
     <string name="settings_dnd_grant">Grant Do Not Disturb access</string>
+    <string name="settings_strict_focus">Strict mode (can\'t exit early)</string>
+    <string name="settings_strict_hint">Once you start a timed focus, you can\'t exit until it ends. The \"until I turn it off\" option is disabled.</string>
+    <string name="settings_strict_locked">A strict focus is running — you can\'t disable this or exit until it ends.</string>
     <string name="settings_focus_sessions">Scheduled sessions</string>
     <string name="settings_focus_friction">Friction (outside sessions)</string>
     <string name="settings_focus_add">+ Add session</string>
@@ -65,6 +68,7 @@
     <string name="focus_dur_50">50 min</string>
     <string name="focus_dur_until_off">Until I turn it off</string>
     <string name="focus_resume_scheduled">Resume scheduled focus</string>
+    <string name="focus_locked_msg">In focus until %1$s. You can\'t exit until it ends.</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>

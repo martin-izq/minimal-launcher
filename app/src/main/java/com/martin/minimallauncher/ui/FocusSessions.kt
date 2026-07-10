@@ -65,7 +65,10 @@ fun FocusBlockDialog(
 @Composable
 fun FocusControlSheet(
     active: Boolean,
+    locked: Boolean,
+    allowIndefinite: Boolean,
     canResume: Boolean,
+    untilLabel: String?,
     onStart: (minutes: Int?) -> Unit,
     onResume: () -> Unit,
     onStop: () -> Unit,
@@ -79,13 +82,21 @@ fun FocusControlSheet(
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 8.dp, bottom = 8.dp),
             )
-            if (active) {
-                FocusSheetItem(stringResource(R.string.focus_control_exit), destructive = true) { onStop() }
-            } else {
-                if (canResume) FocusSheetItem(stringResource(R.string.focus_resume_scheduled)) { onResume() }
-                FocusSheetItem(stringResource(R.string.focus_dur_25)) { onStart(25) }
-                FocusSheetItem(stringResource(R.string.focus_dur_50)) { onStart(50) }
-                FocusSheetItem(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
+            when {
+                // Strict mode: locked until it ends — no exit.
+                active && locked -> Text(
+                    stringResource(R.string.focus_locked_msg, untilLabel ?: ""),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 4.dp, bottom = 12.dp),
+                )
+                active -> FocusSheetItem(stringResource(R.string.focus_control_exit), destructive = true) { onStop() }
+                else -> {
+                    if (canResume) FocusSheetItem(stringResource(R.string.focus_resume_scheduled)) { onResume() }
+                    FocusSheetItem(stringResource(R.string.focus_dur_25)) { onStart(25) }
+                    FocusSheetItem(stringResource(R.string.focus_dur_50)) { onStart(50) }
+                    if (allowIndefinite) FocusSheetItem(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
+                }
             }
         }
     }

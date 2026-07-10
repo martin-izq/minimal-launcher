@@ -158,6 +158,8 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         scheduledActive && sessionNow != null -> minuteOfDayLabel(sessionNow.end)
         else -> null
     }
+    // Strict mode: while an active focus has a fixed end (not indefinite), it can't be exited.
+    val focusLocked = state.settings.strictFocus && focusActiveNow && focusUntil != null
     var showFocusControl by remember { mutableStateOf(false) }
 
     // Do Not Disturb during focus (best-effort while Foco is alive; needs DND access granted).
@@ -379,7 +381,10 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
         if (showFocusControl) {
             FocusControlSheet(
                 active = focusActiveNow,
+                locked = focusLocked,
+                allowIndefinite = !state.settings.strictFocus,
                 canResume = sessionSkipped,
+                untilLabel = focusUntil,
                 onStart = { mins ->
                     val until = if (mins == null) Long.MAX_VALUE
                     else System.currentTimeMillis() + mins * 60_000L
