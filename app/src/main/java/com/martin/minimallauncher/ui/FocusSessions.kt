@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -130,7 +131,7 @@ private fun FocusSheetItem(text: String, destructive: Boolean = false, onClick: 
     )
 }
 
-/** Editor for a focus session: start/end times (15-min steppers) and active weekdays. */
+/** Editor for a focus session: start/end times (spin wheels) and active weekdays. */
 @Composable
 fun FocusSessionEditorDialog(
     session: FocusSession,
@@ -147,9 +148,10 @@ fun FocusSessionEditorDialog(
     MinimalDialog(onDismiss) {
         DialogTitle(stringResource(R.string.focus_session_edit))
         Spacer(Modifier.height(18.dp))
-        TimeStepper(stringResource(R.string.focus_start), start) { start = it }
-        Spacer(Modifier.height(8.dp))
-        TimeStepper(stringResource(R.string.focus_end), end) { end = it }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            TimeWheel(stringResource(R.string.focus_start), start) { start = it }
+            TimeWheel(stringResource(R.string.focus_end), end) { end = it }
+        }
         Spacer(Modifier.height(16.dp))
         DayChips(days) { d -> days = if (d in days) days - d else days + d }
         if (!valid) {
@@ -181,34 +183,27 @@ fun focusSessionLabel(session: FocusSession): String {
     return "${minuteOfDayLabel(session.start)}–${minuteOfDayLabel(session.end)}  ·  $days"
 }
 
-private fun step(minute: Int, delta: Int): Int = (((minute + delta) % 1440) + 1440) % 1440
-
+/** Start/end time as two spin wheels (hour + 5-min steps) under a small label. */
 @Composable
-private fun TimeStepper(label: String, value: Int, onChange: (Int) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+private fun TimeWheel(label: String, value: Int, onChange: (Int) -> Unit) {
+    val hour = value / 60
+    val minute = value % 60
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            label.uppercase(Locale.getDefault()),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
+            WheelPicker(24, hour, { h -> onChange(h * 60 + minute) }, { "%02d".format(it) }, Modifier.width(46.dp))
             Text(
-                "‹",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickableText { onChange(step(value, -15)) }.padding(horizontal = 10.dp),
-            )
-            Text(
-                minuteOfDayLabel(value),
+                ":",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 2.dp),
             )
-            Text(
-                "›",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickableText { onChange(step(value, 15)) }.padding(horizontal = 10.dp),
-            )
+            WheelPicker(12, minute / 5, { m -> onChange(hour * 60 + m * 5) }, { "%02d".format(it * 5) }, Modifier.width(46.dp))
         }
     }
 }
