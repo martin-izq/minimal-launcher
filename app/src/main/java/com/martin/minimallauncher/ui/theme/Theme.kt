@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -56,6 +57,7 @@ private val LightColors = lightColorScheme(
  * Manrope (variable font). Requires app/src/main/res/font/manrope.ttf — download the Manrope
  * variable font from Google Fonts. Falls back to the system font until the file is present.
  */
+@OptIn(ExperimentalTextApi::class)
 private val Manrope = FontFamily(
     Font(R.font.manrope, weight = FontWeight.Light, variationSettings = FontVariation.Settings(FontVariation.weight(300))),
     Font(R.font.manrope, weight = FontWeight.Normal, variationSettings = FontVariation.Settings(FontVariation.weight(400))),
