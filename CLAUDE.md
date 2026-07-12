@@ -22,7 +22,7 @@ No hay tests automatizados en el proyecto (ni unitarios ni de instrumentación).
 
 ## Arquitectura
 
-**MinimalLauncher** es un launcher de Android minimalista (sin íconos, solo texto) escrito en Kotlin + Jetpack Compose. Sigue MVVM con un único Activity y navegación por overlays modales, sin back stack de Fragments.
+**Foco** es un launcher de Android minimalista (sin íconos, solo texto) escrito en Kotlin + Jetpack Compose. Sigue MVVM con un único Activity y navegación por overlays modales, sin back stack de Fragments.
 
 ### Flujo de datos
 

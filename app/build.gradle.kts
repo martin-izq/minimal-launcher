@@ -17,11 +17,11 @@ val keystoreProps = Properties().apply {
 val hasReleaseKeystore = keystoreProps.getProperty("storeFile") != null
 
 android {
-    namespace = "com.martin.minimallauncher"
+    namespace = "com.martin.foco"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.martin.minimallauncher"
+        applicationId = "com.martin.foco"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

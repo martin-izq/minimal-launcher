@@ -16,5 +16,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MinimalLauncher"
+rootProject.name = "Foco"
 include(":app")

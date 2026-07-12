@@ -33,7 +33,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MinimalLauncher">
+        android:theme="@style/Theme.Foco">
 
         <activity
             android:name=".MainActivity"
@@ -43,7 +43,7 @@
             android:stateNotNeeded="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.MinimalLauncher">
+            android:theme="@style/Theme.Foco">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

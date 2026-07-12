@@ -51,7 +51,7 @@ UsageStatsManager  ──► UsageStatsRepository ──┘      (LauncherUiStat
 
 ## Building
 
-1. Open the `MinimalLauncher/` folder in **Android Studio** (Ladybug or newer). On sync,
+1. Open the `Foco/` folder in **Android Studio** (Ladybug or newer). On sync,
    Android Studio generates the Gradle wrapper automatically.
    - From the terminal (with Gradle 8.9+): `gradle wrapper` then `./gradlew assembleDebug`.
 2. Connect a device (USB debugging on) and hit **Run ▶**, or install the APK at
@@ -78,7 +78,7 @@ UsageStatsManager  ──► UsageStatsRepository ──┘      (LauncherUiStat
 ## Project structure
 
 ```
-app/src/main/java/com/martin/minimallauncher/
+app/src/main/java/com/martin/foco/
 ├── MainActivity.kt            # Compose host; HOME/back/resume; widget host lifecycle
 ├── LauncherViewModel.kt       # combined UI state + actions
 ├── data/                      # AppInfo, AppRepository, SettingsRepository,
