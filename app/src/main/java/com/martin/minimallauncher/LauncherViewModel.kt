@@ -8,6 +8,7 @@ import com.martin.minimallauncher.data.AppRepository
 import com.martin.minimallauncher.data.FocusSession
 import com.martin.minimallauncher.data.LauncherSettings
 import com.martin.minimallauncher.data.SettingsRepository
+import com.martin.minimallauncher.data.gated
 import com.martin.minimallauncher.data.UsageSnapshot
 import com.martin.minimallauncher.data.UsageStatsRepository
 import com.martin.minimallauncher.data.WidgetPlacement
@@ -56,7 +57,9 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
             settingsRepo.settings,
             usageFlow,
             widgetsRepo.widgets,
-        ) { apps, settings, usage, widgets ->
+        ) { apps, raw, usage, widgets ->
+            // Light pins the Full-only prefs to defaults; the whole app reads the gated view.
+            val settings = raw.gated(raw.pro)
             // The drawer shows and sorts by the original name; renames only apply
             // to favorites.
             val visible = apps
@@ -155,6 +158,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setDrawerShowUsage(v: Boolean) { viewModelScope.launch { settingsRepo.setDrawerShowUsage(v) } }
     fun setQuickLaunchPackage(pkg: String?) { viewModelScope.launch { settingsRepo.setQuickLaunchPackage(pkg) } }
     fun setOnboarded(v: Boolean) { viewModelScope.launch { settingsRepo.setOnboarded(v) } }
+    fun setPro(v: Boolean) { viewModelScope.launch { settingsRepo.setPro(v) } }
     fun launchByPackage(pkg: String) = appRepo.launch(pkg)
 
     // --- Widgets ---

@@ -13,6 +13,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -31,22 +32,22 @@ data class LauncherSettings(
     val manualFocusUntil: Long = 0L,   // epoch ms; focus forced ON while now < this (MAX = indefinite)
     val focusSkipUntil: Long = 0L,      // epoch ms; scheduled sessions suppressed while now < this
     val showFocusOnHome: Boolean = true, // quick focus chip on the home screen
-    val dndInFocus: Boolean = false,    // turn on Do Not Disturb during focus
+    val dndInFocus: Boolean = true,     // turn on Do Not Disturb during focus
     val strictFocus: Boolean = false,   // once started with a fixed time, focus can't be exited early
     val showClock: Boolean = true,
     val showDate: Boolean = true,
-    val showBattery: Boolean = false,
+    val showBattery: Boolean = true,
     val showScreenTimeHome: Boolean = true,
     val frictionEnabled: Boolean = true,
     val frictionSeconds: Int = 10,
     val amoledDark: Boolean = true,
     val accentColor: Int = 0, // index into AccentColors; 0 = monochrome
     // Home screen customization
-    val clockSize: Int = 120,         // clock size in sp
+    val clockSize: Int = 95,          // clock size in sp
     val dateSize: Int = 22,           // date size in sp
     val favoritesSize: Int = 36,      // favorites size in sp
     val homeAlign: Int = 0,           // 0 = left, 1 = center, 2 = right
-    val verticalPos: Int = 1,         // 0 = top, 1 = center, 2 = bottom
+    val verticalPos: Int = 2,         // 0 = top, 1 = center, 2 = bottom
     val clockOpensAlarms: Boolean = true,
     val hideStatusBar: Boolean = false,
     val showNotificationBadges: Boolean = false,
@@ -62,20 +63,51 @@ data class LauncherSettings(
     val alphabetIndex: Boolean = true, // alphabet scrubber on the side
     val scrubberWidth: Int = 49,       // touch band width of the scrubber, in dp
     val searchBarBottom: Boolean = false, // false = search bar on top, true = bottom
-    val drawerTopSpace: Int = 148,     // extra space above the drawer content, in dp
+    val drawerTopSpace: Int = 152,     // extra space above the drawer content, in dp
     val drawerShowTitle: Boolean = true,
     val drawerTitle: String = "",      // blank → localized default "Apps"
-    val drawerShowUsage: Boolean = true,
+    val drawerShowUsage: Boolean = false,
     // Quick-launch app (swipe toward quickLaunchDir)
     val quickLaunchPackage: String? = null,
     // First-run onboarding completed?
     val onboarded: Boolean = false,
+    // Full ("Pro") entitlement. Not part of a backup: it's an entitlement, not a preference.
+    @Transient val pro: Boolean = false,
 ) {
     companion object {
         const val DIR_LEFT = 0
         const val DIR_RIGHT = 1
         const val DIR_UP = 2
     }
+}
+
+/**
+ * The Full-only preferences (customization/convenience). Light keeps the core focus product but
+ * pins these to their defaults. Applied at read time as defense-in-depth so a stale value or an
+ * imported backup can never bypass the lock — it never rewrites the stored values, so they return
+ * intact once Full is unlocked.
+ */
+fun LauncherSettings.gated(isPro: Boolean): LauncherSettings {
+    if (isPro) return this
+    val d = LauncherSettings()
+    return copy(
+        hideStatusBar = d.hideStatusBar,
+        showNotificationBadges = d.showNotificationBadges,
+        widgetsDir = d.widgetsDir,
+        quickLaunchDir = d.quickLaunchDir,
+        drawerDir = d.drawerDir,
+        quickLaunchPackage = d.quickLaunchPackage,
+        accentColor = d.accentColor,
+        appDrawerSize = d.appDrawerSize,
+        appDrawerAlign = d.appDrawerAlign,
+        alphabetIndex = d.alphabetIndex,
+        scrubberWidth = d.scrubberWidth,
+        searchBarBottom = d.searchBarBottom,
+        drawerTopSpace = d.drawerTopSpace,
+        drawerShowTitle = d.drawerShowTitle,
+        drawerTitle = d.drawerTitle,
+        drawerShowUsage = d.drawerShowUsage,
+    )
 }
 
 class SettingsRepository(private val context: Context) {
@@ -123,6 +155,7 @@ class SettingsRepository(private val context: Context) {
         val DRAWER_SHOW_USAGE = booleanPreferencesKey("drawer_show_usage")
         val QUICK_LAUNCH_PKG = stringPreferencesKey("quick_launch_pkg")
         val ONBOARDED = booleanPreferencesKey("onboarded")
+        val PRO = booleanPreferencesKey("pro_unlocked")
     }
 
     /**
@@ -166,38 +199,39 @@ class SettingsRepository(private val context: Context) {
             manualFocusUntil = p[Keys.MANUAL_FOCUS_UNTIL] ?: 0L,
             focusSkipUntil = p[Keys.FOCUS_SKIP_UNTIL] ?: 0L,
             showFocusOnHome = p[Keys.SHOW_FOCUS_HOME] ?: true,
-            dndInFocus = p[Keys.DND_IN_FOCUS] ?: false,
+            dndInFocus = p[Keys.DND_IN_FOCUS] ?: true,
             strictFocus = p[Keys.STRICT_FOCUS] ?: false,
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
-            showBattery = p[Keys.SHOW_BATTERY] ?: false,
+            showBattery = p[Keys.SHOW_BATTERY] ?: true,
             showScreenTimeHome = p[Keys.SHOW_ST_HOME] ?: true,
             frictionEnabled = p[Keys.FRICTION] ?: true,
-            frictionSeconds = p[Keys.FRICTION_SECONDS] ?: 5,
+            frictionSeconds = p[Keys.FRICTION_SECONDS] ?: 10,
             amoledDark = p[Keys.AMOLED] ?: true,
             accentColor = p[Keys.ACCENT] ?: 0,
-            clockSize = p[Keys.CLOCK_SIZE] ?: 64,
-            dateSize = p[Keys.DATE_SIZE] ?: 16,
-            favoritesSize = p[Keys.FAVORITES_SIZE] ?: 18,
+            clockSize = p[Keys.CLOCK_SIZE] ?: 95,
+            dateSize = p[Keys.DATE_SIZE] ?: 22,
+            favoritesSize = p[Keys.FAVORITES_SIZE] ?: 36,
             homeAlign = p[Keys.HOME_ALIGN] ?: 0,
-            verticalPos = p[Keys.VERTICAL_POS] ?: 0,
+            verticalPos = p[Keys.VERTICAL_POS] ?: 2,
             clockOpensAlarms = p[Keys.CLOCK_OPENS_ALARMS] ?: true,
             hideStatusBar = p[Keys.HIDE_STATUS_BAR] ?: false,
             showNotificationBadges = p[Keys.NOTIF_BADGES] ?: false,
             widgetsDir = wDir,
             quickLaunchDir = qDir,
             drawerDir = dDir,
-            appDrawerSize = p[Keys.APP_DRAWER_SIZE] ?: 18,
+            appDrawerSize = p[Keys.APP_DRAWER_SIZE] ?: 23,
             appDrawerAlign = p[Keys.APP_DRAWER_ALIGN] ?: 0,
             alphabetIndex = p[Keys.ALPHABET_INDEX] ?: true,
-            scrubberWidth = p[Keys.SCRUBBER_WIDTH] ?: 40,
+            scrubberWidth = p[Keys.SCRUBBER_WIDTH] ?: 49,
             searchBarBottom = p[Keys.SEARCH_BAR_BOTTOM] ?: false,
-            drawerTopSpace = p[Keys.DRAWER_TOP_SPACE] ?: 24,
+            drawerTopSpace = p[Keys.DRAWER_TOP_SPACE] ?: 152,
             drawerShowTitle = p[Keys.DRAWER_SHOW_TITLE] ?: true,
             drawerTitle = p[Keys.DRAWER_TITLE] ?: "",
             drawerShowUsage = p[Keys.DRAWER_SHOW_USAGE] ?: false,
             quickLaunchPackage = p[Keys.QUICK_LAUNCH_PKG],
             onboarded = p[Keys.ONBOARDED] ?: false,
+            pro = p[Keys.PRO] ?: false,
         )
     }
 
@@ -355,6 +389,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setDrawerTitle(v: String) = context.dataStore.edit { it[Keys.DRAWER_TITLE] = v.trim() }
     suspend fun setDrawerShowUsage(v: Boolean) = putBool(Keys.DRAWER_SHOW_USAGE, v)
     suspend fun setOnboarded(v: Boolean) = putBool(Keys.ONBOARDED, v)
+    suspend fun setPro(v: Boolean) = putBool(Keys.PRO, v)
     suspend fun setQuickLaunchPackage(pkg: String?) = context.dataStore.edit { p ->
         if (pkg == null) p.remove(Keys.QUICK_LAUNCH_PKG) else p[Keys.QUICK_LAUNCH_PKG] = pkg
     }
