@@ -175,6 +175,10 @@
     <string name="settings_backup_export_desc">Guardar todos los ajustes en un archivo</string>
     <string name="settings_backup_import">Importar ajustes</string>
     <string name="settings_backup_import_desc">Restaurar desde un archivo</string>
+    <string name="settings_pro_badge">PRO</string>
+    <string name="settings_pro_title">Foco Full</string>
+    <string name="settings_pro_body">Desbloqueá toda la personalización: gestos configurables, cajón de apps a medida, colores de acento, badges de notificaciones, ocultar la barra de estado y copia de seguridad. Las herramientas de foco son siempre gratis.</string>
+    <string name="settings_pro_cta">Desbloquear Foco Full</string>
     <string name="settings_set_default_launcher">Establecer como launcher por defecto</string>
     <string name="settings_default_launcher_set">✓ Foco ya es tu launcher por defecto</string>
     <string name="settings_size_value">%1$dsp</string>

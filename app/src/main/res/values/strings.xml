@@ -176,6 +176,10 @@
     <string name="settings_backup_export_desc">Save all settings to a file</string>
     <string name="settings_backup_import">Import settings</string>
     <string name="settings_backup_import_desc">Restore from a backup file</string>
+    <string name="settings_pro_badge">PRO</string>
+    <string name="settings_pro_title">Foco Full</string>
+    <string name="settings_pro_body">Unlock full customization: configurable gestures, a tailored app drawer, accent colors, notification badges, hiding the status bar, and backup &amp; restore. The focus tools are always free.</string>
+    <string name="settings_pro_cta">Unlock Foco Full</string>
     <string name="settings_set_default_launcher">Set as default launcher</string>
     <string name="settings_default_launcher_set">✓ Foco is your default launcher</string>
     <string name="settings_size_value">%1$dsp</string>
