@@ -40,33 +40,53 @@ class UsageStatsRepository(private val context: Context) {
         val now = System.currentTimeMillis()
         val startOfDay = startOfDayMillis(now)
 
-        val perApp = usm.queryAndAggregateUsageStats(startOfDay, now)
-            .mapValues { it.value.totalTimeInForeground }
-            .filterValues { it > 0L }
-
+        // Foreground time and unlocks are computed from the event stream clipped to today's window.
+        // queryAndAggregateUsageStats returns whole daily buckets whose totalTimeInForeground is not
+        // clipped to the requested range, so just after midnight it still reports the full previous
+        // session (hours of usage, phantom unlocks). Pairing RESUMED/PAUSED events and clamping an
+        // unmatched session to startOfDay keeps "today" honest right after the day rolls over.
+        val (perApp, unlocks) = todayStats(startOfDay, now)
         val total = perApp.values.sum()
 
         return UsageSnapshot(
             hasPermission = true,
             totalTodayMs = total,
-            unlocksToday = unlockCount(startOfDay, now),
+            unlocksToday = unlocks,
             perAppToday = perApp,
-            weekly = weekly(now),
+            weekly = weekly(now, todayTotalMs = total),
         )
     }
 
-    private fun unlockCount(start: Long, end: Long): Int {
-        var count = 0
+    /** Foreground ms per package and unlock count for [start, end], computed from UsageEvents. */
+    @Suppress("DEPRECATION") // MOVE_TO_* are API 21+; ACTIVITY_* equivalents are only API 29+.
+    private fun todayStats(start: Long, end: Long): Pair<Map<String, Long>, Int> {
+        val totals = HashMap<String, Long>()
+        val resumeAt = HashMap<String, Long>() // pkg -> timestamp it last entered the foreground
+        var unlocks = 0
         val events = usm.queryEvents(start, end)
         val e = UsageEvents.Event()
         while (events.hasNextEvent()) {
             events.getNextEvent(e)
-            if (e.eventType == UsageEvents.Event.KEYGUARD_HIDDEN) count++
+            val pkg = e.packageName ?: continue
+            when (e.eventType) {
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> resumeAt[pkg] = e.timeStamp
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    // No matching RESUMED means the app was already foregrounded before the window
+                    // (e.g. across midnight); count only from the window start.
+                    val from = resumeAt.remove(pkg) ?: start
+                    if (e.timeStamp > from) totals.merge(pkg, e.timeStamp - from, Long::plus)
+                }
+                UsageEvents.Event.KEYGUARD_HIDDEN -> unlocks++
+            }
         }
-        return count
+        // Whatever is still in the foreground at [end] counts up to now.
+        for ((pkg, from) in resumeAt) {
+            if (end > from) totals.merge(pkg, end - from, Long::plus)
+        }
+        return totals.filterValues { it > 0L } to unlocks
     }
 
-    private fun weekly(now: Long): List<DayUsage> {
+    private fun weekly(now: Long, todayTotalMs: Long): List<DayUsage> {
         val locale = Locale.getDefault()
         val out = ArrayList<DayUsage>(7)
         for (offset in 6 downTo 0) {
@@ -76,7 +96,9 @@ class UsageStatsRepository(private val context: Context) {
             }
             val dayStart = startOfDayMillis(cal.timeInMillis)
             val dayEnd = (dayStart + 24L * 60 * 60 * 1000).coerceAtMost(now)
-            val total = usm.queryAndAggregateUsageStats(dayStart, dayEnd)
+            // Today reuses the precise event-based total; past full days use the cheaper aggregate.
+            val total = if (offset == 0) todayTotalMs
+            else usm.queryAndAggregateUsageStats(dayStart, dayEnd)
                 .values.sumOf { it.totalTimeInForeground }
             // Localized short weekday name (e.g. "Mon" / "lun").
             val label = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale).orEmpty()

@@ -1,5 +1,5 @@
 <resources>
-    <string name="accessibility_description">Permite abrir el panel de notificaciones (deslizando hacia abajo) y bloquear la pantalla (doble toque) desde el inicio. No lee ni recopila contenido de la pantalla.</string>
+    <string name="accessibility_description">Permite abrir el panel de notificaciones (deslizando hacia abajo) y bloquear la pantalla (doble toque) desde el inicio, y hace cumplir tus bloqueos de foco cuando una app distractora se abre desde cualquier lugar. Solo detecta qué app está en primer plano — nunca el contenido de la pantalla.</string>
 
     <!-- Común -->
     <string name="common_cancel">Cancelar</string>
@@ -45,6 +45,9 @@
     <string name="settings_section_focus">Modo Foco</string>
     <string name="settings_focus_hint">Durante una sesión, las apps distractoras se grisan y no se pueden abrir. Fuera de sesión, una pantalla de fricción agrega una pausa.</string>
     <string name="settings_focus_show_home">Botón de foco rápido en el inicio</string>
+    <string name="settings_enforce_blocks">Bloquear en todo el sistema</string>
+    <string name="settings_enforce_blocks_grant">Activá el servicio de accesibilidad</string>
+    <string name="settings_enforce_blocks_hint">Necesario para bloquear apps abiertas fuera de Foco</string>
     <string name="settings_dnd_focus">No molestar durante el foco</string>
     <string name="settings_dnd_grant">Conceder acceso a No molestar</string>
     <string name="settings_strict_focus">Modo estricto (no se puede salir)</string>

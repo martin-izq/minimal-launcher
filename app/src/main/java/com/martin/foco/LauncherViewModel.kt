@@ -127,6 +127,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setShowFocusOnHome(v: Boolean) { viewModelScope.launch { settingsRepo.setShowFocusOnHome(v) } }
     fun setDndInFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setDndInFocus(v) } }
     fun setStrictFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setStrictFocus(v) } }
+    fun setEnforceBlocks(v: Boolean) { viewModelScope.launch { settingsRepo.setEnforceBlocks(v) } }
 
     /** Serializes settings + widgets to JSON (for backup export). */
     fun exportSettingsJson(): String =

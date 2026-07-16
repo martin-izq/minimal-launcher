@@ -34,6 +34,7 @@ data class LauncherSettings(
     val showFocusOnHome: Boolean = true, // quick focus chip on the home screen
     val dndInFocus: Boolean = true,     // turn on Do Not Disturb during focus
     val strictFocus: Boolean = false,   // once started with a fixed time, focus can't be exited early
+    val enforceBlocks: Boolean = true,  // enforce focus/limit/friction blocks system-wide (needs accessibility)
     val showClock: Boolean = true,
     val showDate: Boolean = true,
     val showBattery: Boolean = true,
@@ -66,7 +67,6 @@ data class LauncherSettings(
     val drawerTopSpace: Int = 152,     // extra space above the drawer content, in dp
     val drawerShowTitle: Boolean = true,
     val drawerTitle: String = "",      // blank → localized default "Apps"
-    val drawerShowUsage: Boolean = false,
     // Quick-launch app (swipe toward quickLaunchDir)
     val quickLaunchPackage: String? = null,
     // First-run onboarding completed?
@@ -106,7 +106,6 @@ fun LauncherSettings.gated(isPro: Boolean): LauncherSettings {
         drawerTopSpace = d.drawerTopSpace,
         drawerShowTitle = d.drawerShowTitle,
         drawerTitle = d.drawerTitle,
-        drawerShowUsage = d.drawerShowUsage,
     )
 }
 
@@ -124,6 +123,7 @@ class SettingsRepository(private val context: Context) {
         val SHOW_FOCUS_HOME = booleanPreferencesKey("show_focus_home")
         val DND_IN_FOCUS = booleanPreferencesKey("dnd_in_focus")
         val STRICT_FOCUS = booleanPreferencesKey("strict_focus")
+        val ENFORCE_BLOCKS = booleanPreferencesKey("enforce_blocks")
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -152,7 +152,6 @@ class SettingsRepository(private val context: Context) {
         val DRAWER_TOP_SPACE = intPreferencesKey("drawer_top_space")
         val DRAWER_SHOW_TITLE = booleanPreferencesKey("drawer_show_title")
         val DRAWER_TITLE = stringPreferencesKey("drawer_title")
-        val DRAWER_SHOW_USAGE = booleanPreferencesKey("drawer_show_usage")
         val QUICK_LAUNCH_PKG = stringPreferencesKey("quick_launch_pkg")
         val ONBOARDED = booleanPreferencesKey("onboarded")
         val PRO = booleanPreferencesKey("pro_unlocked")
@@ -201,6 +200,7 @@ class SettingsRepository(private val context: Context) {
             showFocusOnHome = p[Keys.SHOW_FOCUS_HOME] ?: true,
             dndInFocus = p[Keys.DND_IN_FOCUS] ?: true,
             strictFocus = p[Keys.STRICT_FOCUS] ?: false,
+            enforceBlocks = p[Keys.ENFORCE_BLOCKS] ?: true,
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
             showBattery = p[Keys.SHOW_BATTERY] ?: true,
@@ -228,7 +228,6 @@ class SettingsRepository(private val context: Context) {
             drawerTopSpace = p[Keys.DRAWER_TOP_SPACE] ?: 152,
             drawerShowTitle = p[Keys.DRAWER_SHOW_TITLE] ?: true,
             drawerTitle = p[Keys.DRAWER_TITLE] ?: "",
-            drawerShowUsage = p[Keys.DRAWER_SHOW_USAGE] ?: false,
             quickLaunchPackage = p[Keys.QUICK_LAUNCH_PKG],
             onboarded = p[Keys.ONBOARDED] ?: false,
             pro = p[Keys.PRO] ?: false,
@@ -296,6 +295,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun setShowFocusOnHome(v: Boolean) = putBool(Keys.SHOW_FOCUS_HOME, v)
     suspend fun setDndInFocus(v: Boolean) = putBool(Keys.DND_IN_FOCUS, v)
     suspend fun setStrictFocus(v: Boolean) = putBool(Keys.STRICT_FOCUS, v)
+    suspend fun setEnforceBlocks(v: Boolean) = putBool(Keys.ENFORCE_BLOCKS, v)
 
     /** Overwrites all preferences from an imported [LauncherSettings] (backup restore). */
     suspend fun importSettings(s: LauncherSettings) = context.dataStore.edit { p ->
@@ -308,6 +308,7 @@ class SettingsRepository(private val context: Context) {
         p[Keys.SHOW_FOCUS_HOME] = s.showFocusOnHome
         p[Keys.DND_IN_FOCUS] = s.dndInFocus
         p[Keys.STRICT_FOCUS] = s.strictFocus
+        p[Keys.ENFORCE_BLOCKS] = s.enforceBlocks
         p[Keys.MANUAL_FOCUS_UNTIL] = 0L   // don't restore transient focus state
         p[Keys.FOCUS_SKIP_UNTIL] = 0L
         p[Keys.SHOW_CLOCK] = s.showClock
@@ -337,7 +338,6 @@ class SettingsRepository(private val context: Context) {
         p[Keys.DRAWER_TOP_SPACE] = s.drawerTopSpace
         p[Keys.DRAWER_SHOW_TITLE] = s.drawerShowTitle
         p[Keys.DRAWER_TITLE] = s.drawerTitle
-        p[Keys.DRAWER_SHOW_USAGE] = s.drawerShowUsage
         p[Keys.ONBOARDED] = s.onboarded
         if (s.quickLaunchPackage != null) p[Keys.QUICK_LAUNCH_PKG] = s.quickLaunchPackage
         else p.remove(Keys.QUICK_LAUNCH_PKG)

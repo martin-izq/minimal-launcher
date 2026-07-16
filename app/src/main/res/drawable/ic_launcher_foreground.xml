@@ -4,36 +4,23 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Foco: a warm glowing light bulb — "the brand is the light". -->
-
-    <!-- Soft warm glow -->
-    <path android:pathData="M54,44 m-32,0 a32,32 0 1,1 64,0 a32,32 0 1,1 -64,0 Z">
+    <!-- Foco: a single point of warm light blooming out of OLED black.
+         "The brand is the light" — no object, just focus. -->
+    <path android:pathData="M54,54 m-53,0 a53,53 0 1,1 106,0 a53,53 0 1,1 -106,0 Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:type="radial"
                 android:centerX="54"
-                android:centerY="42"
-                android:gradientRadius="32"
-                android:startColor="#59D8A24A"
-                android:endColor="#00D8A24A" />
+                android:centerY="54"
+                android:gradientRadius="53">
+                <item android:offset="0.00" android:color="#FFFFF7E6" />
+                <item android:offset="0.05" android:color="#FFFDECC2" />
+                <item android:offset="0.13" android:color="#FFF4CE82" />
+                <item android:offset="0.26" android:color="#F2E0A94E" />
+                <item android:offset="0.45" android:color="#99CE8E34" />
+                <item android:offset="0.68" android:color="#33A66E22" />
+                <item android:offset="1.00" android:color="#00000000" />
+            </gradient>
         </aapt:attr>
     </path>
-
-    <!-- Glass -->
-    <path android:pathData="M54,42 m-21,0 a21,21 0 1,1 42,0 a21,21 0 1,1 -42,0 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:type="radial"
-                android:centerX="51"
-                android:centerY="36"
-                android:gradientRadius="25"
-                android:startColor="#FFF7E6B8"
-                android:endColor="#FFD69A3C" />
-        </aapt:attr>
-    </path>
-
-    <!-- Screw base / cap -->
-    <path
-        android:fillColor="#FFB8B2A6"
-        android:pathData="M46,62 h16 v11 a4,4 0 0 1 -4,4 h-8 a4,4 0 0 1 -4,-4 Z" />
 </vector>

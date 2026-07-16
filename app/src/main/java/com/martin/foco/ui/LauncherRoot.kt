@@ -28,6 +28,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.martin.foco.LauncherViewModel
 import com.martin.foco.data.AppInfo
+import com.martin.foco.data.BlockDecision
+import com.martin.foco.data.decideBlock
 import com.martin.foco.data.minuteOfDayLabel
 import com.martin.foco.data.LauncherSettings.Companion.DIR_LEFT
 import com.martin.foco.service.NotificationService
@@ -190,17 +192,22 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
     }
 
     val onAppClick: (AppInfo) -> Unit = { app ->
-        val limitMin = state.settings.appLimits[app.packageName]
+        // Same decision the system-wide guard uses (focus session → daily limit → friction).
         val usedMs = state.usage.perAppToday[app.packageName] ?: 0L
-        val distracting = app.packageName in state.settings.distracting
-        val inFocus = distracting && focusActiveNow
-        when {
-            // Focus session → firm block (takes priority; it's the hard block).
-            inFocus -> focusBlockApp = app
-            // Over the daily limit → soft block. Requires usage permission for perAppToday.
-            limitMin != null && usedMs >= limitMin * 60_000L -> overLimitApp = app
-            state.settings.frictionEnabled && distracting -> frictionApp = app
-            else -> vm.launch(app)
+        when (
+            decideBlock(
+                pkg = app.packageName,
+                settings = state.settings,
+                usedTodayMs = usedMs,
+                nowMs = System.currentTimeMillis(),
+                weekday = nowTick.dayOfWeek.value,
+                minuteOfDay = nowTick.hour * 60 + nowTick.minute,
+            )
+        ) {
+            BlockDecision.FocusBlock -> focusBlockApp = app
+            is BlockDecision.LimitReached -> overLimitApp = app
+            is BlockDecision.Friction -> frictionApp = app
+            BlockDecision.Allow -> vm.launch(app)
         }
     }
     val onAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app }
@@ -230,7 +237,6 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             state = state,
             onAppClick = onAppClick,
             onAppLongClick = onAppLongClick,
-            onOpenScreenTime = { overlay = Overlay.ScreenTime },
             // Swipe-down-to-home only makes sense when the drawer opens upward; otherwise the
             // horizontal pager handles going back.
             enableSwipeDownToHome = drawerDir == DIR_UP,

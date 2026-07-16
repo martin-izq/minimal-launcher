@@ -274,7 +274,6 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
                     )
                 }
-                ToggleRow(stringResource(R.string.settings_drawer_show_usage), s.drawerShowUsage, vm::setDrawerShowUsage, locked = lockPro)
                 ToggleRow(stringResource(R.string.settings_alphabet_index), s.alphabetIndex, vm::setAlphabetIndex, locked = lockPro)
                 if (s.alphabetIndex) {
                     DpSlider(stringResource(R.string.settings_scrubber_width), s.scrubberWidth, 24, 72, vm::setScrubberWidth, locked = lockPro)
@@ -289,6 +288,14 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 6.dp),
                 )
                 ToggleRow(stringResource(R.string.settings_focus_show_home), s.showFocusOnHome, vm::setShowFocusOnHome)
+                ToggleRow(stringResource(R.string.settings_enforce_blocks), s.enforceBlocks, vm::setEnforceBlocks)
+                if (s.enforceBlocks && !a11yActive) {
+                    ActionRow(
+                        title = stringResource(R.string.settings_enforce_blocks_grant),
+                        subtitle = stringResource(R.string.settings_enforce_blocks_hint),
+                        onClick = { openAccessibilitySettings(context) },
+                    )
+                }
                 ToggleRow(
                     stringResource(R.string.settings_dnd_focus),
                     s.dndInFocus,

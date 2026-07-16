@@ -53,6 +53,17 @@
             </intent-filter>
         </activity>
 
+        <!-- Pantalla de bloqueo mostrada sobre una app restringida (foco/límite/fricción).
+             En su propia tarea para poder cerrarse y volver a lo que estaba adelante. -->
+        <activity
+            android:name=".BlockActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Foco" />
+
         <!-- Notification listener (opcional): solo cuenta notificaciones para los badges -->
         <service
             android:name=".service.NotificationService"
@@ -64,7 +75,8 @@
             </intent-filter>
         </service>
 
-        <!-- Servicio de accesibilidad: solo para desplegar las notificaciones por gesto -->
+        <!-- Servicio de accesibilidad (opcional): gestos (notificaciones/bloqueo de pantalla) y
+             hacer cumplir los bloqueos de foco en todo el sistema. No lee contenido de pantalla. -->
         <service
             android:name=".service.NotificationAccessibilityService"
             android:exported="true"

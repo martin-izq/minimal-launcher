@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">Foco</string>
-    <string name="accessibility_description">Allows opening the notification panel (swipe down) and locking the screen (double tap) from home. It does not read or collect screen content.</string>
+    <string name="accessibility_description">Lets you open the notification panel (swipe down) and lock the screen (double tap) from home, and enforces your focus blocks when a distracting app opens from anywhere. It only reads which app is in the foreground — never the screen content.</string>
 
     <!-- Common -->
     <string name="common_cancel">Cancel</string>
@@ -46,6 +46,9 @@
     <string name="settings_section_focus">Focus mode</string>
     <string name="settings_focus_hint">During a session, distracting apps are greyed out and can\'t be opened. Outside sessions, a friction screen adds a pause.</string>
     <string name="settings_focus_show_home">Quick focus toggle on home</string>
+    <string name="settings_enforce_blocks">Block across the system</string>
+    <string name="settings_enforce_blocks_grant">Enable the accessibility service</string>
+    <string name="settings_enforce_blocks_hint">Needed to block apps opened from outside Foco</string>
     <string name="settings_dnd_focus">Do Not Disturb during focus</string>
     <string name="settings_dnd_grant">Grant Do Not Disturb access</string>
     <string name="settings_strict_focus">Strict mode (can\'t exit early)</string>

@@ -3,11 +3,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Themed-icon silhouette (the system tints it). -->
+    <!-- Themed-icon silhouette (the system tints it): a point of focus + halo. -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,42 m-21,0 a21,21 0 1,1 42,0 a21,21 0 1,1 -42,0 Z" />
+        android:pathData="M54,54 m-13,0 a13,13 0 1,1 26,0 a13,13 0 1,1 -26,0 Z" />
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,62 h16 v11 a4,4 0 0 1 -4,4 h-8 a4,4 0 0 1 -4,-4 Z" />
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:pathData="M54,54 m-27,0 a27,27 0 1,1 54,0 a27,27 0 1,1 -54,0 Z" />
 </vector>

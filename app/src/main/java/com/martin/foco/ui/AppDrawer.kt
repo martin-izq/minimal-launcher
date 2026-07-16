@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,18 +47,20 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.martin.foco.LauncherUiState
 import com.martin.foco.R
 import com.martin.foco.data.AppInfo
-import com.martin.foco.util.formatDuration
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
@@ -66,7 +69,6 @@ fun AppDrawer(
     state: LauncherUiState,
     onAppClick: (AppInfo) -> Unit,
     onAppLongClick: (AppInfo) -> Unit,
-    onOpenScreenTime: () -> Unit = {},
     enableSwipeDownToHome: Boolean = true,
     onSwipeDownToHome: () -> Unit = {},
     blockedPackages: Set<String> = emptySet(),
@@ -200,14 +202,13 @@ fun AppDrawer(
             .imePadding()
             .then(swipeDownModifier),
     ) {
-        // Header (title / usage) so the list starts lower and the top area is useful. Hidden while
-        // searching to give the results more room.
+        // Header (configurable title filling the top area) so the list starts lower and the top is
+        // useful. Hidden while searching to give the results more room.
         if (query.isBlank()) {
             DrawerHeader(
                 state = state,
                 headerAlign = headerAlign,
                 textAlign = textAlign,
-                onOpenScreenTime = onOpenScreenTime,
             )
         } else if (s.drawerTopSpace > 0) {
             Spacer(Modifier.height(s.drawerTopSpace.dp))
@@ -314,53 +315,70 @@ fun AppDrawer(
     }
 }
 
-/** Top area of the drawer: optional configurable title and today's usage summary. */
+/**
+ * Top area of the drawer: the configurable title, auto-sized to fill the whole configured top
+ * space. With no title, the empty space is preserved so the list still starts lower.
+ */
 @Composable
 private fun DrawerHeader(
     state: LauncherUiState,
     headerAlign: Alignment.Horizontal,
     textAlign: TextAlign,
-    onOpenScreenTime: () -> Unit,
 ) {
     val s = state.settings
-    if (s.drawerTopSpace > 0) Spacer(Modifier.height(s.drawerTopSpace.dp))
-    if (!s.drawerShowTitle && !s.drawerShowUsage) return
-
-    Column(
+    if (!s.drawerShowTitle) {
+        if (s.drawerTopSpace > 0) Spacer(Modifier.height(s.drawerTopSpace.dp))
+        return
+    }
+    val title = s.drawerTitle.ifBlank { stringResource(R.string.drawer_default_title) }
+    val boxAlign = when (headerAlign) {
+        Alignment.CenterHorizontally -> Alignment.Center
+        Alignment.End -> Alignment.CenterEnd
+        else -> Alignment.CenterStart
+    }
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 28.dp, vertical = 8.dp),
-        horizontalAlignment = headerAlign,
+            .height(s.drawerTopSpace.dp.coerceAtLeast(48.dp))
+            .padding(horizontal = 28.dp),
+        contentAlignment = boxAlign,
     ) {
-        if (s.drawerShowTitle) {
-            val title = s.drawerTitle.ifBlank { stringResource(R.string.drawer_default_title) }
-            Text(
-                title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = textAlign,
-            )
-        }
-        if (s.drawerShowUsage) {
-            val text = if (state.usage.hasPermission) {
-                stringResource(
-                    R.string.home_screentime_summary,
-                    formatDuration(state.usage.totalTodayMs),
-                    state.usage.unlocksToday,
+        AutoSizeTitle(title, textAlign)
+    }
+}
+
+/** A single-line title whose font size grows to fill the available box on both axes. */
+@Composable
+private fun AutoSizeTitle(text: String, textAlign: TextAlign) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val baseStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Light)
+    val color = MaterialTheme.colorScheme.onBackground
+    BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val maxWpx = with(density) { maxWidth.toPx() }
+        val maxHpx = with(density) { maxHeight.toPx() }
+        val fontSize = remember(text, maxWpx, maxHpx) {
+            // Largest single-line size (in sp) that fits both the width and the height of the box.
+            val cap = with(density) { (maxHpx * 0.72f).toSp().value }.coerceIn(16f, 96f)
+            var size = cap
+            while (size > 16f) {
+                val r = measurer.measure(
+                    text,
+                    style = baseStyle.copy(fontSize = size.sp),
+                    maxLines = 1,
+                    softWrap = false,
                 )
-            } else {
-                stringResource(R.string.home_screentime_enable)
+                if (r.size.width <= maxWpx && r.size.height <= maxHpx) break
+                size -= 2f
             }
-            Text(
-                text,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = textAlign,
-                modifier = Modifier
-                    .padding(top = 2.dp)
-                    .clickableText(onOpenScreenTime),
-            )
+            size.sp
         }
+        Text(
+            text,
+            style = baseStyle.copy(fontSize = fontSize, color = color),
+            maxLines = 1,
+            textAlign = textAlign,
+        )
     }
 }
 
