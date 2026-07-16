@@ -139,9 +139,13 @@ fun HomeScreen(
                 if (focusActive) {
                     drawRect(
                         brush = Brush.radialGradient(
-                            colors = listOf(FocusWarm.copy(alpha = 0.13f), Color.Transparent),
+                            colorStops = arrayOf(
+                                0f to FocusWarm.copy(alpha = 0.28f),
+                                0.45f to FocusWarm.copy(alpha = 0.12f),
+                                1f to Color.Transparent,
+                            ),
                             center = Offset(size.width / 2f, 0f),
-                            radius = size.height * 0.55f,
+                            radius = size.height * 0.62f,
                         )
                     )
                 }

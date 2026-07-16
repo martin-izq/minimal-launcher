@@ -63,7 +63,7 @@ Todos los textos visibles están en recursos: `res/values/strings.xml` (inglés,
 - `hidden` / `distracting`: conjuntos de package names
 - `renames`: `Map<String, String>` serializado como JSON (kotlinx.serialization); **solo aplica a favoritos**, el cajón muestra el nombre original
 - `appLimits`: `Map<String, Int>` (package → minutos/día) serializado como JSON; límite de tiempo diario por app
-- Booleanos: `showClock`, `showDate`, `showBattery`, `showScreenTimeHome`, `frictionEnabled`, `amoledDark`, `clockOpensAlarms`, `hideStatusBar`, `alphabetIndex`, `searchBarBottom`, `drawerShowTitle`, `drawerShowUsage`, `onboarded`
+- Booleanos: `showClock`, `showDate`, `showBattery`, `showScreenTimeHome`, `frictionEnabled`, `amoledDark`, `clockOpensAlarms`, `hideStatusBar`, `alphabetIndex`, `searchBarBottom`, `drawerShowTitle`, `onboarded`
 - Direcciones de gestos (permutación de `{0,1,2}` = izq/der/arriba): `widgetsDir`, `quickLaunchDir`, `drawerDir` (la clave legacy `widgets_on_left` se lee solo para migrar)
 - Ints (tamaños/alineación/espaciado): `clockSize`, `dateSize`, `favoritesSize`, `homeAlign`, `verticalPos`, `appDrawerSize`, `appDrawerAlign`, `scrubberWidth` (ancho táctil de la guía, dp), `drawerTopSpace` (espacio superior del cajón, dp)
 - `drawerTitle`: String (título del cajón; vacío → default localizado `drawer_default_title`)
@@ -75,6 +75,8 @@ Todos los textos visibles están en recursos: `res/values/strings.xml` (inglés,
 ### Permiso de uso (`PACKAGE_USAGE_STATS`)
 
 Este permiso **no se puede solicitar con un dialog estándar**; el usuario debe concederlo manualmente en *Ajustes → Privacidad → Aplicaciones con acceso de uso*. `UsageStatsRepository.hasPermission()` usa `AppOpsManager` para verificarlo. Toda la UI de tiempo de pantalla queda bloqueada detrás de este permiso.
+
+El uso de **hoy** (tiempo por app + desbloqueos) se calcula recorriendo el **stream de eventos** (`queryEvents`) y emparejando `MOVE_TO_FOREGROUND`/`MOVE_TO_BACKGROUND`, no con `queryAndAggregateUsageStats`: este último devuelve buckets diarios completos cuyo `totalTimeInForeground` **no está recortado** al rango pedido, así que recién pasada la medianoche seguía informando la sesión completa del día anterior (horas de uso y desbloqueos fantasma). Una sesión abierta antes del inicio de la ventana (cruza medianoche) se cuenta desde `startOfDay`. El gráfico semanal reusa ese total preciso para hoy y sigue usando el agregado (más barato) para los días completos pasados.
 
 ### Pantalla de fricción
 
@@ -94,7 +96,7 @@ Este permiso **no se puede solicitar con un dialog estándar**; el usuario debe 
 
 `NotificationAccessibilityService` (servicio de accesibilidad mínimo, activado por el usuario) habilita desplegar el panel de notificaciones (swipe hacia abajo en el inicio) y bloquear la pantalla (doble toque). Los gestos se detectan con `pointerInput` + `awaitEachGesture` en `HomeScreen` (swipe hacia abajo = notificaciones; el resto = acceso rápido si el gesto apunta a `quickLaunchDir`). **Importante:** el lado del acceso rápido no tiene página, así que el dedo se mueve en la dirección **opuesta** a la de revelar una página de ese lado — igual que el pager (una página a la izquierda se revela deslizando el dedo a la derecha), el acceso rápido a la derecha se dispara con dedo a la izquierda y viceversa. Si se invierte esta relación, el gesto de acceso rápido roba la dirección que el pager necesita para llegar a la página del lado opuesto y "se rompe" ese lado. Durante el swipe, el contenido del inicio acompaña el dedo (traslación amortiguada vía `graphicsLayer` + estado `Float`, eje según `quickLaunchDir`) y vuelve con un resorte al soltar. El cajón usa la fase `Initial` para volver al inicio con poca resistencia desde el tope sin robarle el gesto a la guía alfabética; ese volver-al-inicio por swipe solo se activa cuando el cajón está asignado "arriba" (`enableSwipeDownToHome`).
 
-La **guía alfabética** (`AlphabetScrubber` en `AppDrawer.kt`) tiene ancho táctil configurable (`scrubberWidth`), resalta la letra de la sección actual (derivada de `firstVisibleItemIndex`) y muestra una burbuja flotante con la letra mientras se arrastra. El **encabezado del cajón** (`DrawerHeader`) puede mostrar un título configurable y/o el resumen de uso del día, y agrega `drawerTopSpace` para que la lista empiece más abajo (se oculta al buscar).
+La **guía alfabética** (`AlphabetScrubber` en `AppDrawer.kt`) tiene ancho táctil configurable (`scrubberWidth`), resalta la letra de la sección actual (derivada de `firstVisibleItemIndex`) y muestra una burbuja flotante con la letra mientras se arrastra. El **encabezado del cajón** (`DrawerHeader`) muestra un título configurable (`drawerShowTitle`/`drawerTitle`) a tamaño fijo (`headlineMedium`): con suficiente `drawerTopSpace` el título se **centra verticalmente** en esa franja, y por debajo de un umbral (72dp) cae al layout previo (spacer superior + título pegado arriba de la lista). Sin título se conserva ese espacio vacío para que la lista empiece más abajo (se oculta al buscar).
 
 ### Badges de notificaciones
 

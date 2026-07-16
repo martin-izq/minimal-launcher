@@ -36,7 +36,10 @@ class NotificationAccessibilityService : AccessibilityService() {
 
     @Volatile private var settings: LauncherSettings? = null
     @Volatile private var usageToday: Map<String, Long> = emptyMap()
-    @Volatile private var lastForeground: String? = null
+    @Volatile private var currentApp: String? = null
+    // Whether a package is a real launchable app, cached — used to ignore IMEs, system UI and
+    // transient dialogs whose window-state events would otherwise look like app switches.
+    private val launchable = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -72,19 +75,28 @@ class NotificationAccessibilityService : AccessibilityService() {
 
     /** If [pkg] is one the user chose to restrict and it's currently blocked, show the block screen. */
     private fun guard(pkg: String) {
-        // The block screen is Foco itself: ignore it, and don't let it reset the foreground tracker
-        // (so "open anyway" returns to an app that still counts as the current foreground).
-        if (pkg == packageName) return
-        // Only act on a *fresh* open (foreground app changed), not on in-app navigation — otherwise
-        // we'd bounce the user mid-use after they chose to continue.
-        val fresh = pkg != lastForeground
-        lastForeground = pkg
+        // Our own UI. The block screen is transient (keep the tracker so "open anyway" returns to
+        // an app that still counts as current); the home screen means the user left the previous
+        // app, so reset the tracker — reopening the same app then counts as a fresh entry.
+        if (pkg == packageName) {
+            if (FocusGuard.showingFor == null) currentApp = pkg
+            return
+        }
+        // Ignore anything that isn't a launchable app (IME, system UI, transient dialogs). Their
+        // window-state events would otherwise masquerade as app switches and re-trigger blocks
+        // while the user is mid-use.
+        if (!isRealApp(pkg)) return
+        // Only act on a genuine app switch, not on in-app navigation within the same app.
+        val fresh = pkg != currentApp
+        currentApp = pkg
         if (!fresh) return
+        if (FocusGuard.showingFor != null) return    // a block is already on screen
+        // Skip once if Foco just launched this app (its own friction already ran) or the user just
+        // chose "open anyway".
+        if (FocusGuard.consumeGrace(pkg)) return
 
         val s = settings ?: return
         if (!s.enforceBlocks) return
-        if (FocusGuard.showingFor != null) return   // a block is already on screen
-        if (FocusGuard.isInGrace(pkg)) return        // user just chose "open anyway"
         // Cheap pre-check: only the apps the user actually configured can ever block.
         if (pkg !in s.distracting && !s.appLimits.containsKey(pkg)) return
 
@@ -107,6 +119,11 @@ class NotificationAccessibilityService : AccessibilityService() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }.onFailure { FocusGuard.showingFor = null }
+    }
+
+    /** True if [pkg] is a launchable app (has a launcher entry); cached. Filters IMEs / system UI. */
+    private fun isRealApp(pkg: String): Boolean = launchable.getOrPut(pkg) {
+        runCatching { packageManager.getLaunchIntentForPackage(pkg) != null }.getOrDefault(false)
     }
 
     /** The app's visible name, honoring the user's rename. */

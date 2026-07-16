@@ -161,7 +161,6 @@
     <string name="settings_drawer_top_space">Top space</string>
     <string name="settings_drawer_show_title">Show title</string>
     <string name="settings_drawer_title">Title</string>
-    <string name="settings_drawer_show_usage">Show usage summary</string>
     <string name="settings_alphabet_index">Alphabet scrubber</string>
     <string name="settings_scrubber_width">Scrubber touch width</string>
     <string name="settings_section_distractions">Reduce distractions</string>

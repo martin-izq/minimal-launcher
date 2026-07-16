@@ -74,14 +74,14 @@ class UsageStatsRepository(private val context: Context) {
                     // No matching RESUMED means the app was already foregrounded before the window
                     // (e.g. across midnight); count only from the window start.
                     val from = resumeAt.remove(pkg) ?: start
-                    if (e.timeStamp > from) totals.merge(pkg, e.timeStamp - from, Long::plus)
+                    if (e.timeStamp > from) totals.merge(pkg, e.timeStamp - from) { a, b -> a + b }
                 }
                 UsageEvents.Event.KEYGUARD_HIDDEN -> unlocks++
             }
         }
         // Whatever is still in the foreground at [end] counts up to now.
         for ((pkg, from) in resumeAt) {
-            if (end > from) totals.merge(pkg, end - from, Long::plus)
+            if (end > from) totals.merge(pkg, end - from) { a, b -> a + b }
         }
         return totals.filterValues { it > 0L } to unlocks
     }

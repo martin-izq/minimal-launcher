@@ -13,6 +13,7 @@ import com.martin.foco.data.UsageSnapshot
 import com.martin.foco.data.UsageStatsRepository
 import com.martin.foco.data.WidgetPlacement
 import com.martin.foco.data.WidgetsRepository
+import com.martin.foco.service.FocusGuard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,7 +110,12 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun hasUsagePermission(): Boolean = usageRepo.hasPermission()
 
     // --- Actions ---
-    fun launch(app: AppInfo) = appRepo.launch(app.packageName)
+    // Foco opened this app itself (past its own friction/limit decision), so tell the system-wide
+    // guard to skip its next block for it — otherwise the guard would show friction a second time.
+    fun launch(app: AppInfo) {
+        FocusGuard.grant(app.packageName)
+        appRepo.launch(app.packageName)
+    }
     fun openAlarms() = appRepo.openAlarms()
     fun openAppInfo(app: AppInfo) = appRepo.openAppInfo(app.packageName)
     fun uninstall(app: AppInfo) = appRepo.requestUninstall(app.packageName)
@@ -176,11 +182,13 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setDrawerTopSpace(v: Int) { viewModelScope.launch { settingsRepo.setDrawerTopSpace(v) } }
     fun setDrawerShowTitle(v: Boolean) { viewModelScope.launch { settingsRepo.setDrawerShowTitle(v) } }
     fun setDrawerTitle(v: String) { viewModelScope.launch { settingsRepo.setDrawerTitle(v) } }
-    fun setDrawerShowUsage(v: Boolean) { viewModelScope.launch { settingsRepo.setDrawerShowUsage(v) } }
     fun setQuickLaunchPackage(pkg: String?) { viewModelScope.launch { settingsRepo.setQuickLaunchPackage(pkg) } }
     fun setOnboarded(v: Boolean) { viewModelScope.launch { settingsRepo.setOnboarded(v) } }
     fun setPro(v: Boolean) { viewModelScope.launch { settingsRepo.setPro(v) } }
-    fun launchByPackage(pkg: String) = appRepo.launch(pkg)
+    fun launchByPackage(pkg: String) {
+        FocusGuard.grant(pkg)
+        appRepo.launch(pkg)
+    }
 
     // --- Widgets ---
     fun addWidget(placement: WidgetPlacement) { viewModelScope.launch { widgetsRepo.add(placement) } }

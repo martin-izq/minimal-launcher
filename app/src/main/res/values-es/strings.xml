@@ -160,7 +160,6 @@
     <string name="settings_drawer_top_space">Espacio superior</string>
     <string name="settings_drawer_show_title">Mostrar título</string>
     <string name="settings_drawer_title">Título</string>
-    <string name="settings_drawer_show_usage">Mostrar resumen de uso</string>
     <string name="settings_alphabet_index">Guía alfabética</string>
     <string name="settings_scrubber_width">Ancho táctil de la guía</string>
     <string name="settings_section_distractions">Reducir distracciones</string>

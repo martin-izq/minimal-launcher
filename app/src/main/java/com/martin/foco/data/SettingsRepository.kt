@@ -387,7 +387,6 @@ class SettingsRepository(private val context: Context) {
     suspend fun setDrawerTopSpace(v: Int) = context.dataStore.edit { it[Keys.DRAWER_TOP_SPACE] = v }
     suspend fun setDrawerShowTitle(v: Boolean) = putBool(Keys.DRAWER_SHOW_TITLE, v)
     suspend fun setDrawerTitle(v: String) = context.dataStore.edit { it[Keys.DRAWER_TITLE] = v.trim() }
-    suspend fun setDrawerShowUsage(v: Boolean) = putBool(Keys.DRAWER_SHOW_USAGE, v)
     suspend fun setOnboarded(v: Boolean) = putBool(Keys.ONBOARDED, v)
     suspend fun setPro(v: Boolean) = putBool(Keys.PRO, v)
     suspend fun setQuickLaunchPackage(pkg: String?) = context.dataStore.edit { p ->
