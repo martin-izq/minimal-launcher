@@ -24,9 +24,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+/** Everything a backup carries: preferences + placed widgets (entitlement is @Transient, never exported). */
+@Serializable
+data class BackupData(
+    val settings: LauncherSettings = LauncherSettings(),
+    val widgets: List<WidgetPlacement> = emptyList(),
+)
 
 data class LauncherUiState(
     val settings: LauncherSettings = LauncherSettings(),
@@ -120,13 +128,25 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setDndInFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setDndInFocus(v) } }
     fun setStrictFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setStrictFocus(v) } }
 
-    /** Serializes all current settings to JSON (for backup export). */
-    fun exportSettingsJson(): String = Json.encodeToString(uiState.value.settings)
+    /** Serializes settings + widgets to JSON (for backup export). */
+    fun exportSettingsJson(): String =
+        Json.encodeToString(BackupData(uiState.value.settings, uiState.value.widgets))
 
-    /** Restores settings from a backup JSON. Returns false if it couldn't be parsed. */
+    /**
+     * Restores a backup JSON. Accepts the new combined format ({settings, widgets}) and, for
+     * backward compatibility, an older bare-settings backup (which leaves widgets untouched).
+     * Returns false if it couldn't be parsed.
+     */
     fun importSettings(json: String): Boolean {
-        val s = runCatching { Json.decodeFromString<LauncherSettings>(json) }.getOrNull() ?: return false
-        viewModelScope.launch { settingsRepo.importSettings(s) }
+        runCatching { Json.decodeFromString<BackupData>(json) }.getOrNull()?.let { backup ->
+            viewModelScope.launch {
+                settingsRepo.importSettings(backup.settings)
+                widgetsRepo.replaceAll(backup.widgets)
+            }
+            return true
+        }
+        val legacy = runCatching { Json.decodeFromString<LauncherSettings>(json) }.getOrNull() ?: return false
+        viewModelScope.launch { settingsRepo.importSettings(legacy) }
         return true
     }
 

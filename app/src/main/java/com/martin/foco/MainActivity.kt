@@ -9,8 +9,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.core.view.WindowCompat
 import com.martin.foco.ui.LauncherRoot
 import com.martin.foco.ui.theme.MinimalLauncherTheme
 import com.martin.foco.ui.widgets.LocalWidgetController
@@ -40,6 +42,15 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val state by vm.uiState.collectAsState()
+            // Status/nav bar icon color must follow the app's own theme (not the system's), since
+            // the launcher has its own light/dark toggle. Light theme → dark icons, and vice versa.
+            val darkTheme = state.settings.amoledDark
+            LaunchedEffect(darkTheme) {
+                WindowCompat.getInsetsController(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !darkTheme
+                    isAppearanceLightNavigationBars = !darkTheme
+                }
+            }
             MinimalLauncherTheme(amoledDark = state.settings.amoledDark, accent = state.settings.accentColor) {
                 CompositionLocalProvider(LocalWidgetController provides widgetController) {
                     LauncherRoot(vm = vm)

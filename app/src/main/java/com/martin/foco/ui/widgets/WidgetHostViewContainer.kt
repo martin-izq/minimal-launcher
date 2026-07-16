@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.SizeF
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.AdapterViewFlipper
 import android.widget.FrameLayout
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlin.math.abs
 
 /**
  * Container that, on touch, asks its parent (Compose's scroll) not to intercept the
@@ -35,12 +37,37 @@ private class WidgetFrame(context: Context) : FrameLayout(context) {
     // Only yield the gesture to the widget if its content scrolls; otherwise let the
     // widgets page scroll normally.
     private var widgetScrollable = false
+    private var downX = 0f
+    private var downY = 0f
+    private var decided = false
+    private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
 
+    // A scrolling widget should only own gestures along ITS scroll axis (vertical). Horizontal
+    // drags must still reach the Compose pager so the user can swipe between screens over the
+    // widget — so decide per-gesture from the drag direction instead of grabbing everything on DOWN.
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        if (grabTouches && ev?.actionMasked == MotionEvent.ACTION_DOWN) {
-            widgetScrollable = getChildAt(0)?.let { hasScrollableContent(it) } ?: false
+        ev ?: return false
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                downX = ev.x
+                downY = ev.y
+                decided = false
+                widgetScrollable = grabTouches && (getChildAt(0)?.let { hasScrollableContent(it) } ?: false)
+                // Let ancestors decide until we know the direction.
+                parent?.requestDisallowInterceptTouchEvent(false)
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (widgetScrollable && !decided) {
+                    val dx = abs(ev.x - downX)
+                    val dy = abs(ev.y - downY)
+                    if (dx > touchSlop || dy > touchSlop) {
+                        decided = true
+                        // Vertical → the widget keeps it; horizontal → hand it to the pager.
+                        parent?.requestDisallowInterceptTouchEvent(dy >= dx)
+                    }
+                }
+            }
         }
-        if (grabTouches && widgetScrollable) parent?.requestDisallowInterceptTouchEvent(true)
         return false
     }
 }

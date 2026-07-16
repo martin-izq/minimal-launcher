@@ -34,6 +34,11 @@ class WidgetsRepository(private val context: Context) {
         prefs.decodeWidgets()
     }
 
+    /** Overwrites the whole widget list (used by backup restore). */
+    suspend fun replaceAll(list: List<WidgetPlacement>) = context.widgetsDataStore.edit { prefs ->
+        prefs.store(list)
+    }
+
     suspend fun add(placement: WidgetPlacement) = context.widgetsDataStore.edit { prefs ->
         val list = prefs.decodeWidgets()
             .filter { it.appWidgetId != placement.appWidgetId } + placement
