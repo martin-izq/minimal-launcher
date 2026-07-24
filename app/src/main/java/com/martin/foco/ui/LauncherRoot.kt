@@ -38,6 +38,7 @@ import com.martin.foco.util.setDnd
 import com.martin.foco.data.LauncherSettings.Companion.DIR_RIGHT
 import com.martin.foco.data.LauncherSettings.Companion.DIR_UP
 import com.martin.foco.ui.widgets.LocalWidgetController
+import com.martin.foco.ui.widgets.WidgetPicker
 import com.martin.foco.ui.widgets.WidgetScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -114,6 +115,9 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
 
     var overlay by remember { mutableStateOf(Overlay.None) }
     var optionsApp by remember { mutableStateOf<AppInfo?>(null) }
+    // Whether the current options menu was opened from the app drawer (hides home-only actions).
+    var optionsFromDrawer by remember { mutableStateOf(false) }
+    var showWidgetPicker by remember { mutableStateOf(false) }
     var renameApp by remember { mutableStateOf<AppInfo?>(null) }
     var frictionApp by remember { mutableStateOf<AppInfo?>(null) }
     var limitApp by remember { mutableStateOf<AppInfo?>(null) }
@@ -210,7 +214,8 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             BlockDecision.Allow -> vm.launch(app)
         }
     }
-    val onAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app }
+    val onAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app; optionsFromDrawer = false }
+    val onDrawerAppLongClick: (AppInfo) -> Unit = { app -> optionsApp = app; optionsFromDrawer = true }
 
     // Quick-launch: route through onAppClick so it respects limits and focus blocks.
     val onQuickLaunch: (() -> Unit)? = quickLaunchPackage?.let { pkg ->
@@ -230,13 +235,14 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             },
             onResizeWidget = { id, heightDp -> vm.setWidgetHeight(id, heightDp) },
             onMoveWidget = { id, up -> vm.moveWidget(id, up) },
+            onAddWidget = { showWidgetPicker = true },
         )
     }
     val renderDrawer: @Composable () -> Unit = {
         AppDrawer(
             state = state,
             onAppClick = onAppClick,
-            onAppLongClick = onAppLongClick,
+            onAppLongClick = onDrawerAppLongClick,
             // Swipe-down-to-home only makes sense when the drawer opens upward; otherwise the
             // horizontal pager handles going back.
             enableSwipeDownToHome = drawerDir == DIR_UP,
@@ -314,6 +320,12 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             }
         }
 
+        // Full-screen widget picker (hoisted here so it overlays the pager instead of bleeding
+        // across pages when rendered inside a page).
+        if (showWidgetPicker && widgetController != null) {
+            WidgetPicker(controller = widgetController, onDismiss = { showWidgetPicker = false })
+        }
+
         // Long-press app menu
         optionsApp?.let { app ->
             AppOptionsSheet(
@@ -329,6 +341,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
                 onUninstall = { vm.uninstall(app) },
                 onMoveUp = { vm.moveFavorite(app, up = true) },
                 onMoveDown = { vm.moveFavorite(app, up = false) },
+                showHomeOptions = !optionsFromDrawer,
             )
         }
 
@@ -347,6 +360,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             FrictionDialog(
                 appLabel = app.displayLabel(state.settings.renames),
                 usedTodayMs = state.usage.perAppToday[app.packageName] ?: 0L,
+                totalTodayMs = state.usage.totalTodayMs,
                 seconds = state.settings.frictionSeconds,
                 onProceed = { vm.launch(app); frictionApp = null },
                 onDismiss = { frictionApp = null },
@@ -363,14 +377,12 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
             )
         }
 
-        // Daily limit reached → soft block
+        // Daily limit reached → firm block (no way back into the app until tomorrow)
         overLimitApp?.let { app ->
             LimitReachedDialog(
                 appLabel = app.displayLabel(state.settings.renames),
                 usedTodayMs = state.usage.perAppToday[app.packageName] ?: 0L,
                 limitMinutes = state.settings.appLimits[app.packageName] ?: 0,
-                seconds = state.settings.frictionSeconds,
-                onProceed = { vm.launch(app); overLimitApp = null },
                 onDismiss = { overLimitApp = null },
             )
         }
@@ -385,7 +397,7 @@ fun LauncherRoot(vm: LauncherViewModel = viewModel()) {
 
         // Quick focus control (start manual focus / resume / exit current focus)
         if (showFocusControl) {
-            FocusControlSheet(
+            FocusControlScreen(
                 active = focusActiveNow,
                 locked = focusLocked,
                 allowIndefinite = !state.settings.strictFocus,

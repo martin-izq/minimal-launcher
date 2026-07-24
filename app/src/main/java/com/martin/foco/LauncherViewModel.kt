@@ -113,7 +113,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     // Foco opened this app itself (past its own friction/limit decision), so tell the system-wide
     // guard to skip its next block for it — otherwise the guard would show friction a second time.
     fun launch(app: AppInfo) {
-        FocusGuard.grant(app.packageName)
+        FocusGuard.grantBridge(app.packageName)
         appRepo.launch(app.packageName)
     }
     fun openAlarms() = appRepo.openAlarms()
@@ -134,6 +134,8 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setDndInFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setDndInFocus(v) } }
     fun setStrictFocus(v: Boolean) { viewModelScope.launch { settingsRepo.setStrictFocus(v) } }
     fun setEnforceBlocks(v: Boolean) { viewModelScope.launch { settingsRepo.setEnforceBlocks(v) } }
+    fun setSessionIdleMinutes(v: Int) { viewModelScope.launch { settingsRepo.setSessionIdleMinutes(v) } }
+    fun setLimitWarnMinutes(v: Int) { viewModelScope.launch { settingsRepo.setLimitWarnMinutes(v) } }
 
     /** Serializes settings + widgets to JSON (for backup export). */
     fun exportSettingsJson(): String =
@@ -186,7 +188,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     fun setOnboarded(v: Boolean) { viewModelScope.launch { settingsRepo.setOnboarded(v) } }
     fun setPro(v: Boolean) { viewModelScope.launch { settingsRepo.setPro(v) } }
     fun launchByPackage(pkg: String) {
-        FocusGuard.grant(pkg)
+        FocusGuard.grantBridge(pkg)
         appRepo.launch(pkg)
     }
 

@@ -11,6 +11,7 @@
     <string name="common_edit">Edit</string>
 
     <!-- App options sheet -->
+    <string name="app_options_kicker">App</string>
     <string name="app_options_add_favorite">Add to favorites</string>
     <string name="app_options_remove_favorite">Remove from favorites</string>
     <string name="app_options_move_up">Move up ↑</string>
@@ -28,27 +29,60 @@
     <string name="rename_title">Rename</string>
     <string name="rename_label">Visible name</string>
 
-    <!-- Friction dialog -->
-    <string name="friction_title">Open %1$s for sure?</string>
+    <!-- Block screens (friction / limit / focus) -->
+    <string name="friction_kicker">Mindful pause</string>
     <string name="friction_used_today">You\'ve spent %1$s in this app today.</string>
-    <string name="friction_breathe">Take a breath. Do you really need it right now?</string>
-    <string name="friction_open_countdown">Open (%1$d)</string>
+    <string name="friction_share_today">That\'s %1$d%% of your screen time today.</string>
     <string name="friction_open_anyway">Open anyway</string>
+    <string name="block_not_now">Not now</string>
+
+    <!-- Friction prompts: one is picked at random per pause, from the set matching how long the
+         app has been used today (calm at first, blunter as the time adds up). -->
+    <string-array name="friction_lines_calm">
+        <item>Take a breath. Do you really need it right now?</item>
+        <item>What were you about to do before you picked up the phone?</item>
+        <item>Are you looking for something, or just something?</item>
+        <item>The urge passes on its own in a minute.</item>
+        <item>Nothing wrong with going in. But you don\'t have to.</item>
+        <item>Did you choose this, or did your thumb?</item>
+    </string-array>
+    <string-array name="friction_lines_mid">
+        <item>You\'ve been here already today. Did you find what you came for?</item>
+        <item>How many more times today?</item>
+        <item>You can come back later. It\'ll still be there.</item>
+        <item>This is time you don\'t get back.</item>
+        <item>What if you let this one go?</item>
+    </string-array>
+    <string-array name="friction_lines_direct">
+        <item>There\'s nothing new.</item>
+        <item>This isn\'t a decision. It\'s a reflex.</item>
+        <item>You\'ve given it enough today.</item>
+        <item>Nothing in there is waiting for you.</item>
+        <item>You know how this ends.</item>
+        <item>Really? Again?</item>
+    </string-array>
 
     <!-- Time limit / Focus -->
     <string name="limit_dialog_title">Daily limit — %1$s</string>
     <string name="limit_off">No limit</string>
-    <string name="limit_minutes">%1$d min</string>
-    <string name="limit_reached_title">Limit reached — %1$s</string>
+    <string name="limit_kicker">Daily limit</string>
     <string name="limit_reached_body">You\'ve used %1$s of your %2$d min limit today.</string>
-    <string name="limit_reached_hint">Maybe leave it for now?</string>
+    <string name="limit_reached_hint">That\'s it for today — it unlocks again tomorrow.</string>
     <string name="limit_reached_back">Back</string>
+    <string name="limit_warn_body">You\'re close to today\'s limit here. When it runs out, this app is done for the day.</string>
+    <string name="limit_warn_leave">Leave now</string>
+    <string name="limit_warn_continue">Keep using it</string>
     <string name="settings_section_focus">Focus mode</string>
     <string name="settings_focus_hint">During a session, distracting apps are greyed out and can\'t be opened. Outside sessions, a friction screen adds a pause.</string>
     <string name="settings_focus_show_home">Quick focus toggle on home</string>
     <string name="settings_enforce_blocks">Block across the system</string>
     <string name="settings_enforce_blocks_grant">Enable the accessibility service</string>
     <string name="settings_enforce_blocks_hint">Needed to block apps opened from outside Foco</string>
+    <string name="settings_session_idle">Same-visit window</string>
+    <string name="settings_session_idle_hint">After you get past friction, following a link and coming back within this time still counts as the same visit — it won\'t friction again.</string>
+    <string name="settings_limit_warn">Heads-up before a limit ends</string>
+    <string name="settings_limit_warn_hint">A daily limit also cuts an app you\'re already using. This warns you shortly before, so you can wrap up.</string>
+    <string name="settings_limit_warn_off">Off</string>
     <string name="settings_dnd_focus">Do Not Disturb during focus</string>
     <string name="settings_dnd_grant">Grant Do Not Disturb access</string>
     <string name="settings_strict_focus">Strict mode (can\'t exit early)</string>
@@ -61,8 +95,9 @@
     <string name="focus_start">Start</string>
     <string name="focus_end">End</string>
     <string name="focus_invalid">End must be after start, and pick at least one day.</string>
-    <string name="focus_block_title">In focus — %1$s</string>
+    <string name="focus_kicker">In focus</string>
     <string name="focus_block_body">This app is paused intentionally during your focus session.</string>
+    <string name="focus_control_kicker">Focus</string>
     <string name="focus_control_start">Start focus</string>
     <string name="focus_control_active">Focus</string>
     <string name="focus_control_exit_q">Exit focus now?</string>
@@ -75,6 +110,8 @@
     <string name="focus_dur_until_off">Until I turn it off</string>
     <string name="focus_resume_scheduled">Resume scheduled focus</string>
     <string name="focus_locked_msg">In focus until %1$s. You can\'t exit until it ends.</string>
+    <string name="focus_min_label">min</string>
+    <string name="focus_keep">Keep focusing</string>
 
     <!-- Home -->
     <string name="home_battery">Battery %1$d%%</string>
@@ -95,20 +132,42 @@
     <string name="drawer_search_play">Search Play Store for “%1$s”</string>
     <string name="drawer_default_title">Apps</string>
 
-    <!-- Onboarding -->
-    <string name="onboarding_welcome_title">Welcome to Foco</string>
-    <string name="onboarding_welcome_body">A launcher to use your phone with intention. No noise, no distractions.</string>
-    <string name="onboarding_default_title">Make it your launcher</string>
-    <string name="onboarding_default_body">For Foco to be your home screen, set it as the default launcher.</string>
-    <string name="onboarding_perms_title">Optional permissions</string>
-    <string name="onboarding_perms_body">Foco works without these. Enable them only if you want these features.</string>
+    <!-- Onboarding — a narrated tour: welcome, set default, gestures, focus, permissions -->
+    <string name="onboarding_p1_kicker">Foco</string>
+    <string name="onboarding_p1_title">Your phone, quiet.</string>
+    <string name="onboarding_p1_body">A home screen that gets out of your way, so your attention goes where you want it.</string>
+    <string name="onboarding_p2_kicker">Start</string>
+    <string name="onboarding_p2_title">A blank home.</string>
+    <string name="onboarding_p2_body">Just text. No icons shouting for a tap, no grid to fill. Set Foco as your launcher to begin.</string>
+    <string name="onboarding_p3_kicker">Gestures</string>
+    <string name="onboarding_p3_title">Everything is a swipe.</string>
+    <string name="onboarding_p3_body">Swipe and your apps, your widgets or a quick app appear. You choose which way each one lives.</string>
+    <string name="onboarding_p4_kicker">Widgets</string>
+    <string name="onboarding_p4_title">Just what you need.</string>
+    <string name="onboarding_p4_body">Add the widgets you actually use — weather, your calendar, music — and size them exactly. No filler, no clutter.</string>
+    <string name="onboarding_p5_kicker">Focus mode</string>
+    <string name="onboarding_p5_title">When you want to concentrate.</string>
+    <string name="onboarding_p5_body">Pick the apps that pull you away and Foco slows them down before they open — or closes them off entirely — across your whole phone, not just here. A quick timer when you need it, or sessions that arm themselves on your schedule.</string>
+    <string name="onboarding_friction_kicker">Friction</string>
+    <string name="onboarding_friction_title">A beat before you open.</string>
+    <string name="onboarding_friction_body">When you reach for an app that pulls you away, Foco puts a short pause — with a countdown — in front of it before letting you in. Just long enough to ask whether you really need it right now. It doesn\'t block; it turns a reflex into a choice.</string>
+    <string name="onboarding_limits_kicker">Daily limits</string>
+    <string name="onboarding_limits_title">A ceiling for each app.</string>
+    <string name="onboarding_limits_body">Give an app a number of minutes a day. When the time is spent, Foco pauses it for the rest of the day — a gentle stop, not a hard lockout. Great for the apps you want to keep, just less.</string>
+    <string name="onboarding_strict_kicker">Strict mode</string>
+    <string name="onboarding_strict_title">No escape hatch.</string>
+    <string name="onboarding_strict_body">For a focus session with a set end, strict mode hides the way out until the timer runs down — so a moment of weakness can\'t undo the plan you made in a clearer one.</string>
+    <string name="onboarding_dnd_kicker">Do Not Disturb</string>
+    <string name="onboarding_dnd_title">Silence, while it lasts.</string>
+    <string name="onboarding_dnd_body">Foco can switch on Do Not Disturb the instant focus begins and lift it the instant it ends — no buzzes or banners competing for the attention you just set aside.</string>
+    <string name="onboarding_p6_kicker">Almost there</string>
+    <string name="onboarding_p6_title">To make it real.</string>
+    <string name="onboarding_p6_body">Two optional permissions turn on screen time and the real, phone-wide blocking. Your call — Foco works fine without them.</string>
     <string name="onboarding_perm_usage">Screen Time</string>
     <string name="onboarding_perm_usage_body">See your usage time and set limits.</string>
     <string name="onboarding_perm_a11y">Notifications &amp; lock gesture</string>
     <string name="onboarding_perm_a11y_body">Pull down notifications and lock the screen from home.</string>
     <string name="onboarding_enable">Enable</string>
-    <string name="onboarding_tips_title">How to use Foco</string>
-    <string name="onboarding_tip_drawer">Swipe toward the drawer to see all your apps.</string>
     <string name="onboarding_tip_longpress_app">Long-press an app for favorites, rename or hide.</string>
     <string name="onboarding_tip_settings">Long-press the home screen to open Settings.</string>
     <string name="onboarding_next">Next</string>
@@ -198,10 +257,15 @@
 
     <!-- Widgets -->
     <string name="widgets_title">Widgets</string>
-    <string name="widgets_none">You haven\'t added any widgets yet.</string>
-    <string name="widgets_add">+ Add widget</string>
+    <string name="widgets_none">You haven\'t added any widgets yet.\nLong-press anywhere to add one.</string>
+    <string name="widgets_add">Add widget</string>
+    <string name="widgets_edit">Edit widgets</string>
     <string name="widgets_remove_title">Remove widget?</string>
-    <string name="widgets_resize_hint">⬍ drag to resize height</string>
+    <string name="widgets_resize_hint">Drag the bar for height · long-press a widget to move or remove it</string>
+    <string name="settings_quick_kicker">Quick launch</string>
+    <string name="widget_picker_kicker">Widget</string>
     <string name="widget_picker_title">Choose a widget</string>
     <string name="widget_picker_empty">No widgets available.</string>
+    <string name="widget_picker_loading">Loading widgets…</string>
+    <string name="widget_picker_search_hint">Search</string>
 </resources>

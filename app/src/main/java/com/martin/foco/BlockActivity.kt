@@ -12,9 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import com.martin.foco.data.BlockDecision
 import com.martin.foco.service.FocusGuard
+import com.martin.foco.service.NotificationAccessibilityService
 import com.martin.foco.ui.FocusBlockDialog
 import com.martin.foco.ui.FrictionDialog
 import com.martin.foco.ui.LimitReachedDialog
+import com.martin.foco.ui.LimitWarningDialog
 import com.martin.foco.ui.theme.MinimalLauncherTheme
 
 /**
@@ -37,6 +39,7 @@ class BlockActivity : ComponentActivity() {
         val label = intent.getStringExtra(EXTRA_LABEL) ?: pkg
         val type = intent.getIntExtra(EXTRA_TYPE, TYPE_FRICTION)
         val used = intent.getLongExtra(EXTRA_USED, 0L)
+        val total = intent.getLongExtra(EXTRA_TOTAL, 0L)
         val limit = intent.getIntExtra(EXTRA_LIMIT, 0)
         val seconds = intent.getIntExtra(EXTRA_SECONDS, 10)
         val amoled = intent.getBooleanExtra(EXTRA_AMOLED, true)
@@ -47,17 +50,24 @@ class BlockActivity : ComponentActivity() {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                     when (type) {
                         TYPE_FOCUS -> FocusBlockDialog(appLabel = label, onDismiss = { goHome() })
+                        TYPE_WARNING -> LimitWarningDialog(
+                            appLabel = label,
+                            remainingMinutes = intent.getIntExtra(EXTRA_REMAINING, 1),
+                            // Going back in is a legitimate continue: bridge it so the guard doesn't
+                            // read the return as a fresh open and friction-pause it.
+                            onContinue = { openAnyway(pkg) },
+                            onLeave = { goHome() },
+                        )
                         TYPE_LIMIT -> LimitReachedDialog(
                             appLabel = label,
                             usedTodayMs = used,
                             limitMinutes = limit,
-                            seconds = seconds,
-                            onProceed = { openAnyway(pkg) },
                             onDismiss = { goHome() },
                         )
                         else -> FrictionDialog(
                             appLabel = label,
                             usedTodayMs = used,
+                            totalTodayMs = total,
                             seconds = seconds,
                             onProceed = { openAnyway(pkg) },
                             onDismiss = { goHome() },
@@ -68,9 +78,9 @@ class BlockActivity : ComponentActivity() {
         }
     }
 
-    /** Let the user into the app they chose, without an immediate re-block. */
+    /** Let the user into the app they chose — a one-shot bridge so the guard doesn't re-block the open. */
     private fun openAnyway(pkg: String) {
-        FocusGuard.grant(pkg, GRACE_MS)
+        FocusGuard.grantBridge(pkg)
         finish()
     }
 
@@ -86,9 +96,20 @@ class BlockActivity : ComponentActivity() {
         finish()
     }
 
+    override fun onStop() {
+        super.onStop()
+        // The user left the block by navigating away (recents / app switch / home) rather than
+        // proceeding or dismissing. Don't let it linger behind the app: close it so it can't be
+        // bypassed by switching back to the blocked app. onDestroy re-arms the guard.
+        if (!isFinishing) finish()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         FocusGuard.showingFor = null
+        // Whichever way the block closed, re-arm the switch tracker so re-entering the app is
+        // re-evaluated (and re-blocked unless the user earned a grace via "open anyway").
+        NotificationAccessibilityService.rearmTracker()
     }
 
     companion object {
@@ -96,7 +117,9 @@ class BlockActivity : ComponentActivity() {
         private const val EXTRA_LABEL = "label"
         private const val EXTRA_TYPE = "type"
         private const val EXTRA_USED = "used"
+        private const val EXTRA_TOTAL = "total"
         private const val EXTRA_LIMIT = "limit"
+        private const val EXTRA_REMAINING = "remaining"
         private const val EXTRA_SECONDS = "seconds"
         private const val EXTRA_AMOLED = "amoled"
         private const val EXTRA_ACCENT = "accent"
@@ -104,9 +127,26 @@ class BlockActivity : ComponentActivity() {
         private const val TYPE_FOCUS = 0
         private const val TYPE_LIMIT = 1
         private const val TYPE_FRICTION = 2
+        private const val TYPE_WARNING = 3
 
-        // Short grace so the finish()→app-foreground transition doesn't re-trigger a block.
-        private const val GRACE_MS = 3_000L
+        /**
+         * The heads-up shown [remainingMinutes] before a daily limit runs out. Not a [BlockDecision]:
+         * nothing is being blocked yet, the app stays open behind it.
+         */
+        fun warningIntent(
+            context: Context,
+            pkg: String,
+            label: String,
+            remainingMinutes: Int,
+            amoled: Boolean,
+            accent: Int,
+        ): Intent = Intent(context, BlockActivity::class.java)
+            .putExtra(EXTRA_PKG, pkg)
+            .putExtra(EXTRA_LABEL, label)
+            .putExtra(EXTRA_TYPE, TYPE_WARNING)
+            .putExtra(EXTRA_REMAINING, remainingMinutes)
+            .putExtra(EXTRA_AMOLED, amoled)
+            .putExtra(EXTRA_ACCENT, accent)
 
         fun intent(
             context: Context,
@@ -116,6 +156,7 @@ class BlockActivity : ComponentActivity() {
             seconds: Int,
             amoled: Boolean,
             accent: Int,
+            totalTodayMs: Long = 0L,
         ): Intent {
             val (type, used, limit) = when (decision) {
                 BlockDecision.FocusBlock -> Triple(TYPE_FOCUS, 0L, 0)
@@ -128,6 +169,7 @@ class BlockActivity : ComponentActivity() {
                 .putExtra(EXTRA_LABEL, label)
                 .putExtra(EXTRA_TYPE, type)
                 .putExtra(EXTRA_USED, used)
+                .putExtra(EXTRA_TOTAL, totalTodayMs)
                 .putExtra(EXTRA_LIMIT, limit)
                 .putExtra(EXTRA_SECONDS, seconds)
                 .putExtra(EXTRA_AMOLED, amoled)

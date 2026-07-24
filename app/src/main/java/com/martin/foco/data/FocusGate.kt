@@ -21,7 +21,7 @@ fun LauncherSettings.focusActiveAt(nowMs: Long, weekday: Int, minuteOfDay: Int):
 
 /**
  * Decides what happens when [pkg] is opened. Priority: active focus session (firm) → daily limit
- * (soft) → friction (soft). The limit branch needs a real [usedTodayMs] (usage permission).
+ * (firm) → friction (soft). The limit branch needs a real [usedTodayMs] (usage permission).
  */
 fun decideBlock(
     pkg: String,

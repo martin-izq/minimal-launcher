@@ -2,20 +2,17 @@ package com.martin.foco.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,8 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.martin.foco.R
 import com.martin.foco.data.FocusSession
 import com.martin.foco.data.minuteOfDayLabel
@@ -38,29 +37,34 @@ import java.time.DayOfWeek
 import java.time.format.TextStyle
 import java.util.Locale
 
-/** Firm block shown when trying to open a distracting app during an active focus session. */
+/**
+ * Firm full-screen block (on the [BlockScreen] scaffold) when trying to open a distracting app
+ * during an active focus session. No countdown and no escape hatch — the pause is on purpose.
+ */
 @Composable
 fun FocusBlockDialog(
     appLabel: String,
     onDismiss: () -> Unit,
 ) {
-    MinimalDialog(onDismiss) {
-        DialogTitle(stringResource(R.string.focus_block_title, appLabel))
-        DialogBody(stringResource(R.string.focus_block_body))
-        DialogActions {
-            DialogButton(stringResource(R.string.common_done), onClick = onDismiss)
-        }
+    BlockScreen(
+        kicker = stringResource(R.string.focus_kicker),
+        appLabel = appLabel,
+        onBack = onDismiss,
+    ) {
+        BlockBody(stringResource(R.string.focus_block_body))
+        Spacer(Modifier.weight(1f))
+        BlockPrimaryAction(stringResource(R.string.common_done), onClick = onDismiss)
     }
 }
 
 /**
- * Quick focus control as a minimal bottom sheet (matching the app-options sheet): start manual
- * focus for a duration, resume a skipped scheduled session, or exit the current focus. Dismiss by
- * swiping down.
+ * Quick focus control as a full-screen surface on the [BlockScreen] scaffold — same brand language
+ * as the friction/limit/focus block screens (breathing warm glow, thin display type, tracked
+ * kicker). Depending on state it starts manual focus for a duration, resumes a skipped scheduled
+ * session, or exits the current focus. Back dismisses.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FocusControlSheet(
+fun FocusControlScreen(
     active: Boolean,
     locked: Boolean,
     allowIndefinite: Boolean,
@@ -71,64 +75,53 @@ fun FocusControlSheet(
     onStop: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState()) {
-        Column(Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
-            Text(
-                stringResource(if (active) R.string.focus_control_active else R.string.focus_control_start),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 8.dp, bottom = 8.dp),
-            )
-            when {
-                // Strict mode: locked until it ends — no exit.
-                active && locked -> Text(
-                    stringResource(R.string.focus_locked_msg, untilLabel ?: ""),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 4.dp, bottom = 12.dp),
+    BlockScreen(
+        kicker = stringResource(R.string.focus_control_kicker),
+        appLabel = stringResource(if (active) R.string.focus_control_active else R.string.focus_control_start),
+        onBack = onDismiss,
+    ) {
+        when {
+            // Strict mode: locked until it ends — no exit, just acknowledge and close.
+            active && locked -> {
+                BlockBody(stringResource(R.string.focus_locked_msg, untilLabel ?: ""))
+                Spacer(Modifier.weight(1f))
+                BlockPrimaryAction(stringResource(R.string.common_done), onClick = onDismiss)
+            }
+            // Active focus: exit is the (destructive) prominent action; staying is the quiet one.
+            active -> {
+                if (untilLabel != null) BlockBody(stringResource(R.string.home_focus_indicator, untilLabel))
+                Spacer(Modifier.weight(1f))
+                BlockPrimaryAction(stringResource(R.string.focus_control_exit), destructive = true, onClick = onStop)
+                BlockQuietAction(stringResource(R.string.focus_keep), onClick = onDismiss)
+            }
+            // Inactive: pick a duration (giant warm number + slider) and start.
+            else -> {
+                var mins by remember { mutableIntStateOf(30) }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    mins.toString(),
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontSize = 88.sp,
+                        fontWeight = FontWeight.Light,
+                    ),
+                    color = FocusWarm,
                 )
-                active -> FocusSheetItem(stringResource(R.string.focus_control_exit), destructive = true) { onStop() }
-                else -> {
-                    if (canResume) FocusSheetItem(stringResource(R.string.focus_resume_scheduled)) { onResume() }
-                    var mins by remember { mutableIntStateOf(30) }
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 10.dp)) {
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                stringResource(R.string.focus_duration),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                stringResource(R.string.focus_minutes_value, mins),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.secondary,
-                            )
-                        }
-                        MinimalSlider(mins, 5, 120) { mins = it }
-                    }
-                    FocusSheetItem(stringResource(R.string.focus_start_dur, mins)) { onStart(mins) }
-                    if (allowIndefinite) FocusSheetItem(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
+                Text(
+                    stringResource(R.string.focus_min_label).uppercase(Locale.getDefault()),
+                    style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 3.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(28.dp))
+                Box(Modifier.width(240.dp)) {
+                    MinimalSlider(mins, 5, 120) { mins = it }
                 }
+                Spacer(Modifier.weight(1f))
+                BlockPrimaryAction(stringResource(R.string.focus_start_dur, mins), onClick = { onStart(mins) })
+                if (allowIndefinite) BlockQuietAction(stringResource(R.string.focus_dur_until_off)) { onStart(null) }
+                if (canResume) BlockQuietAction(stringResource(R.string.focus_resume_scheduled), onClick = onResume)
             }
         }
     }
-}
-
-@Composable
-private fun FocusSheetItem(text: String, destructive: Boolean = false, onClick: () -> Unit) {
-    Text(
-        text,
-        style = MaterialTheme.typography.bodyLarge,
-        color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickableText(onClick)
-            .padding(horizontal = 28.dp, vertical = 14.dp),
-    )
 }
 
 /** Editor for a focus session: start/end times (spin wheels) and active weekdays. */

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -194,7 +193,7 @@ fun AppDrawer(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
+            .stableStatusBarsPadding()
             .imePadding()
             .then(swipeDownModifier),
     ) {
@@ -206,8 +205,8 @@ fun AppDrawer(
                 headerAlign = headerAlign,
                 textAlign = textAlign,
             )
-        } else if (s.drawerTopSpace > 0) {
-            Spacer(Modifier.height(s.drawerTopSpace.dp))
+        } else {
+            Spacer(Modifier.height(maxOf(s.drawerTopSpace, SCREEN_TOP_OFFSET_DP).dp))
         }
 
         if (!s.searchBarBottom) {
@@ -311,11 +310,7 @@ fun AppDrawer(
     }
 }
 
-/**
- * Top area of the drawer: the configurable title at a fixed size. With enough top space the title
- * is centered vertically within it; below a small threshold it falls back to the previous layout
- * (top spacer + title just above the list). With no title, the empty space is preserved.
- */
+/** Top area of the drawer: the configurable title, with the configured top space above it. */
 @Composable
 private fun DrawerHeader(
     state: LauncherUiState,
@@ -323,45 +318,24 @@ private fun DrawerHeader(
     textAlign: TextAlign,
 ) {
     val s = state.settings
-    val topSpace = s.drawerTopSpace.dp
-    if (!s.drawerShowTitle) {
-        if (s.drawerTopSpace > 0) Spacer(Modifier.height(topSpace))
-        return
-    }
-    val title = s.drawerTitle.ifBlank { stringResource(R.string.drawer_default_title) }
+    // The configurable top space never goes below the shared base offset of titled screens.
+    Spacer(Modifier.height(maxOf(s.drawerTopSpace, SCREEN_TOP_OFFSET_DP).dp))
+    if (!s.drawerShowTitle) return
 
-    // Below this, centering inside the strip would look cramped, so keep the old behavior.
-    if (topSpace < 72.dp) {
-        if (s.drawerTopSpace > 0) Spacer(Modifier.height(topSpace))
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 8.dp),
-            horizontalAlignment = headerAlign,
-        ) {
-            DrawerTitleText(title, textAlign)
-        }
-    } else {
-        val boxAlign = when (headerAlign) {
-            Alignment.CenterHorizontally -> Alignment.Center
-            Alignment.End -> Alignment.CenterEnd
-            else -> Alignment.CenterStart
-        }
-        Box(
-            modifier = Modifier.fillMaxWidth().height(topSpace).padding(horizontal = 28.dp),
-            contentAlignment = boxAlign,
-        ) {
-            DrawerTitleText(title, textAlign)
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 28.dp, vertical = 8.dp),
+        horizontalAlignment = headerAlign,
+    ) {
+        val title = s.drawerTitle.ifBlank { stringResource(R.string.drawer_default_title) }
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = textAlign,
+        )
     }
-}
-
-@Composable
-private fun DrawerTitleText(title: String, textAlign: TextAlign) {
-    Text(
-        title,
-        style = MaterialTheme.typography.headlineMedium,
-        color = MaterialTheme.colorScheme.onBackground,
-        textAlign = textAlign,
-    )
 }
 
 /** App search field. */

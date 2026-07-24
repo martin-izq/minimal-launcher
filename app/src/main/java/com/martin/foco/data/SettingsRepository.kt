@@ -35,9 +35,11 @@ data class LauncherSettings(
     val dndInFocus: Boolean = true,     // turn on Do Not Disturb during focus
     val strictFocus: Boolean = false,   // once started with a fixed time, focus can't be exited early
     val enforceBlocks: Boolean = true,  // enforce focus/limit/friction blocks system-wide (needs accessibility)
+    val sessionIdleMinutes: Int = 5,    // system-wide friction: how long a sitting survives a neutral detour
+    val limitWarnMinutes: Int = 1,      // heads-up before a daily limit runs out mid-use (0 = no warning)
     val showClock: Boolean = true,
     val showDate: Boolean = true,
-    val showBattery: Boolean = true,
+    val showBattery: Boolean = false,
     val showScreenTimeHome: Boolean = true,
     val frictionEnabled: Boolean = true,
     val frictionSeconds: Int = 10,
@@ -64,7 +66,7 @@ data class LauncherSettings(
     val alphabetIndex: Boolean = true, // alphabet scrubber on the side
     val scrubberWidth: Int = 49,       // touch band width of the scrubber, in dp
     val searchBarBottom: Boolean = false, // false = search bar on top, true = bottom
-    val drawerTopSpace: Int = 152,     // extra space above the drawer content, in dp
+    val drawerTopSpace: Int = 0,       // extra space above the drawer content, in dp
     val drawerShowTitle: Boolean = true,
     val drawerTitle: String = "",      // blank → localized default "Apps"
     // Quick-launch app (swipe toward quickLaunchDir)
@@ -91,6 +93,7 @@ fun LauncherSettings.gated(isPro: Boolean): LauncherSettings {
     if (isPro) return this
     val d = LauncherSettings()
     return copy(
+        showBattery = d.showBattery,
         hideStatusBar = d.hideStatusBar,
         showNotificationBadges = d.showNotificationBadges,
         widgetsDir = d.widgetsDir,
@@ -124,6 +127,8 @@ class SettingsRepository(private val context: Context) {
         val DND_IN_FOCUS = booleanPreferencesKey("dnd_in_focus")
         val STRICT_FOCUS = booleanPreferencesKey("strict_focus")
         val ENFORCE_BLOCKS = booleanPreferencesKey("enforce_blocks")
+        val SESSION_IDLE_MIN = intPreferencesKey("session_idle_min")
+        val LIMIT_WARN_MIN = intPreferencesKey("limit_warn_min")
         val SHOW_CLOCK = booleanPreferencesKey("show_clock")
         val SHOW_DATE = booleanPreferencesKey("show_date")
         val SHOW_BATTERY = booleanPreferencesKey("show_battery")
@@ -201,9 +206,11 @@ class SettingsRepository(private val context: Context) {
             dndInFocus = p[Keys.DND_IN_FOCUS] ?: true,
             strictFocus = p[Keys.STRICT_FOCUS] ?: false,
             enforceBlocks = p[Keys.ENFORCE_BLOCKS] ?: true,
+            sessionIdleMinutes = p[Keys.SESSION_IDLE_MIN] ?: 5,
+            limitWarnMinutes = p[Keys.LIMIT_WARN_MIN] ?: 1,
             showClock = p[Keys.SHOW_CLOCK] ?: true,
             showDate = p[Keys.SHOW_DATE] ?: true,
-            showBattery = p[Keys.SHOW_BATTERY] ?: true,
+            showBattery = p[Keys.SHOW_BATTERY] ?: false,
             showScreenTimeHome = p[Keys.SHOW_ST_HOME] ?: true,
             frictionEnabled = p[Keys.FRICTION] ?: true,
             frictionSeconds = p[Keys.FRICTION_SECONDS] ?: 10,
@@ -225,7 +232,7 @@ class SettingsRepository(private val context: Context) {
             alphabetIndex = p[Keys.ALPHABET_INDEX] ?: true,
             scrubberWidth = p[Keys.SCRUBBER_WIDTH] ?: 49,
             searchBarBottom = p[Keys.SEARCH_BAR_BOTTOM] ?: false,
-            drawerTopSpace = p[Keys.DRAWER_TOP_SPACE] ?: 152,
+            drawerTopSpace = p[Keys.DRAWER_TOP_SPACE] ?: 0,
             drawerShowTitle = p[Keys.DRAWER_SHOW_TITLE] ?: true,
             drawerTitle = p[Keys.DRAWER_TITLE] ?: "",
             quickLaunchPackage = p[Keys.QUICK_LAUNCH_PKG],
@@ -296,6 +303,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setDndInFocus(v: Boolean) = putBool(Keys.DND_IN_FOCUS, v)
     suspend fun setStrictFocus(v: Boolean) = putBool(Keys.STRICT_FOCUS, v)
     suspend fun setEnforceBlocks(v: Boolean) = putBool(Keys.ENFORCE_BLOCKS, v)
+    suspend fun setSessionIdleMinutes(v: Int) = context.dataStore.edit { it[Keys.SESSION_IDLE_MIN] = v }
+    suspend fun setLimitWarnMinutes(v: Int) = context.dataStore.edit { it[Keys.LIMIT_WARN_MIN] = v }
 
     /** Overwrites all preferences from an imported [LauncherSettings] (backup restore). */
     suspend fun importSettings(s: LauncherSettings) = context.dataStore.edit { p ->
@@ -309,6 +318,8 @@ class SettingsRepository(private val context: Context) {
         p[Keys.DND_IN_FOCUS] = s.dndInFocus
         p[Keys.STRICT_FOCUS] = s.strictFocus
         p[Keys.ENFORCE_BLOCKS] = s.enforceBlocks
+        p[Keys.SESSION_IDLE_MIN] = s.sessionIdleMinutes
+        p[Keys.LIMIT_WARN_MIN] = s.limitWarnMinutes
         p[Keys.MANUAL_FOCUS_UNTIL] = 0L   // don't restore transient focus state
         p[Keys.FOCUS_SKIP_UNTIL] = 0L
         p[Keys.SHOW_CLOCK] = s.showClock

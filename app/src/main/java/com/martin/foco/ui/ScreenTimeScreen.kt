@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,7 +43,7 @@ fun ScreenTimeScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .statusBarsPadding()
+            .stableStatusBarsPadding()
             .padding(horizontal = 24.dp),
     ) {
         ScreenHeader(stringResource(R.string.screentime_title), onBack)

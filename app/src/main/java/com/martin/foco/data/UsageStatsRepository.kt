@@ -4,7 +4,9 @@ import android.app.AppOpsManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.Intent
 import android.os.Process
+import android.provider.Settings
 import java.util.Calendar
 import java.util.Locale
 
@@ -23,6 +25,20 @@ class UsageStatsRepository(private val context: Context) {
 
     private val usm: UsageStatsManager
         get() = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+
+    // Neither the launcher itself nor system Settings are meaningful "usage"; keep them out of
+    // every total so they don't inflate screen time.
+    @Suppress("DEPRECATION") // resolveActivity(Intent, Int): the ResolveInfoFlags overload is API 33+.
+    private val excludedPackages: Set<String> by lazy {
+        buildSet {
+            add(context.packageName)
+            context.packageManager
+                .resolveActivity(Intent(Settings.ACTION_SETTINGS), 0)
+                ?.activityInfo?.packageName
+                ?.let { add(it) }
+            add("com.android.settings")
+        }
+    }
 
     fun hasPermission(): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
@@ -57,6 +73,16 @@ class UsageStatsRepository(private val context: Context) {
         )
     }
 
+    /**
+     * Just today's foreground ms per package — the part of [snapshot] the focus guard needs. Skips
+     * the weekly aggregate (6 extra queries), so it's cheap enough to poll while an app is in use.
+     */
+    fun perAppToday(): Map<String, Long> {
+        if (!hasPermission()) return emptyMap()
+        val now = System.currentTimeMillis()
+        return todayStats(startOfDayMillis(now), now).first
+    }
+
     /** Foreground ms per package and unlock count for [start, end], computed from UsageEvents. */
     @Suppress("DEPRECATION") // MOVE_TO_* are API 21+; ACTIVITY_* equivalents are only API 29+.
     private fun todayStats(start: Long, end: Long): Pair<Map<String, Long>, Int> {
@@ -68,6 +94,7 @@ class UsageStatsRepository(private val context: Context) {
         while (events.hasNextEvent()) {
             events.getNextEvent(e)
             val pkg = e.packageName ?: continue
+            if (pkg in excludedPackages && e.eventType != UsageEvents.Event.KEYGUARD_HIDDEN) continue
             when (e.eventType) {
                 UsageEvents.Event.MOVE_TO_FOREGROUND -> resumeAt[pkg] = e.timeStamp
                 UsageEvents.Event.MOVE_TO_BACKGROUND -> {
@@ -99,7 +126,8 @@ class UsageStatsRepository(private val context: Context) {
             // Today reuses the precise event-based total; past full days use the cheaper aggregate.
             val total = if (offset == 0) todayTotalMs
             else usm.queryAndAggregateUsageStats(dayStart, dayEnd)
-                .values.sumOf { it.totalTimeInForeground }
+                .values.filter { it.packageName !in excludedPackages }
+                .sumOf { it.totalTimeInForeground }
             // Localized short weekday name (e.g. "Mon" / "lun").
             val label = cal.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, locale).orEmpty()
             out.add(DayUsage(label, total))

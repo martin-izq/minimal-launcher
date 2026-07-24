@@ -19,24 +19,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -144,17 +139,16 @@ fun SettingsScreen(
         Column(
             Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
+                .stableStatusBarsPadding()
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(Modifier.height(8.dp))
             ScreenHeader(stringResource(R.string.settings_title), onBack)
 
             Section(stringResource(R.string.settings_section_home), initiallyExpanded = true) {
                 ToggleRow(stringResource(R.string.settings_clock), s.showClock, vm::setShowClock)
                 ToggleRow(stringResource(R.string.settings_date), s.showDate, vm::setShowDate)
-                ToggleRow(stringResource(R.string.settings_battery), s.showBattery, vm::setShowBattery)
+                ToggleRow(stringResource(R.string.settings_battery), s.showBattery, vm::setShowBattery, locked = lockPro)
                 ToggleRow(stringResource(R.string.settings_screentime_summary), s.showScreenTimeHome, vm::setShowScreenTimeHome)
                 ToggleRow(stringResource(R.string.settings_hide_status_bar), s.hideStatusBar, vm::setHideStatusBar, locked = lockPro)
                 ActionRow(
@@ -294,6 +288,31 @@ fun SettingsScreen(
                         title = stringResource(R.string.settings_enforce_blocks_grant),
                         subtitle = stringResource(R.string.settings_enforce_blocks_hint),
                         onClick = { openAccessibilitySettings(context) },
+                    )
+                }
+                if (s.enforceBlocks) {
+                    LabeledSlider(
+                        stringResource(R.string.settings_session_idle),
+                        stringResource(R.string.focus_minutes_value, s.sessionIdleMinutes),
+                        s.sessionIdleMinutes, 1, 30, vm::setSessionIdleMinutes,
+                    )
+                    Text(
+                        stringResource(R.string.settings_session_idle_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                    LabeledSlider(
+                        stringResource(R.string.settings_limit_warn),
+                        if (s.limitWarnMinutes == 0) stringResource(R.string.settings_limit_warn_off)
+                        else stringResource(R.string.focus_minutes_value, s.limitWarnMinutes),
+                        s.limitWarnMinutes, 0, 10, vm::setLimitWarnMinutes,
+                    )
+                    Text(
+                        stringResource(R.string.settings_limit_warn_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp),
                     )
                 }
                 ToggleRow(
@@ -490,6 +509,11 @@ fun SettingsScreen(
             if (BuildConfig.DEBUG) {
                 Section("Developer") {
                     ToggleRow("Pro unlocked (dev)", s.pro, vm::setPro)
+                    ActionRow(
+                        title = "Replay onboarding (dev)",
+                        subtitle = "Show the first-run wizard again",
+                        onClick = { vm.setOnboarded(false) },
+                    )
                 }
             }
 
@@ -518,44 +542,23 @@ fun SettingsScreen(
     }
 
     if (showAppPicker.value) {
-        ModalBottomSheet(
-            onDismissRequest = { showAppPicker.value = false },
-            sheetState = rememberModalBottomSheetState(),
-        ) {
-            Text(
-                stringResource(R.string.settings_quick_choose),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-            )
-            LazyColumn(Modifier.fillMaxWidth()) {
-                items(state.allApps.sortedBy { it.originalLabel.lowercase() }) { app ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickableText {
-                                vm.setQuickLaunchPackage(app.packageName)
-                                showAppPicker.value = false
-                            }
-                            .padding(horizontal = 20.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            app.originalLabel,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        if (app.packageName == s.quickLaunchPackage) {
-                            Text(
-                                "✓",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
+        MinimalMenuList(onDismiss = { showAppPicker.value = false }) {
+            item {
+                MenuHeader(
+                    kicker = stringResource(R.string.settings_quick_kicker),
+                    title = stringResource(R.string.settings_quick_choose),
+                )
+            }
+            items(state.allApps.sortedBy { it.originalLabel.lowercase() }) { app ->
+                val selected = app.packageName == s.quickLaunchPackage
+                MenuItem(
+                    text = app.originalLabel,
+                    trailing = if (selected) "✓" else null,
+                    accent = selected,
+                ) {
+                    vm.setQuickLaunchPackage(app.packageName)
+                    showAppPicker.value = false
                 }
-                item { Spacer(Modifier.height(32.dp)) }
             }
         }
     }
@@ -822,16 +825,14 @@ private fun SegmentedSelector(
     }
 }
 
-/** Bottom sheet pitching Foco Full when a locked control is tapped. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Centered card pitching Foco Full when a locked control is tapped. */
 @Composable
 private fun ProUpsellSheet(onDismiss: () -> Unit, onUnlock: () -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState()) {
+    MinimalMenu(onDismiss) {
         Column(
             Modifier
-                .navigationBarsPadding()
                 .padding(horizontal = 28.dp)
-                .padding(bottom = 24.dp),
+                .padding(top = 4.dp, bottom = 12.dp),
         ) {
             ProPill()
             Spacer(Modifier.height(14.dp))

@@ -15,11 +15,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.martin.foco.ui.theme.FocusWarm
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -49,6 +55,110 @@ fun MinimalDialog(onDismiss: () -> Unit, content: @Composable ColumnScope.() -> 
                 .padding(horizontal = 24.dp, vertical = 22.dp),
             content = content,
         )
+    }
+}
+
+/**
+ * Minimal menu: a centered near-black card (same surface as [MinimalDialog]) that replaces bottom
+ * sheets for compact action sets. It stays put in the center instead of sliding up from the bottom,
+ * matching the app's dialog language. Content is passed through as a scrollable Column so a tall
+ * menu degrades gracefully on small screens. Pair with [MenuHeader] + [MenuItem].
+ */
+@Composable
+fun MinimalMenu(onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 12.dp),
+            content = content,
+        )
+    }
+}
+
+/**
+ * Like [MinimalMenu] but for long, scrollable lists (widget / app pickers): a height-capped card
+ * holding a LazyColumn. Put the [MenuHeader] as the first `item { }`.
+ */
+@Composable
+fun MinimalMenuList(onDismiss: () -> Unit, content: LazyListScope.() -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        LazyColumn(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(max = 480.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentPadding = PaddingValues(vertical = 12.dp),
+            content = content,
+        )
+    }
+}
+
+/** Menu header: an uppercase tracked kicker over a title, echoing the settings section labels. */
+@Composable
+fun MenuHeader(kicker: String, title: String) {
+    Column(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 4.dp, bottom = 12.dp)) {
+        Text(
+            kicker.uppercase(),
+            style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.8.sp),
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        Text(
+            title,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(top = 3.dp),
+        )
+    }
+}
+
+/**
+ * Unified menu row: a primary label with an optional secondary line (below) or trailing value.
+ * [accent] paints it in the warm focus amber; [destructive] in the error color.
+ */
+@Composable
+fun MenuItem(
+    text: String,
+    modifier: Modifier = Modifier,
+    secondary: String? = null,
+    trailing: String? = null,
+    destructive: Boolean = false,
+    accent: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val tint = when {
+        destructive -> MaterialTheme.colorScheme.error
+        accent -> FocusWarm
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clickableText(onClick)
+            .padding(horizontal = 28.dp, vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(text, style = MaterialTheme.typography.bodyLarge, color = tint)
+            if (secondary != null) {
+                Text(
+                    secondary,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+            }
+        }
+        if (trailing != null) {
+            Text(
+                trailing,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (accent) FocusWarm else MaterialTheme.colorScheme.secondary,
+            )
+        }
     }
 }
 

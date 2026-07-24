@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -154,7 +153,7 @@ fun HomeScreen(
                 if (quickLaunchDir == DIR_UP) translationY = quickOffset
                 else translationX = quickOffset
             }
-            .statusBarsPadding()
+            .stableStatusBarsPadding()
             .pointerInput(Unit) {
                 val thresholdPx = 60.dp.toPx()
                 val slop = viewConfiguration.touchSlop
@@ -391,7 +390,7 @@ fun HomeScreen(
             Text(
                 "$swipeArrow  ${stringResource(R.string.home_swipe_hint)}",
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.colorScheme.secondary,
             )
         }
         Spacer(Modifier.height(24.dp))

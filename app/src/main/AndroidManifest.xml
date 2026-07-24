@@ -35,12 +35,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Foco">
 
+        <!-- excludeFromRecents: un launcher nunca debe aparecer como tarjeta en el conmutador de
+             apps. El sistema oculta la tarea del home por defecto, pero un arranque explícito
+             (p. ej. el goHome() de BlockActivity) puede hacerla aflorar en algunos OEMs. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:clearTaskOnLaunch="true"
             android:stateNotNeeded="true"
+            android:excludeFromRecents="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.Foco">
