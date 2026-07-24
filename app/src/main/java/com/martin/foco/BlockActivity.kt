@@ -78,14 +78,23 @@ class BlockActivity : ComponentActivity() {
         }
     }
 
+    // Set by the deliberate exits so onDestroy doesn't release the guard a second time. The release
+    // must happen *before* finish() on those paths: the system reveals the app underneath — and
+    // delivers its window event to the guard — before this activity's onDestroy runs, so re-arming
+    // only in onDestroy is too late. The reveal would hit `pkg == currentApp` and be swallowed as
+    // "same app", leaving the live limit watch dead and the friction sitting never reopened.
+    private var released = false
+
     /** Let the user into the app they chose — a one-shot bridge so the guard doesn't re-block the open. */
     private fun openAnyway(pkg: String) {
         FocusGuard.grantBridge(pkg)
+        releaseGuard()
         finish()
     }
 
     /** Bounce out of the blocked app. */
     private fun goHome() {
+        releaseGuard()
         runCatching {
             startActivity(
                 Intent(Intent.ACTION_MAIN)
@@ -94,6 +103,18 @@ class BlockActivity : ComponentActivity() {
             )
         }
         finish()
+    }
+
+    /**
+     * Drop the "a block is on screen" latch and re-arm the guard's switch tracker, so the app's
+     * reveal after this finishes counts as a fresh entry — consuming the bridge, reopening the
+     * sitting and restarting the live limit watch. Done before finish() so it wins the race with the
+     * reveal event; idempotent, and marks the exit so onDestroy won't re-arm on top of it.
+     */
+    private fun releaseGuard() {
+        released = true
+        FocusGuard.showingFor = null
+        NotificationAccessibilityService.rearmTracker()
     }
 
     override fun onStop() {
@@ -106,10 +127,10 @@ class BlockActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        FocusGuard.showingFor = null
-        // Whichever way the block closed, re-arm the switch tracker so re-entering the app is
-        // re-evaluated (and re-blocked unless the user earned a grace via "open anyway").
-        NotificationAccessibilityService.rearmTracker()
+        // Only the abandoned path (system/back closed it without openAnyway/goHome) still needs
+        // this; the deliberate exits already released the guard before finishing, and re-arming
+        // again here would null out the tracker the reveal event just re-established.
+        if (!released) releaseGuard()
     }
 
     companion object {

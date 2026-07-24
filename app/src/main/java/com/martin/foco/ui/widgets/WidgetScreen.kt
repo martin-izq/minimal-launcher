@@ -73,6 +73,12 @@ fun WidgetScreen(
     // Removing the last widget leaves nothing to edit, so the mode shouldn't survive it.
     val inEditMode = editing && controller != null && placements.isNotEmpty()
 
+    // Reset the underlying flag too, not just the derived one: otherwise adding a widget later would
+    // silently re-enter edit mode (inEditMode would flip back to true on its own).
+    LaunchedEffect(placements.isEmpty()) {
+        if (placements.isEmpty()) editing = false
+    }
+
     // Leaving edit mode is what back should do first, before leaving the screen.
     BackHandler(enabled = inEditMode) { editing = false }
 
