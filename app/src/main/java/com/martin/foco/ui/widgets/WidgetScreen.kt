@@ -48,6 +48,7 @@ import com.martin.foco.ui.MinimalMenu
 import com.martin.foco.ui.SCREEN_TOP_OFFSET_DP
 import com.martin.foco.ui.clickableText
 import com.martin.foco.ui.stableStatusBarsPadding
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 
 /**
